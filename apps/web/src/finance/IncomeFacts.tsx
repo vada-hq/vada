@@ -9,13 +9,13 @@ export function IncomeFacts({ income }: { income: IncomeDetail }) {
   return (
     <div className="flex flex-col gap-2">
       <div className="flex flex-wrap items-center gap-2">
-        <span className="text-base font-semibold text-gray-900">{wonLabel(income.amount)}</span>
+        <span className="text-base font-semibold text-fg">{wonLabel(income.amount)}</span>
         {income.cancelled && <Badge>취소됨</Badge>}
       </div>
       {income.description && (
-        <p className="text-sm wrap-anywhere text-gray-800">{income.description}</p>
+        <p className="text-sm wrap-anywhere text-fg-body">{income.description}</p>
       )}
-      <div className="flex flex-col gap-1 text-xs text-gray-500">
+      <div className="flex flex-col gap-1 text-xs text-fg-muted">
         <span>
           {SOURCE_LABEL[income.source]} · {monthDay(income.receivedOn)}
         </span>

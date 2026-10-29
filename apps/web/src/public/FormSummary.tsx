@@ -10,14 +10,14 @@ export default function FormSummary({ data }: { data: PublicRegistrationForm }) 
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-1">
-        <p className="text-xs text-gray-500 wrap-anywhere">{data.councilName}</p>
-        <h1 className="text-lg font-bold break-keep text-gray-900 wrap-anywhere">{event.name}</h1>
+        <p className="text-xs text-fg-muted wrap-anywhere">{data.councilName}</p>
+        <h1 className="text-lg font-bold break-keep text-fg wrap-anywhere">{event.name}</h1>
         {form.name !== DEFAULT_FORM_NAME && (
-          <p className="text-sm text-gray-700 wrap-anywhere">{form.name}</p>
+          <p className="text-sm text-fg-secondary wrap-anywhere">{form.name}</p>
         )}
       </div>
       {data.remaining !== null && data.status === 'open' && (
-        <span className="text-xs text-gray-500">남은 자리 {data.remaining}</span>
+        <span className="text-xs text-fg-muted">남은 자리 {data.remaining}</span>
       )}
       <dl className="flex flex-col gap-3">
         {/* 받는 중일 때만. 받지 않을 때는 신청 불가 카드가 보인다. 마감이 빈 것은 만드는 중인 미리보기뿐이다. */}
@@ -29,7 +29,7 @@ export default function FormSummary({ data }: { data: PublicRegistrationForm }) 
         <Fact label="참가비">{feeText(data)}</Fact>
       </dl>
       {form.notice && (
-        <p className="rounded-md bg-gray-50 p-3 text-sm break-keep whitespace-pre-wrap text-gray-700 wrap-anywhere">
+        <p className="rounded-md bg-surface-subtle p-3 text-sm break-keep whitespace-pre-wrap text-fg-secondary wrap-anywhere">
           {form.notice}
         </p>
       )}

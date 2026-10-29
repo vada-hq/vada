@@ -47,11 +47,8 @@ function GreetingText({
 }: Pick<Props, 'today'> & { title: string; titleId: string }) {
   return (
     <div className="min-w-0">
-      <p className="text-xs text-gray-500">{greetingDate(today)}</p>
-      <h2
-        id={titleId}
-        className="mt-0.5 text-lg font-semibold break-keep text-gray-900 wrap-anywhere"
-      >
+      <p className="text-xs text-fg-muted">{greetingDate(today)}</p>
+      <h2 id={titleId} className="mt-0.5 text-lg font-semibold break-keep text-fg wrap-anywhere">
         {title}
       </h2>
     </div>
@@ -100,7 +97,7 @@ export default function HomeGreeting({ today, name, inbox, shortcuts, featured }
         {inbox}
         {shortcutRow(shortcuts)}
       </div>
-      <div aria-hidden className="hidden w-px self-stretch bg-gray-100 @2xl:block" />
+      <div aria-hidden className="hidden w-px self-stretch bg-border-subtle @2xl:block" />
       {/* 타일 칸은 위에 붙인다(읽기 전 '집계 전' 라벨이 가운데 떴다가 타일이 오면 위로 튀지 않게). */}
       <div className="min-w-0 flex-1 @2xl:self-start">{featured}</div>
     </section>

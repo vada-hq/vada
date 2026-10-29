@@ -74,7 +74,7 @@ function ClosingView({
       <div className="flex flex-wrap items-center gap-2">
         <ClosingStatusBadge status={closing.status} />
         {closing.publishedAt && (
-          <span className="text-xs text-gray-500">{monthDayTime(closing.publishedAt)} 공개</span>
+          <span className="text-xs text-fg-muted">{monthDayTime(closing.publishedAt)} 공개</span>
         )}
       </div>
       <ClosingActions closing={closing} change={change} canManage={canManage} />

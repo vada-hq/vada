@@ -42,7 +42,7 @@ export function InviteFields({ link, code, createdAt, notice, onCopy, children }
         mono
         onCopy={() => onCopy(code, 'code')}
       />
-      <p className="text-xs text-gray-500">만든 시각 {dayTimeLabel(createdAt)}</p>
+      <p className="text-xs text-fg-muted">만든 시각 {dayTimeLabel(createdAt)}</p>
       {children && <div className="flex flex-wrap gap-2">{children}</div>}
       {notice && (
         <StateMessage kind={INVITE_NOTICES[notice].kind}>
@@ -68,7 +68,7 @@ function CopyField({ label, value, copyLabel, mono = false, onCopy, children }: 
   const id = useId()
   return (
     <section aria-label={label} className="flex flex-col gap-2">
-      <Label htmlFor={id} className="text-sm font-semibold text-gray-900">
+      <Label htmlFor={id} className="text-sm font-semibold text-fg">
         {label}
       </Label>
       <Input
@@ -77,8 +77,8 @@ function CopyField({ label, value, copyLabel, mono = false, onCopy, children }: 
         value={value}
         className={
           mono
-            ? 'font-mono text-lg font-semibold tracking-widest text-gray-900'
-            : 'font-mono text-base text-gray-500 sm:text-xs'
+            ? 'font-mono text-lg font-semibold tracking-widest text-fg'
+            : 'font-mono text-base text-fg-muted sm:text-xs'
         }
         onFocus={event => event.currentTarget.select()}
       />

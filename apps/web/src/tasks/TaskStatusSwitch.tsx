@@ -13,14 +13,14 @@ type Props = {
 
 // 상태마다 색 점. 끝남은 초록, 진행 중은 파랑, 할 일은 회색이다(와이어프레임 상태 칩 색).
 const DOT: Record<TaskStatus, string> = {
-  todo: 'bg-gray-400',
-  in_progress: 'bg-blue-500',
-  done: 'bg-green-500',
+  todo: 'bg-fg-subtle',
+  in_progress: 'bg-primary-mark',
+  done: 'bg-success-mark',
 }
 const ACTIVE: Record<TaskStatus, string> = {
-  todo: 'text-gray-900',
-  in_progress: 'text-blue-700',
-  done: 'text-green-700',
+  todo: 'text-fg',
+  in_progress: 'text-primary-strong',
+  done: 'text-success',
 }
 
 // 상태 셋을 한 줄로 이은 단추 묶음(segmented control). 한 번 눌러 어느 상태로든 바꾼다(DEC-94 '상세에는 상태 단추 셋').
@@ -37,7 +37,7 @@ export function TaskStatusSwitch({ status, canChange, busy, onChange }: Props) {
     <div
       role="group"
       aria-label="상태"
-      className="inline-flex w-full rounded-md bg-gray-100 p-1 sm:w-auto"
+      className="inline-flex w-full rounded-md bg-surface-muted p-1 sm:w-auto"
     >
       {TASK_STATUSES.map(item => {
         const on = item === status
@@ -50,7 +50,7 @@ export function TaskStatusSwitch({ status, canChange, busy, onChange }: Props) {
             busy={busy}
             className={cn(
               'flex-1 gap-1.5 px-3 text-sm sm:flex-none',
-              on ? cn('bg-white shadow-sm hover:bg-white', ACTIVE[item]) : 'text-gray-500',
+              on ? cn('bg-white shadow-sm hover:bg-white', ACTIVE[item]) : 'text-fg-muted',
             )}
             onClick={() => {
               if (!on) onChange(item)
@@ -58,7 +58,7 @@ export function TaskStatusSwitch({ status, canChange, busy, onChange }: Props) {
           >
             <span
               aria-hidden
-              className={cn('size-2 rounded-full', on ? DOT[item] : 'bg-gray-300')}
+              className={cn('size-2 rounded-full', on ? DOT[item] : 'bg-fg-faint')}
             />
             {STATUS_LABEL[item]}
           </Button>

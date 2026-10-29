@@ -21,7 +21,7 @@ export function ExpenseFilterToggle(props: ComponentProps<typeof ExpenseFilters>
         onClick={() => setOpen(!open)}
       >
         <SlidersHorizontal aria-hidden />
-        필터 {count > 0 && <span className="text-blue-700 tabular-nums">{count}</span>}
+        필터 {count > 0 && <span className="text-primary-strong tabular-nums">{count}</span>}
       </Button>
       <ExpenseFilters {...props} id={id} hidden={!open} />
     </div>

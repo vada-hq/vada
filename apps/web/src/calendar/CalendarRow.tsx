@@ -26,15 +26,15 @@ export function CalendarRow({
         variant="ghost"
         touch
         aria-label={title}
-        className="h-auto w-full min-w-0 justify-start gap-3 px-4 py-3 text-left break-keep whitespace-normal hover:bg-gray-50"
+        className="h-auto w-full min-w-0 justify-start gap-3 px-4 py-3 text-left break-keep whitespace-normal hover:bg-surface-subtle"
         onClick={() => onOpen(item.target)}
       >
         <Icon aria-hidden className={cn('self-start', text)} />
         <span className="flex min-w-0 flex-1 flex-col gap-1">
-          <span className="line-clamp-2 text-sm font-medium text-gray-900 wrap-anywhere sm:line-clamp-none">
+          <span className="line-clamp-2 text-sm font-medium text-fg wrap-anywhere sm:line-clamp-none">
             {title}
           </span>
-          <span className="text-xs font-normal text-gray-500 wrap-anywhere">
+          <span className="text-xs font-normal text-fg-muted wrap-anywhere">
             <span className={text}>{CALENDAR_KIND_LABELS[item.kind]}</span>
             {' · '}
             <span className="tabular-nums">
@@ -45,7 +45,7 @@ export function CalendarRow({
           </span>
         </span>
         {item.overdue && (
-          <span className="flex shrink-0 items-center gap-1 self-start text-xs text-red-700">
+          <span className="flex shrink-0 items-center gap-1 self-start text-xs text-danger">
             <CircleAlert aria-hidden />
             지남
           </span>

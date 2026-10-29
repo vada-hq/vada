@@ -53,7 +53,7 @@ function Preview() {
           </NativeSelect>
         </label>
       </div>
-      <div className="relative -mx-4 flex h-112 w-screen flex-col overflow-hidden border bg-gray-50 sm:mx-0 sm:w-full">
+      <div className="relative -mx-4 flex h-112 w-screen flex-col overflow-hidden border bg-surface-subtle sm:mx-0 sm:w-full">
         <WorkspaceFrame
           sidebar={() => <SampleSidebar unread={count} active={active} inSheet={open} />}
           navOpen={open}

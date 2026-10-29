@@ -24,14 +24,14 @@ export function EmptyState({
     <div className={cn('flex flex-col items-center px-6 py-16 text-center', className)}>
       <span
         className={cn(
-          'mb-5 flex size-14 items-center justify-center rounded-full bg-blue-50 text-blue-600',
+          'mb-5 flex size-14 items-center justify-center rounded-full bg-primary-surface text-primary-emphasis',
           iconClassName,
         )}
       >
         <Icon aria-hidden className="size-6" />
       </span>
-      <p className="text-sm font-bold text-gray-900">{title}</p>
-      {description && <p className="mt-2 text-xs/6 text-gray-500">{description}</p>}
+      <p className="text-sm font-bold text-fg">{title}</p>
+      {description && <p className="mt-2 text-xs/6 text-fg-muted">{description}</p>}
       {children && <div className="mt-5">{children}</div>}
     </div>
   )

@@ -3,12 +3,12 @@
 exports[`복사가 막혔을 때 1`] = `
 "<div>
 <div class="flex flex-col gap-3">
-<div data-slot="alert" class="rounded-md border p-3 text-xs wrap-anywhere border-yellow-200 bg-yellow-50 text-yellow-700">카카오톡 안에서는 Google 로그인이 막혀 있어요. 바깥 브라우저로 열어 주세요.</div>
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-primary text-primary-foreground hover:bg-blue-700 px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11">바깥 브라우저로 열기</button>
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11">주소 복사</button>
+<div data-slot="alert" class="rounded-md border p-3 text-xs wrap-anywhere border-warning-border bg-warning-surface text-warning">카카오톡 안에서는 Google 로그인이 막혀 있어요. 바깥 브라우저로 열어 주세요.</div>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-primary text-primary-foreground hover:bg-primary-strong px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11">바깥 브라우저로 열기</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-fg-secondary hover:bg-surface-subtle px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11">주소 복사</button>
 <p role="alert" class="text-sm wrap-anywhere text-destructive">주소를 복사하지 못했어요. 아래 주소를 길게 눌러 복사해 주세요.</p>
-<p class="text-sm wrap-anywhere text-gray-900 select-all">https://vada.test/join/ABCD2345</p>
-<p class="text-xs text-gray-500">안 되면 오른쪽 위나 아래의 메뉴(··· 또는 ⋮)에서 '다른 브라우저로 열기'를 눌러 주세요.</p>
+<p class="text-sm wrap-anywhere text-fg select-all">https://vada.test/join/ABCD2345</p>
+<p class="text-xs text-fg-muted">안 되면 오른쪽 위나 아래의 메뉴(··· 또는 ⋮)에서 '다른 브라우저로 열기'를 눌러 주세요.</p>
 </div>
 </div>"
 `;
@@ -16,11 +16,11 @@ exports[`복사가 막혔을 때 1`] = `
 exports[`주소를 복사했을 때 1`] = `
 "<div>
 <div class="flex flex-col gap-3">
-<div data-slot="alert" class="rounded-md border p-3 text-xs wrap-anywhere border-yellow-200 bg-yellow-50 text-yellow-700">카카오톡 안에서는 Google 로그인이 막혀 있어요. 바깥 브라우저로 열어 주세요.</div>
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-primary text-primary-foreground hover:bg-blue-700 px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11">바깥 브라우저로 열기</button>
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11">주소 복사</button>
-<p role="status" class="text-sm wrap-anywhere text-gray-500">주소를 복사했어요. 사파리나 Chrome에 붙여 넣어 주세요.</p>
-<p class="text-xs text-gray-500">안 되면 오른쪽 위나 아래의 메뉴(··· 또는 ⋮)에서 '다른 브라우저로 열기'를 눌러 주세요.</p>
+<div data-slot="alert" class="rounded-md border p-3 text-xs wrap-anywhere border-warning-border bg-warning-surface text-warning">카카오톡 안에서는 Google 로그인이 막혀 있어요. 바깥 브라우저로 열어 주세요.</div>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-primary text-primary-foreground hover:bg-primary-strong px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11">바깥 브라우저로 열기</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-fg-secondary hover:bg-surface-subtle px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11">주소 복사</button>
+<p role="status" class="text-sm wrap-anywhere text-fg-muted">주소를 복사했어요. 사파리나 Chrome에 붙여 넣어 주세요.</p>
+<p class="text-xs text-fg-muted">안 되면 오른쪽 위나 아래의 메뉴(··· 또는 ⋮)에서 '다른 브라우저로 열기'를 눌러 주세요.</p>
 </div>
 </div>"
 `;
@@ -28,10 +28,10 @@ exports[`주소를 복사했을 때 1`] = `
 exports[`처음 안내 1`] = `
 "<div>
 <div class="flex flex-col gap-3">
-<div data-slot="alert" class="rounded-md border p-3 text-xs wrap-anywhere border-yellow-200 bg-yellow-50 text-yellow-700">카카오톡 안에서는 Google 로그인이 막혀 있어요. 바깥 브라우저로 열어 주세요.</div>
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-primary text-primary-foreground hover:bg-blue-700 px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11">바깥 브라우저로 열기</button>
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11">주소 복사</button>
-<p class="text-xs text-gray-500">안 되면 오른쪽 위나 아래의 메뉴(··· 또는 ⋮)에서 '다른 브라우저로 열기'를 눌러 주세요.</p>
+<div data-slot="alert" class="rounded-md border p-3 text-xs wrap-anywhere border-warning-border bg-warning-surface text-warning">카카오톡 안에서는 Google 로그인이 막혀 있어요. 바깥 브라우저로 열어 주세요.</div>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-primary text-primary-foreground hover:bg-primary-strong px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11">바깥 브라우저로 열기</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-fg-secondary hover:bg-surface-subtle px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11">주소 복사</button>
+<p class="text-xs text-fg-muted">안 되면 오른쪽 위나 아래의 메뉴(··· 또는 ⋮)에서 '다른 브라우저로 열기'를 눌러 주세요.</p>
 </div>
 </div>"
 `;

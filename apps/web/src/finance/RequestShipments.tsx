@@ -102,7 +102,7 @@ export function RequestShipments({ request, actions, ...props }: Props) {
   if (!request.canAddShipment && request.shipments.length === 0 && !actions.problem) return null
   return (
     <section aria-label="배송" className="flex flex-col gap-3">
-      <h3 className="text-sm font-medium text-gray-700">배송</h3>
+      <h3 className="text-sm font-medium text-fg-secondary">배송</h3>
       {request.shipments.length > 0 && (
         <ul className="flex flex-col gap-2">
           {request.shipments.map(shipment => (

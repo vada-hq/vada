@@ -30,14 +30,14 @@ function Target({ target, openers }: { target: SettlementTarget; openers: Closin
 function CheckRow({ check, openers }: { check: ClosingCheck; openers: ClosingOpeners }) {
   return (
     <li className="flex flex-col gap-1 rounded-sm border p-3">
-      <span className="text-sm font-medium text-gray-900">
+      <span className="text-sm font-medium text-fg">
         {CHECK_LABEL[check.kind]} {check.count}개
       </span>
       {check.targets.map(target => (
         <Target key={`${target.type}-${target.id}`} target={target} openers={openers} />
       ))}
       {check.count > check.targets.length && (
-        <span className="text-xs text-gray-500">외 {check.count - check.targets.length}개</span>
+        <span className="text-xs text-fg-muted">외 {check.count - check.targets.length}개</span>
       )}
     </li>
   )
@@ -53,7 +53,7 @@ function PendingRow({ row, onOpen }: { row: ClosingPendingEvent; onOpen: (id: st
       >
         {row.event.name}
       </Button>
-      <span className="text-xs text-gray-500">
+      <span className="text-xs text-fg-muted">
         입금 {row.depositCount}건 · {signedWon(row.amount)}
       </span>
     </li>
@@ -74,11 +74,11 @@ export function ClosingChecks({
   const empty = checks.length === 0 && blocking.length === 0
   return (
     <Card className="flex flex-col gap-3 p-4">
-      <h3 className="text-sm font-semibold text-gray-900">점검</h3>
-      {empty && <p className="text-sm text-gray-500">점검할 것 없음</p>}
+      <h3 className="text-sm font-semibold text-fg">점검</h3>
+      {empty && <p className="text-sm text-fg-muted">점검할 것 없음</p>}
       <ul className="flex flex-col gap-2">
         {blocking.length > 0 && (
-          <li className="text-xs font-medium text-gray-700">완료하지 않은 행사의 입금</li>
+          <li className="text-xs font-medium text-fg-secondary">완료하지 않은 행사의 입금</li>
         )}
         {blocking.map(row => (
           <PendingRow key={row.event.id} row={row} onOpen={openers.onOpenEvent} />

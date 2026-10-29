@@ -6,7 +6,7 @@ export function OrphanDrafts({ texts, label = T.orphan }: { texts: string[]; lab
   return texts.map((text, index) => (
     <Alert key={index} tone="warning" role="status" className="flex min-w-0 flex-col gap-2 text-sm">
       <p className="font-medium">{label}</p>
-      <p className="wrap-anywhere whitespace-pre-wrap text-gray-800">{text}</p>
+      <p className="wrap-anywhere whitespace-pre-wrap text-fg-body">{text}</p>
     </Alert>
   ))
 }

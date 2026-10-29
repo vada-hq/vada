@@ -32,7 +32,7 @@ function EventLine({
       {/* 첫 글자는 gray-100 네모 위라 gray-500으로는 4.5:1에 못 미쳐 gray-600이다(WCAG 1.4.3). */}
       <span
         aria-hidden
-        className="flex size-5 shrink-0 items-center justify-center rounded bg-gray-100 text-xs font-bold text-gray-600"
+        className="flex size-5 shrink-0 items-center justify-center rounded bg-surface-muted text-xs font-bold text-fg-tertiary"
       >
         {eventInitial(event.name)}
       </span>
@@ -40,7 +40,7 @@ function EventLine({
         {event.name}
       </span>
       {/* 켜진 줄의 파란 바탕(blue-50)에서 gray-500은 4.5:1에 조금 모자라 한 단계 진하게 한다(WCAG 1.4.3). */}
-      <span className={`shrink-0 text-xs ${active ? 'text-gray-600' : 'text-gray-500'}`}>
+      <span className={`shrink-0 text-xs ${active ? 'text-fg-tertiary' : 'text-fg-muted'}`}>
         {EVENT_STATUS_LABEL[event.status]}
       </span>
     </NavItem>
@@ -60,7 +60,7 @@ export default function SpaceList({
   const labelId = useId()
   return (
     <div role="group" aria-labelledby={labelId}>
-      <p id={labelId} className="px-3 pt-4 pb-1.5 text-xs font-semibold text-gray-500">
+      <p id={labelId} className="px-3 pt-4 pb-1.5 text-xs font-semibold text-fg-muted">
         행사
       </p>
       {events?.map(event => (
@@ -73,7 +73,7 @@ export default function SpaceList({
       ))}
       <NavItem
         active={active?.kind === 'allEvents'}
-        className="mb-0 min-h-11 py-1.5 break-keep md:min-h-0 text-xs text-gray-500 hover:bg-transparent hover:text-blue-700"
+        className="mb-0 min-h-11 py-1.5 break-keep md:min-h-0 text-xs text-fg-muted hover:bg-transparent hover:text-primary-strong"
         onClick={onSeeAll}
       >
         전체 행사 보기

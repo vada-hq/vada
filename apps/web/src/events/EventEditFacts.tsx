@@ -28,8 +28,8 @@ function Facts({ rows }: { rows: [string, string][] }) {
     <dl className="flex flex-col gap-2 text-sm">
       {rows.map(([label, value]) => (
         <div key={label} className="flex items-baseline gap-3">
-          <dt className="w-14 shrink-0 text-gray-500">{label}</dt>
-          <dd className="min-w-0 flex-1 text-gray-900 wrap-anywhere">{value}</dd>
+          <dt className="w-14 shrink-0 text-fg-muted">{label}</dt>
+          <dd className="min-w-0 flex-1 text-fg wrap-anywhere">{value}</dd>
         </div>
       ))}
     </dl>
@@ -54,9 +54,7 @@ function FormFacts({ forms }: { forms: PolledState<RegistrationFormsResponse> })
           key={form.id}
           className="flex flex-col gap-2 border-t pt-3 first:border-t-0 first:pt-0"
         >
-          <p className="line-clamp-2 text-sm font-medium text-gray-900 wrap-anywhere">
-            {form.name}
-          </p>
+          <p className="line-clamp-2 text-sm font-medium text-fg wrap-anywhere">{form.name}</p>
           <Facts rows={rows(form)} />
         </div>
       ))}

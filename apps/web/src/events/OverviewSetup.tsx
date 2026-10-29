@@ -16,7 +16,7 @@ export function OverviewSetup({ steps, actions }: Props) {
   return (
     <section aria-labelledby="overview-setup" className={cn(cardClass, 'px-4 py-3')}>
       <div className="flex items-baseline justify-between gap-2 pb-1">
-        <h3 id="overview-setup" className="text-sm font-semibold text-gray-900">
+        <h3 id="overview-setup" className="text-sm font-semibold text-fg">
           준비 시작하기
         </h3>
       </div>
@@ -26,20 +26,23 @@ export function OverviewSetup({ steps, actions }: Props) {
           return (
             <li key={step.key} className="flex items-start gap-3 py-3">
               {step.done ? (
-                <CheckCircle2 aria-hidden className="mt-0.5 size-5 shrink-0 text-green-600" />
+                <CheckCircle2
+                  aria-hidden
+                  className="mt-0.5 size-5 shrink-0 text-success-emphasis"
+                />
               ) : (
-                <Circle aria-hidden className="mt-0.5 size-5 shrink-0 text-gray-300" />
+                <Circle aria-hidden className="mt-0.5 size-5 shrink-0 text-fg-faint" />
               )}
               <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                 <span
                   className={cn(
                     'text-sm font-medium',
-                    step.done ? 'text-gray-500 line-through' : 'text-gray-900',
+                    step.done ? 'text-fg-muted line-through' : 'text-fg',
                   )}
                 >
                   {step.title}
                   {step.optional && !step.done && (
-                    <span className="ml-1.5 text-xs font-normal text-gray-500">필요할 때</span>
+                    <span className="ml-1.5 text-xs font-normal text-fg-muted">필요할 때</span>
                   )}
                   {step.done && <span className="sr-only"> (끝남)</span>}
                 </span>

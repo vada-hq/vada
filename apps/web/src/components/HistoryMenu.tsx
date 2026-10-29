@@ -65,7 +65,7 @@ export function HistoryMenu<T extends { versionNo: number }>({
           <DialogHeader>
             <DialogTitle>이력</DialogTitle>
           </DialogHeader>
-          <ol className="flex flex-col gap-2 text-sm text-gray-700">
+          <ol className="flex flex-col gap-2 text-sm text-fg-secondary">
             {history.map(version => (
               <li key={version.versionNo} className="wrap-anywhere">
                 {line(version)}

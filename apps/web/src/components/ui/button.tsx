@@ -8,13 +8,14 @@ const buttonStyles = cva(
   {
     variants: {
       variant: {
-        default: 'border-transparent bg-primary text-primary-foreground hover:bg-blue-700',
-        outline: 'border-input bg-white text-gray-700 hover:bg-gray-50',
-        secondary: 'border-transparent bg-secondary text-secondary-foreground hover:bg-gray-200',
+        default: 'border-transparent bg-primary text-primary-foreground hover:bg-primary-strong',
+        outline: 'border-input bg-white text-fg-secondary hover:bg-surface-subtle',
+        secondary:
+          'border-transparent bg-secondary text-secondary-foreground hover:bg-muted-strong',
         ghost:
-          'border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700',
-        destructive: 'border-transparent bg-destructive text-white hover:bg-red-700',
-        link: 'border-transparent bg-transparent text-blue-700 underline-offset-4 hover:underline focus-visible:ring-blue-700',
+          'border-transparent bg-transparent text-fg-muted hover:bg-surface-muted hover:text-fg-secondary',
+        destructive: 'border-transparent bg-destructive text-white hover:bg-danger',
+        link: 'border-transparent bg-transparent text-primary-strong underline-offset-4 hover:underline focus-visible:ring-primary-strong',
       },
       size: {
         md: 'px-4 py-2 text-sm [&_svg]:size-4',

@@ -15,9 +15,9 @@ type Props = {
 export function SummaryText({ tasks }: { tasks: TaskSummary[] }) {
   const { inProgress, overdue, unassigned } = sectionSummary(tasks)
   const parts = [
-    inProgress > 0 && { text: `진행 중 ${inProgress}`, tone: 'text-gray-500' },
-    overdue > 0 && { text: `지남 ${overdue}`, tone: 'text-red-600' },
-    unassigned > 0 && { text: `담당자 없음 ${unassigned}`, tone: 'text-yellow-700' },
+    inProgress > 0 && { text: `진행 중 ${inProgress}`, tone: 'text-fg-muted' },
+    overdue > 0 && { text: `지남 ${overdue}`, tone: 'text-danger-emphasis' },
+    unassigned > 0 && { text: `담당자 없음 ${unassigned}`, tone: 'text-warning' },
   ].filter(part => part !== false)
   return (
     <span className="flex flex-wrap gap-x-2 text-xs">
@@ -40,11 +40,11 @@ export function TaskSectionList({ sections, summary, row }: Props) {
             <h2
               className={cn(
                 'text-sm font-semibold wrap-anywhere',
-                section.key === 'overdue' ? 'text-red-600' : 'text-gray-900',
+                section.key === 'overdue' ? 'text-danger-emphasis' : 'text-fg',
               )}
             >
               {section.title}
-              <span className="ml-1.5 font-normal text-gray-500">{section.tasks.length}</span>
+              <span className="ml-1.5 font-normal text-fg-muted">{section.tasks.length}</span>
             </h2>
             {summary && <SummaryText tasks={section.tasks} />}
           </div>

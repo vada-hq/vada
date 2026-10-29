@@ -27,7 +27,7 @@ export function FormSection({
   return (
     <Card className="flex min-w-0 flex-col gap-5 p-5 sm:p-6">
       <h2 className="flex items-center gap-2 font-semibold">
-        <span className="flex size-7 items-center justify-center rounded-full bg-blue-50 text-sm text-blue-700">
+        <span className="flex size-7 items-center justify-center rounded-full bg-primary-surface text-sm text-primary-strong">
           {number}
         </span>
         {title}
@@ -52,11 +52,11 @@ export function MeetingTypeFields({
           onChange({ type: type === 'event' ? 'event' : 'council', eventId: '' })
         }
       >
-        <Label className="flex min-h-14 cursor-pointer items-center gap-3 rounded-sm border p-4 text-sm has-[[data-state=checked]]:border-blue-500 has-[[data-state=checked]]:bg-blue-50">
+        <Label className="flex min-h-14 cursor-pointer items-center gap-3 rounded-sm border p-4 text-sm has-[[data-state=checked]]:border-primary-border-selected has-[[data-state=checked]]:bg-primary-surface">
           <RadioGroupItem value="council" />
           정기·상시 회의
         </Label>
-        <Label className="flex min-h-14 cursor-pointer items-center gap-3 rounded-sm border p-4 text-sm has-[[data-state=checked]]:border-blue-500 has-[[data-state=checked]]:bg-blue-50">
+        <Label className="flex min-h-14 cursor-pointer items-center gap-3 rounded-sm border p-4 text-sm has-[[data-state=checked]]:border-primary-border-selected has-[[data-state=checked]]:bg-primary-surface">
           <RadioGroupItem value="event" />
           행사 관련 회의
         </Label>

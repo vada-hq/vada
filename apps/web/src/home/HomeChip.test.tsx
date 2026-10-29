@@ -5,7 +5,7 @@ import HomeChip, { ScheduleTag } from './HomeChip'
 
 test('가까운 마감은 지난 상태와 구별해 노란 일정 태그로 보인다', () => {
   render(<ScheduleTag label="마감" />)
-  expect(screen.getByText('마감').className).toContain('text-yellow-700')
+  expect(screen.getByText('마감').className).toContain('text-warning')
   expect(screen.getByText('마감').className).toContain('border-transparent')
 })
 
@@ -19,6 +19,6 @@ test('지남과 담당자 없음은 업무 보드처럼 빨강이다', () => {
       <HomeChip label="담당자 없음" />
     </>,
   )
-  expect(screen.getByText('지남 2').className).toContain('text-red-700')
-  expect(screen.getByText('담당자 없음').className).toContain('text-red-700')
+  expect(screen.getByText('지남 2').className).toContain('text-danger')
+  expect(screen.getByText('담당자 없음').className).toContain('text-danger')
 })

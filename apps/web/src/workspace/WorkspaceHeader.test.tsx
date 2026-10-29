@@ -35,9 +35,11 @@ test('경로 줄은 제목 위에 있고 칸을 > 아이콘으로 잇는다', ()
 
 test('마지막 칸만 진하고, 칸은 누를 수 없다', () => {
   const { path, items } = show()
-  const dark = items.map(item => item.querySelector('span')!.className.includes('text-gray-700'))
+  const dark = items.map(item =>
+    item.querySelector('span')!.className.includes('text-fg-secondary'),
+  )
   expect(dark).toEqual([false, false, false, true])
-  expect(path.className).toContain('text-gray-500')
+  expect(path.className).toContain('text-fg-muted')
   expect(within(path).queryAllByRole('button')).toHaveLength(0)
   expect(within(path).queryAllByRole('link')).toHaveLength(0)
 })
@@ -72,7 +74,7 @@ test('긴 행사명 제목은 휴대폰에서 두 줄까지 줄바꿈하고 넓�
 test('홈은 학생회 이름 한 칸이 마지막 칸이라 진하고 제목은 홈이다', () => {
   const { banner, items } = show(trailOf('home', COUNCIL, null))
   expect(items.map(item => item.textContent)).toEqual([COUNCIL])
-  expect(items[0]!.querySelector('span')!.className).toContain('text-gray-700')
+  expect(items[0]!.querySelector('span')!.className).toContain('text-fg-secondary')
   expect(within(banner).getByRole('heading', { level: 1 }).textContent).toBe('홈')
 })
 
@@ -84,7 +86,7 @@ test.each(['overview', 'ledger', 'closing'] as const)(
     const { banner, items } = show(trailOf('finance', council, financeTrail(tab)))
     expect(items.map(item => item.textContent)).toEqual([council, '재정', labels[tab]])
     expect(
-      items.map(item => item.querySelector('span')!.className.includes('text-gray-700')),
+      items.map(item => item.querySelector('span')!.className.includes('text-fg-secondary')),
     ).toEqual([false, false, true])
     expect(items[0]!.querySelector('span')!.className).toContain('truncate')
     expect(items[0]!.className).toContain('min-w-0')

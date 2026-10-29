@@ -36,7 +36,7 @@ export function BottomTabs({
             type="button"
             aria-current={active ? 'page' : undefined}
             onClick={onClick}
-            className="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-gray-500 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-blue-700"
+            className="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-fg-muted hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-primary-strong"
           >
             <span className="relative">
               <Icon aria-hidden className="size-5" />

@@ -8,7 +8,7 @@ import { signedWon } from './closing-view'
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <Card className="flex flex-col gap-3 p-4">
-      <h3 className="text-sm font-semibold text-gray-900">{title}</h3>
+      <h3 className="text-sm font-semibold text-fg">{title}</h3>
       {children}
     </Card>
   )
@@ -17,8 +17,8 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
 function Row({ label, value }: { label: string; value: string }) {
   return (
     <li className="flex items-start justify-between gap-3 text-sm">
-      <span className="min-w-0 text-gray-700 wrap-anywhere">{label}</span>
-      <span className="whitespace-nowrap text-gray-900">{value}</span>
+      <span className="min-w-0 text-fg-secondary wrap-anywhere">{label}</span>
+      <span className="whitespace-nowrap text-fg">{value}</span>
     </li>
   )
 }
@@ -28,12 +28,12 @@ function LineRow({ line, label = line.purpose }: { line: ClosingLine; label?: st
   return (
     <li className="flex flex-col gap-0.5 text-sm">
       <div className="flex items-start justify-between gap-3">
-        <span className="min-w-0 text-gray-700 break-keep wrap-anywhere">{label}</span>
-        <span className="text-right whitespace-nowrap text-gray-900 tabular-nums">
+        <span className="min-w-0 text-fg-secondary break-keep wrap-anywhere">{label}</span>
+        <span className="text-right whitespace-nowrap text-fg tabular-nums">
           {signedWon(line.actual)}
         </span>
       </div>
-      <span className="text-xs text-gray-500">
+      <span className="text-xs text-fg-muted">
         예산 {signedWon(line.budget)} · 차이 {signedWon(line.difference)}
         {line.rate !== null && ` · ${line.rate}%`}
       </span>
@@ -106,12 +106,12 @@ export function ClosingAccountsSection({ closing }: { closing: Closing }) {
       <ul className="flex flex-col gap-3">
         {closing.accounts.map(line => (
           <li key={line.account?.id ?? 'none'} className="flex flex-col gap-0.5 text-sm">
-            <span className="text-gray-700 wrap-anywhere">
+            <span className="text-fg-secondary wrap-anywhere">
               {line.account
                 ? `${line.account.name}${line.account.closed ? ' (닫음)' : ''}`
                 : '계좌 미지정'}
             </span>
-            <span className="text-xs text-gray-500">
+            <span className="text-xs text-fg-muted">
               수입 {signedWon(line.income)} · 지출 {signedWon(line.expense)} · 차이{' '}
               {signedWon(line.difference)}
             </span>

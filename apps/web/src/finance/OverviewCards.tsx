@@ -38,7 +38,7 @@ function CardLink({ label, onClick }: { label: string; onClick: () => void }) {
     <Button
       variant="link"
       size="sm"
-      className={cn('h-auto p-0 text-xs text-gray-500 max-sm:-mx-3 max-sm:px-3', headLinkTouch)}
+      className={cn('h-auto p-0 text-xs text-fg-muted max-sm:-mx-3 max-sm:px-3', headLinkTouch)}
       onClick={onClick}
     >
       {label}
@@ -60,48 +60,51 @@ export function OverviewCards({
       <NumberCard
         label="총예산"
         icon={
-          <IconTile tone="bg-blue-50 text-blue-600">
+          <IconTile tone="bg-primary-surface text-primary-emphasis">
             <ChartColumn />
           </IconTile>
         }
         link={<CardLink label={links.budgetLabel} onClick={links.onBudget} />}
         value={sources === null ? null : wonLabel(overview.total)}
-        valueClassName={`${valueSize} text-blue-600`}
+        valueClassName={`${valueSize} text-primary-emphasis`}
         sub={sources ?? '수입 예산 없음'}
       />
       <NumberCard
         label="실제 지출"
         icon={
-          <IconTile tone="bg-green-50 text-green-600">
+          <IconTile tone="bg-success-surface text-success-emphasis">
             <CircleCheck />
           </IconTile>
         }
         link={<CardLink label="내역" onClick={links.onSpent} />}
         value={wonLabel(overview.actual)}
-        valueClassName={`${valueSize} text-green-600`}
+        valueClassName={`${valueSize} text-success-emphasis`}
         sub={`결제 완료 ${overview.paidCount}건`}
       />
       <NumberCard
         label="지출 예정"
         icon={
-          <IconTile tone="bg-orange-50 text-orange-600">
+          <IconTile tone="bg-pending-surface text-pending-emphasis">
             <Clock />
           </IconTile>
         }
         link={<CardLink label="내역" onClick={links.onCommitted} />}
         value={wonLabel(overview.committed)}
-        valueClassName={`${valueSize} text-orange-600`}
+        valueClassName={`${valueSize} text-pending-emphasis`}
         sub={`결제 예정 ${overview.committedCount}건`}
       />
       <NumberCard
         label="사용 가능"
         icon={
-          <IconTile tone="bg-violet-50 text-violet-600">
+          <IconTile tone="bg-metric-available-surface text-metric-available">
             <Info />
           </IconTile>
         }
         value={signedWon(overview.available)}
-        valueClassName={cn(valueSize, overview.available < 0 ? 'text-red-600' : 'text-violet-600')}
+        valueClassName={cn(
+          valueSize,
+          overview.available < 0 ? 'text-danger-emphasis' : 'text-metric-available',
+        )}
         sub="새로 쓸 수 있는 금액"
       />
     </div>

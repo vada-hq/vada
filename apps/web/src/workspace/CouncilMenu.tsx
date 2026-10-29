@@ -40,14 +40,14 @@ export default function CouncilMenu({
   onAddCouncil,
 }: Props) {
   return (
-    <div className="shrink-0 border-b border-gray-100">
+    <div className="shrink-0 border-b border-border-subtle">
       <Menu>
         <MenuTrigger asChild>
           <Button
             ref={menuRef}
             variant="ghost"
             className={cn(
-              'h-auto w-full justify-start gap-2 rounded-none px-5 py-4 text-left hover:bg-gray-50',
+              'h-auto w-full justify-start gap-2 rounded-none px-5 py-4 text-left hover:bg-surface-subtle',
               inSheet && 'pr-12',
             )}
             // 읽는 이름은 보이는 글(Vada, 학생회 이름)로 시작한다(WCAG 2.5.3).
@@ -55,10 +55,10 @@ export default function CouncilMenu({
           >
             <BrandMark />
             <span className="flex min-w-0 flex-1 flex-col">
-              <span className="text-sm font-semibold text-gray-900">Vada</span>
-              <span className="truncate text-xs font-normal text-gray-500">{council.name}</span>
+              <span className="text-sm font-semibold text-fg">Vada</span>
+              <span className="truncate text-xs font-normal text-fg-muted">{council.name}</span>
             </span>
-            <ChevronsUpDown aria-hidden className="text-gray-500" />
+            <ChevronsUpDown aria-hidden className="text-fg-muted" />
           </Button>
         </MenuTrigger>
         <MenuContent align="start" className="w-72">
@@ -78,7 +78,7 @@ export default function CouncilMenu({
               <span className="flex min-w-0 flex-col gap-0.5">
                 <span className="wrap-anywhere">{item.name}</span>
                 {scopeText(item) && (
-                  <span className="text-xs wrap-anywhere text-gray-500">{scopeText(item)}</span>
+                  <span className="text-xs wrap-anywhere text-fg-muted">{scopeText(item)}</span>
                 )}
               </span>
             </MenuItem>

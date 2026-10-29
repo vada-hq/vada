@@ -53,8 +53,8 @@ type Council = InvitePreviewResponse['council']
 function FactRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex gap-4">
-      <dt className="w-16 shrink-0 text-gray-500">{label}</dt>
-      <dd className="min-w-0 text-gray-800 wrap-anywhere">{value}</dd>
+      <dt className="w-16 shrink-0 text-fg-muted">{label}</dt>
+      <dd className="min-w-0 text-fg-body wrap-anywhere">{value}</dd>
     </div>
   )
 }
@@ -118,7 +118,7 @@ export function AskToJoin({
         className="flex flex-col gap-3 rounded-lg border p-4 sm:p-6"
       >
         <div className="flex flex-col gap-0.5">
-          <p className="text-xs text-gray-500">초대받은 학생회</p>
+          <p className="text-xs text-fg-muted">초대받은 학생회</p>
           <h2 id={titleId} className="text-lg font-semibold wrap-anywhere">
             {council.name}
           </h2>

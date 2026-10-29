@@ -17,7 +17,7 @@ function DocLink({ href, children }: { href: string; children: string }) {
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="text-sm text-blue-700 underline underline-offset-4 wrap-anywhere"
+      className="text-sm text-primary-strong underline underline-offset-4 wrap-anywhere"
     >
       {children}
     </a>
@@ -40,7 +40,7 @@ function AgreementFields({
   const checkId = useId()
   return (
     <div className="flex flex-col gap-3">
-      <h2 className="text-base font-semibold text-gray-900">시작하기 전에</h2>
+      <h2 className="text-base font-semibold text-fg">시작하기 전에</h2>
       <Alert tone="info">VADA를 쓰려면 이용약관에 동의해 주세요. 한 번만 하면 돼요.</Alert>
       <div className="flex flex-wrap gap-x-4 gap-y-1">
         <DocLink href={terms.termsUrl}>약관 보기</DocLink>
@@ -50,7 +50,7 @@ function AgreementFields({
         <input
           id={checkId}
           type="checkbox"
-          className="size-4 accent-blue-600"
+          className="size-4 accent-primary-emphasis"
           checked={checked}
           disabled={disabled}
           aria-invalid={error ? true : undefined}
@@ -62,7 +62,7 @@ function AgreementFields({
         이용약관에 동의합니다
       </Label>
       {error && (
-        <p id={`${checkId}-error`} className="text-xs text-red-600">
+        <p id={`${checkId}-error`} className="text-xs text-danger-emphasis">
           {error}
         </p>
       )}

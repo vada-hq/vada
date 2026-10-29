@@ -7,7 +7,7 @@
 <div class="flex flex-wrap items-start gap-3">
 <div class="flex w-full flex-col gap-3">
 <div class="flex flex-wrap gap-3">
-<label>켜진 탭<select data-slot="native-select" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive max-sm:min-h-11 cursor-pointer" aria-label="켜진 탭">
+<label>켜진 탭<select data-slot="native-select" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 cursor-pointer" aria-label="켜진 탭">
 <option value="home">홈</option>
 <option value="chat">메시지</option>
 <option value="tasks">업무</option>
@@ -15,25 +15,25 @@
 <option value="finance">메뉴</option>
 </select>
 </label>
-<label>배지<select data-slot="native-select" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive max-sm:min-h-11 cursor-pointer" aria-label="배지">
+<label>배지<select data-slot="native-select" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 cursor-pointer" aria-label="배지">
 <option>0</option>
 <option>2</option>
 <option>120</option>
 </select>
 </label>
 </div>
-<div class="relative -mx-4 flex h-112 w-screen flex-col overflow-hidden border bg-gray-50 sm:mx-0 sm:w-full">
+<div class="relative -mx-4 flex h-112 w-screen flex-col overflow-hidden border bg-surface-subtle sm:mx-0 sm:w-full">
 <div class="flex min-h-0 flex-1">
 <aside class="hidden w-60 shrink-0 border-r bg-white md:flex md:flex-col" aria-label="학생회 작업 공간">
 <div class="flex h-full min-h-0 flex-col">
-<div class="shrink-0 border-b border-gray-100">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:text-gray-700 text-sm [&amp;_svg]:size-4 max-sm:min-h-11 h-auto w-full justify-start gap-2 rounded-none px-5 py-4 text-left hover:bg-gray-50" aria-label="Vada 소프트웨어융합대학 학생회 학생회 메뉴" type="button" id="radix-_id1_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
+<div class="shrink-0 border-b border-border-subtle">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-fg-muted hover:text-fg-secondary text-sm [&amp;_svg]:size-4 max-sm:min-h-11 h-auto w-full justify-start gap-2 rounded-none px-5 py-4 text-left hover:bg-surface-subtle" aria-label="Vada 소프트웨어융합대학 학생회 학생회 메뉴" type="button" id="radix-_id1_" aria-haspopup="menu" aria-expanded="false" data-state="closed">
 <span aria-hidden="true" class="flex size-7 shrink-0 items-center justify-center rounded-sm bg-primary text-xs font-bold text-primary-foreground">V</span>
 <span class="flex min-w-0 flex-1 flex-col">
-<span class="text-sm font-semibold text-gray-900">Vada</span>
-<span class="truncate text-xs font-normal text-gray-500">소프트웨어융합대학 학생회</span>
+<span class="text-sm font-semibold text-fg">Vada</span>
+<span class="truncate text-xs font-normal text-fg-muted">소프트웨어융합대학 학생회</span>
 </span>
-<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevrons-up-down text-gray-500" aria-hidden="true">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevrons-up-down text-fg-muted" aria-hidden="true">
 <path d="m7 15 5 5 5-5">
 </path>
 <path d="m7 9 5-5 5 5">
@@ -42,7 +42,7 @@
 </button>
 </div>
 <nav aria-label="학생회 메뉴" class="min-h-0 flex-1 overflow-y-auto px-2 py-3">
-<button type="button" class="mb-0.5 flex w-full cursor-pointer items-center gap-3 rounded px-3 py-2 text-left text-sm wrap-anywhere text-gray-600 transition-colors hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none disabled:opacity-45 aria-[current=page]:bg-accent aria-[current=page]:font-medium aria-[current=page]:text-accent-foreground min-h-11 break-keep md:min-h-0">
+<button type="button" class="mb-0.5 flex w-full cursor-pointer items-center gap-3 rounded px-3 py-2 text-left text-sm wrap-anywhere text-fg-tertiary transition-colors hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none disabled:opacity-45 aria-[current=page]:bg-accent aria-[current=page]:font-medium aria-[current=page]:text-accent-foreground min-h-11 break-keep md:min-h-0">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-house lucide-home size-4 shrink-0" aria-hidden="true">
 <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8">
 </path>
@@ -51,15 +51,15 @@
 </svg>
 <span class="flex-1">홈</span>
 </button>
-<button type="button" class="mb-0.5 flex w-full cursor-pointer items-center gap-3 rounded px-3 py-2 text-left text-sm wrap-anywhere text-gray-600 transition-colors hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none disabled:opacity-45 aria-[current=page]:bg-accent aria-[current=page]:font-medium aria-[current=page]:text-accent-foreground min-h-11 break-keep md:min-h-0">
+<button type="button" class="mb-0.5 flex w-full cursor-pointer items-center gap-3 rounded px-3 py-2 text-left text-sm wrap-anywhere text-fg-tertiary transition-colors hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none disabled:opacity-45 aria-[current=page]:bg-accent aria-[current=page]:font-medium aria-[current=page]:text-accent-foreground min-h-11 break-keep md:min-h-0">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-square size-4 shrink-0" aria-hidden="true">
 <path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z">
 </path>
 </svg>
 <span class="flex-1">메시지</span>
-<span aria-label="안 읽은 메시지 120개" class="inline-flex shrink-0 items-center rounded-full bg-red-600 px-1.5 py-0.5 text-xs font-bold whitespace-nowrap text-white">99+</span>
+<span aria-label="안 읽은 메시지 120개" class="inline-flex shrink-0 items-center rounded-full bg-notify px-1.5 py-0.5 text-xs font-bold whitespace-nowrap text-white">99+</span>
 </button>
-<button type="button" aria-current="page" class="mb-0.5 flex w-full cursor-pointer items-center gap-3 rounded px-3 py-2 text-left text-sm wrap-anywhere text-gray-600 transition-colors hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none disabled:opacity-45 aria-[current=page]:bg-accent aria-[current=page]:font-medium aria-[current=page]:text-accent-foreground min-h-11 break-keep md:min-h-0">
+<button type="button" aria-current="page" class="mb-0.5 flex w-full cursor-pointer items-center gap-3 rounded px-3 py-2 text-left text-sm wrap-anywhere text-fg-tertiary transition-colors hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none disabled:opacity-45 aria-[current=page]:bg-accent aria-[current=page]:font-medium aria-[current=page]:text-accent-foreground min-h-11 break-keep md:min-h-0">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard size-4 shrink-0" aria-hidden="true">
 <rect width="8" height="4" x="8" y="2" rx="1" ry="1">
 </rect>
@@ -67,9 +67,9 @@
 </path>
 </svg>
 <span class="flex-1">업무</span>
-<span aria-label="지난 업무 120개" class="inline-flex shrink-0 items-center rounded-full bg-red-600 px-1.5 py-0.5 text-xs font-bold whitespace-nowrap text-white">지남 99+</span>
+<span aria-label="지난 업무 120개" class="inline-flex shrink-0 items-center rounded-full bg-notify px-1.5 py-0.5 text-xs font-bold whitespace-nowrap text-white">지남 99+</span>
 </button>
-<button type="button" class="mb-0.5 flex w-full cursor-pointer items-center gap-3 rounded px-3 py-2 text-left text-sm wrap-anywhere text-gray-600 transition-colors hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none disabled:opacity-45 aria-[current=page]:bg-accent aria-[current=page]:font-medium aria-[current=page]:text-accent-foreground min-h-11 break-keep md:min-h-0">
+<button type="button" class="mb-0.5 flex w-full cursor-pointer items-center gap-3 rounded px-3 py-2 text-left text-sm wrap-anywhere text-fg-tertiary transition-colors hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none disabled:opacity-45 aria-[current=page]:bg-accent aria-[current=page]:font-medium aria-[current=page]:text-accent-foreground min-h-11 break-keep md:min-h-0">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-presentation size-4 shrink-0" aria-hidden="true">
 <path d="M2 3h20">
 </path>
@@ -80,7 +80,7 @@
 </svg>
 <span class="flex-1">회의</span>
 </button>
-<button type="button" class="mb-0.5 flex w-full cursor-pointer items-center gap-3 rounded px-3 py-2 text-left text-sm wrap-anywhere text-gray-600 transition-colors hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none disabled:opacity-45 aria-[current=page]:bg-accent aria-[current=page]:font-medium aria-[current=page]:text-accent-foreground min-h-11 break-keep md:min-h-0">
+<button type="button" class="mb-0.5 flex w-full cursor-pointer items-center gap-3 rounded px-3 py-2 text-left text-sm wrap-anywhere text-fg-tertiary transition-colors hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none disabled:opacity-45 aria-[current=page]:bg-accent aria-[current=page]:font-medium aria-[current=page]:text-accent-foreground min-h-11 break-keep md:min-h-0">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar-days size-4 shrink-0" aria-hidden="true">
 <path d="M8 2v3">
 </path>
@@ -105,7 +105,7 @@
 </svg>
 <span class="flex-1">캘린더</span>
 </button>
-<button type="button" class="mb-0.5 flex w-full cursor-pointer items-center gap-3 rounded px-3 py-2 text-left text-sm wrap-anywhere text-gray-600 transition-colors hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none disabled:opacity-45 aria-[current=page]:bg-accent aria-[current=page]:font-medium aria-[current=page]:text-accent-foreground min-h-11 break-keep md:min-h-0">
+<button type="button" class="mb-0.5 flex w-full cursor-pointer items-center gap-3 rounded px-3 py-2 text-left text-sm wrap-anywhere text-fg-tertiary transition-colors hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none disabled:opacity-45 aria-[current=page]:bg-accent aria-[current=page]:font-medium aria-[current=page]:text-accent-foreground min-h-11 break-keep md:min-h-0">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-shopping-cart size-4 shrink-0" aria-hidden="true">
 <path d="m2.05 2.05 1.099-.028a1 1 0 0 1 1.008.815l2.69 14.347A1 1 0 0 0 7.83 18H18">
 </path>
@@ -118,7 +118,7 @@
 </svg>
 <span class="flex-1">구매</span>
 </button>
-<button type="button" class="mb-0.5 flex w-full cursor-pointer items-center gap-3 rounded px-3 py-2 text-left text-sm wrap-anywhere text-gray-600 transition-colors hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none disabled:opacity-45 aria-[current=page]:bg-accent aria-[current=page]:font-medium aria-[current=page]:text-accent-foreground min-h-11 break-keep md:min-h-0">
+<button type="button" class="mb-0.5 flex w-full cursor-pointer items-center gap-3 rounded px-3 py-2 text-left text-sm wrap-anywhere text-fg-tertiary transition-colors hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none disabled:opacity-45 aria-[current=page]:bg-accent aria-[current=page]:font-medium aria-[current=page]:text-accent-foreground min-h-11 break-keep md:min-h-0">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chart-no-axes-column lucide-bar-chart-2 size-4 shrink-0" aria-hidden="true">
 <path d="M5 21v-6">
 </path>
@@ -129,7 +129,7 @@
 </svg>
 <span class="flex-1">재정</span>
 </button>
-<button type="button" class="mb-0.5 flex w-full cursor-pointer items-center gap-3 rounded px-3 py-2 text-left text-sm wrap-anywhere text-gray-600 transition-colors hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none disabled:opacity-45 aria-[current=page]:bg-accent aria-[current=page]:font-medium aria-[current=page]:text-accent-foreground min-h-11 break-keep md:min-h-0">
+<button type="button" class="mb-0.5 flex w-full cursor-pointer items-center gap-3 rounded px-3 py-2 text-left text-sm wrap-anywhere text-fg-tertiary transition-colors hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none disabled:opacity-45 aria-[current=page]:bg-accent aria-[current=page]:font-medium aria-[current=page]:text-accent-foreground min-h-11 break-keep md:min-h-0">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-users size-4 shrink-0" aria-hidden="true">
 <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2">
 </path>
@@ -143,24 +143,24 @@
 <span class="flex-1">조직</span>
 </button>
 <div role="group" aria-labelledby="_id2_">
-<p id="_id2_" class="px-3 pt-4 pb-1.5 text-xs font-semibold text-gray-500">행사</p>
-<button type="button" class="mb-0.5 flex w-full cursor-pointer items-center rounded px-3 py-2 text-left text-sm wrap-anywhere text-gray-600 transition-colors hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none disabled:opacity-45 aria-[current=page]:bg-accent aria-[current=page]:font-medium aria-[current=page]:text-accent-foreground min-h-11 gap-2 break-keep md:min-h-0">
-<span aria-hidden="true" class="flex size-5 shrink-0 items-center justify-center rounded bg-gray-100 text-xs font-bold text-gray-600">소</span>
+<p id="_id2_" class="px-3 pt-4 pb-1.5 text-xs font-semibold text-fg-muted">행사</p>
+<button type="button" class="mb-0.5 flex w-full cursor-pointer items-center rounded px-3 py-2 text-left text-sm wrap-anywhere text-fg-tertiary transition-colors hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none disabled:opacity-45 aria-[current=page]:bg-accent aria-[current=page]:font-medium aria-[current=page]:text-accent-foreground min-h-11 gap-2 break-keep md:min-h-0">
+<span aria-hidden="true" class="flex size-5 shrink-0 items-center justify-center rounded bg-surface-muted text-xs font-bold text-fg-tertiary">소</span>
 <span class="min-w-0 flex-1 max-md:line-clamp-2 md:truncate" title="2026 소프트웨어융합대학 체육대회">2026 소프트웨어융합대학 체육대회</span>
-<span class="shrink-0 text-xs text-gray-500">진행 중</span>
+<span class="shrink-0 text-xs text-fg-muted">진행 중</span>
 </button>
-<button type="button" class="mb-0.5 flex w-full cursor-pointer items-center rounded px-3 py-2 text-left text-sm wrap-anywhere text-gray-600 transition-colors hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none disabled:opacity-45 aria-[current=page]:bg-accent aria-[current=page]:font-medium aria-[current=page]:text-accent-foreground min-h-11 gap-2 break-keep md:min-h-0">
-<span aria-hidden="true" class="flex size-5 shrink-0 items-center justify-center rounded bg-gray-100 text-xs font-bold text-gray-600">새</span>
+<button type="button" class="mb-0.5 flex w-full cursor-pointer items-center rounded px-3 py-2 text-left text-sm wrap-anywhere text-fg-tertiary transition-colors hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none disabled:opacity-45 aria-[current=page]:bg-accent aria-[current=page]:font-medium aria-[current=page]:text-accent-foreground min-h-11 gap-2 break-keep md:min-h-0">
+<span aria-hidden="true" class="flex size-5 shrink-0 items-center justify-center rounded bg-surface-muted text-xs font-bold text-fg-tertiary">새</span>
 <span class="min-w-0 flex-1 max-md:line-clamp-2 md:truncate" title="2026학년도 새내기 배움터">2026학년도 새내기 배움터</span>
-<span class="shrink-0 text-xs text-gray-500">기획 중</span>
+<span class="shrink-0 text-xs text-fg-muted">기획 중</span>
 </button>
-<button type="button" class="mb-0.5 flex w-full cursor-pointer items-center rounded px-3 py-2 text-left text-sm wrap-anywhere text-gray-600 transition-colors hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none disabled:opacity-45 aria-[current=page]:bg-accent aria-[current=page]:font-medium aria-[current=page]:text-accent-foreground min-h-11 gap-2 break-keep md:min-h-0">
-<span aria-hidden="true" class="flex size-5 shrink-0 items-center justify-center rounded bg-gray-100 text-xs font-bold text-gray-600">봄</span>
+<button type="button" class="mb-0.5 flex w-full cursor-pointer items-center rounded px-3 py-2 text-left text-sm wrap-anywhere text-fg-tertiary transition-colors hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none disabled:opacity-45 aria-[current=page]:bg-accent aria-[current=page]:font-medium aria-[current=page]:text-accent-foreground min-h-11 gap-2 break-keep md:min-h-0">
+<span aria-hidden="true" class="flex size-5 shrink-0 items-center justify-center rounded bg-surface-muted text-xs font-bold text-fg-tertiary">봄</span>
 <span class="min-w-0 flex-1 max-md:line-clamp-2 md:truncate" title="봄 축제 학생회 부스">봄 축제 학생회 부스</span>
-<span class="shrink-0 text-xs text-gray-500">후속 정리 중</span>
+<span class="shrink-0 text-xs text-fg-muted">후속 정리 중</span>
 </button>
-<button type="button" class="flex w-full cursor-pointer items-center gap-3 rounded px-3 text-left wrap-anywhere transition-colors focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none disabled:opacity-45 aria-[current=page]:bg-accent aria-[current=page]:font-medium aria-[current=page]:text-accent-foreground mb-0 min-h-11 py-1.5 break-keep md:min-h-0 text-xs text-gray-500 hover:bg-transparent hover:text-blue-700">전체 행사 보기</button>
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-blue-700 underline-offset-4 hover:underline focus-visible:ring-blue-700 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 min-h-11 w-full justify-start gap-1 break-keep md:min-h-0">
+<button type="button" class="flex w-full cursor-pointer items-center gap-3 rounded px-3 text-left wrap-anywhere transition-colors focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none disabled:opacity-45 aria-[current=page]:bg-accent aria-[current=page]:font-medium aria-[current=page]:text-accent-foreground mb-0 min-h-11 py-1.5 break-keep md:min-h-0 text-xs text-fg-muted hover:bg-transparent hover:text-primary-strong">전체 행사 보기</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-primary-strong underline-offset-4 hover:underline focus-visible:ring-primary-strong px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 min-h-11 w-full justify-start gap-1 break-keep md:min-h-0">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus" aria-hidden="true">
 <path d="M5 12h14">
 </path>
@@ -169,9 +169,9 @@
 </svg>새 행사</button>
 </div>
 </nav>
-<footer class="flex shrink-0 items-center gap-2 border-t border-gray-100 px-4 py-3">
-<button data-slot="button" class="inline-flex cursor-pointer items-center rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:text-gray-700 text-sm [&amp;_svg]:size-4 max-sm:min-h-11 -ml-1 min-w-0 flex-1 justify-start gap-2 px-1 py-1 text-left hover:bg-gray-50" aria-label="내 이름: 박해랑, 기획부 · 홍보부 · 부장">
-<span aria-hidden="true" class="flex size-7 shrink-0 items-center justify-center rounded-full bg-gray-200 text-gray-500">
+<footer class="flex shrink-0 items-center gap-2 border-t border-border-subtle px-4 py-3">
+<button data-slot="button" class="inline-flex cursor-pointer items-center rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-fg-muted hover:text-fg-secondary text-sm [&amp;_svg]:size-4 max-sm:min-h-11 -ml-1 min-w-0 flex-1 justify-start gap-2 px-1 py-1 text-left hover:bg-surface-subtle" aria-label="내 이름: 박해랑, 기획부 · 홍보부 · 부장">
+<span aria-hidden="true" class="flex size-7 shrink-0 items-center justify-center rounded-full bg-muted-strong text-fg-muted">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user size-4" aria-hidden="true">
 <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2">
 </path>
@@ -180,14 +180,14 @@
 </svg>
 </span>
 <span class="flex min-w-0 flex-1 flex-col">
-<span class="truncate text-xs font-medium text-gray-700">박해랑</span>
-<span class="flex min-w-0 text-xs font-normal text-gray-500" title="기획부 · 홍보부 · 부장">
+<span class="truncate text-xs font-medium text-fg-secondary">박해랑</span>
+<span class="flex min-w-0 text-xs font-normal text-fg-muted" title="기획부 · 홍보부 · 부장">
 <span class="truncate">기획부 · 홍보부</span>
 <span class="shrink-0 whitespace-pre"> · 부장</span>
 </span>
 </span>
 </button>
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4 max-sm:min-h-11 max-sm:min-w-11" aria-label="휴대폰 알림" title="휴대폰 알림">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-fg-muted hover:bg-surface-muted hover:text-fg-secondary p-2 [&amp;_svg]:size-4 max-sm:min-h-11 max-sm:min-w-11" aria-label="휴대폰 알림" title="휴대폰 알림">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bell" aria-hidden="true">
 <path d="M10.268 21a2 2 0 0 0 3.464 0">
 </path>
@@ -195,7 +195,7 @@
 </path>
 </svg>
 </button>
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 p-2 [&amp;_svg]:size-4 max-sm:min-h-11 max-sm:min-w-11" aria-label="로그아웃">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-fg-muted hover:bg-surface-muted hover:text-fg-secondary p-2 [&amp;_svg]:size-4 max-sm:min-h-11 max-sm:min-w-11" aria-label="로그아웃">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-log-out" aria-hidden="true">
 <path d="m16 17 5-5-5-5">
 </path>
@@ -212,12 +212,12 @@
 <header class="flex min-h-16 shrink-0 items-center overflow-hidden border-b bg-white px-4 py-2 sm:px-6 md:scrollbar-gutter-stable">
 <div class="mx-auto w-full max-w-none flex items-center gap-4">
 <div class="min-w-0 flex-1">
-<ol aria-label="경로" class="flex min-w-0 items-center gap-1 text-xs text-gray-500">
+<ol aria-label="경로" class="flex min-w-0 items-center gap-1 text-xs text-fg-muted">
 <li class="flex items-center gap-1 min-w-0">
-<span class="truncate text-gray-700" title="소프트웨어융합대학 학생회">소프트웨어융합대학 학생회</span>
+<span class="truncate text-fg-secondary" title="소프트웨어융합대학 학생회">소프트웨어융합대학 학생회</span>
 </li>
 </ol>
-<h1 class="mt-0.5 line-clamp-2 text-xl font-semibold text-gray-900 wrap-anywhere md:line-clamp-1" title="업무">업무</h1>
+<h1 class="mt-0.5 line-clamp-2 text-xl font-semibold text-fg wrap-anywhere md:line-clamp-1" title="업무">업무</h1>
 </div>
 <div class="flex shrink-0 items-center gap-2">
 </div>
@@ -228,7 +228,7 @@
 </div>
 <nav aria-label="휴대폰 메뉴" class="inset-x-0 bottom-0 z-30 border-t bg-white bottom-navigation-space md:hidden absolute">
 <div class="absolute inset-x-0 top-0 flex h-14">
-<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-gray-500 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-blue-700">
+<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-fg-muted hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-primary-strong">
 <span class="relative">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-house lucide-home size-5" aria-hidden="true">
 <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8">
@@ -239,19 +239,19 @@
 </span>
 <span>홈</span>
 </button>
-<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-gray-500 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-blue-700">
+<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-fg-muted hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-primary-strong">
 <span class="relative">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-square size-5" aria-hidden="true">
 <path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z">
 </path>
 </svg>
 <span class="absolute -top-1.5 left-full -ml-1.5 *:px-1">
-<span aria-label="안 읽은 메시지 120개" class="inline-flex shrink-0 items-center rounded-full bg-red-600 px-1.5 py-0.5 text-xs font-bold whitespace-nowrap text-white">99+</span>
+<span aria-label="안 읽은 메시지 120개" class="inline-flex shrink-0 items-center rounded-full bg-notify px-1.5 py-0.5 text-xs font-bold whitespace-nowrap text-white">99+</span>
 </span>
 </span>
 <span>메시지</span>
 </button>
-<button type="button" aria-current="page" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-gray-500 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-blue-700">
+<button type="button" aria-current="page" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-fg-muted hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-primary-strong">
 <span class="relative">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard size-5" aria-hidden="true">
 <rect width="8" height="4" x="8" y="2" rx="1" ry="1">
@@ -260,12 +260,12 @@
 </path>
 </svg>
 <span class="absolute -top-1.5 left-full -ml-1.5 *:px-1">
-<span aria-label="지난 업무 120개" class="inline-flex shrink-0 items-center rounded-full bg-red-600 px-1.5 py-0.5 text-xs font-bold whitespace-nowrap text-white">99+</span>
+<span aria-label="지난 업무 120개" class="inline-flex shrink-0 items-center rounded-full bg-notify px-1.5 py-0.5 text-xs font-bold whitespace-nowrap text-white">99+</span>
 </span>
 </span>
 <span>업무</span>
 </button>
-<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-gray-500 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-blue-700">
+<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-fg-muted hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-primary-strong">
 <span class="relative">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar-days size-5" aria-hidden="true">
 <path d="M8 2v3">
@@ -292,7 +292,7 @@
 </span>
 <span>행사</span>
 </button>
-<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-gray-500 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-blue-700">
+<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-fg-muted hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-primary-strong">
 <span class="relative">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-menu size-5" aria-hidden="true">
 <path d="M4 5h16">
@@ -317,7 +317,7 @@
 <p class="text-xs">홈 · 배지 0</p>
 <nav aria-label="휴대폰 메뉴" class="inset-x-0 bottom-0 z-30 border-t bg-white bottom-navigation-space md:hidden relative">
 <div class="absolute inset-x-0 top-0 flex h-14">
-<button type="button" aria-current="page" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-gray-500 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-blue-700">
+<button type="button" aria-current="page" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-fg-muted hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-primary-strong">
 <span class="relative">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-house lucide-home size-5" aria-hidden="true">
 <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8">
@@ -328,7 +328,7 @@
 </span>
 <span>홈</span>
 </button>
-<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-gray-500 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-blue-700">
+<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-fg-muted hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-primary-strong">
 <span class="relative">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-square size-5" aria-hidden="true">
 <path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z">
@@ -339,7 +339,7 @@
 </span>
 <span>메시지</span>
 </button>
-<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-gray-500 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-blue-700">
+<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-fg-muted hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-primary-strong">
 <span class="relative">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard size-5" aria-hidden="true">
 <rect width="8" height="4" x="8" y="2" rx="1" ry="1">
@@ -352,7 +352,7 @@
 </span>
 <span>업무</span>
 </button>
-<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-gray-500 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-blue-700">
+<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-fg-muted hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-primary-strong">
 <span class="relative">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar-days size-5" aria-hidden="true">
 <path d="M8 2v3">
@@ -379,7 +379,7 @@
 </span>
 <span>행사</span>
 </button>
-<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-gray-500 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-blue-700">
+<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-fg-muted hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-primary-strong">
 <span class="relative">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-menu size-5" aria-hidden="true">
 <path d="M4 5h16">
@@ -399,7 +399,7 @@
 <p class="text-xs">메시지 · 배지 2</p>
 <nav aria-label="휴대폰 메뉴" class="inset-x-0 bottom-0 z-30 border-t bg-white bottom-navigation-space md:hidden relative">
 <div class="absolute inset-x-0 top-0 flex h-14">
-<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-gray-500 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-blue-700">
+<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-fg-muted hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-primary-strong">
 <span class="relative">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-house lucide-home size-5" aria-hidden="true">
 <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8">
@@ -410,19 +410,19 @@
 </span>
 <span>홈</span>
 </button>
-<button type="button" aria-current="page" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-gray-500 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-blue-700">
+<button type="button" aria-current="page" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-fg-muted hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-primary-strong">
 <span class="relative">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-square size-5" aria-hidden="true">
 <path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z">
 </path>
 </svg>
 <span class="absolute -top-1.5 left-full -ml-1.5 *:px-1">
-<span aria-label="안 읽은 메시지 2개" class="inline-flex shrink-0 items-center rounded-full bg-red-600 px-1.5 py-0.5 text-xs font-bold whitespace-nowrap text-white">2</span>
+<span aria-label="안 읽은 메시지 2개" class="inline-flex shrink-0 items-center rounded-full bg-notify px-1.5 py-0.5 text-xs font-bold whitespace-nowrap text-white">2</span>
 </span>
 </span>
 <span>메시지</span>
 </button>
-<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-gray-500 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-blue-700">
+<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-fg-muted hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-primary-strong">
 <span class="relative">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard size-5" aria-hidden="true">
 <rect width="8" height="4" x="8" y="2" rx="1" ry="1">
@@ -431,12 +431,12 @@
 </path>
 </svg>
 <span class="absolute -top-1.5 left-full -ml-1.5 *:px-1">
-<span aria-label="지난 업무 2개" class="inline-flex shrink-0 items-center rounded-full bg-red-600 px-1.5 py-0.5 text-xs font-bold whitespace-nowrap text-white">2</span>
+<span aria-label="지난 업무 2개" class="inline-flex shrink-0 items-center rounded-full bg-notify px-1.5 py-0.5 text-xs font-bold whitespace-nowrap text-white">2</span>
 </span>
 </span>
 <span>업무</span>
 </button>
-<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-gray-500 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-blue-700">
+<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-fg-muted hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-primary-strong">
 <span class="relative">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar-days size-5" aria-hidden="true">
 <path d="M8 2v3">
@@ -463,7 +463,7 @@
 </span>
 <span>행사</span>
 </button>
-<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-gray-500 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-blue-700">
+<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-fg-muted hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-primary-strong">
 <span class="relative">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-menu size-5" aria-hidden="true">
 <path d="M4 5h16">
@@ -483,7 +483,7 @@
 <p class="text-xs">업무 · 배지 120</p>
 <nav aria-label="휴대폰 메뉴" class="inset-x-0 bottom-0 z-30 border-t bg-white bottom-navigation-space md:hidden relative">
 <div class="absolute inset-x-0 top-0 flex h-14">
-<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-gray-500 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-blue-700">
+<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-fg-muted hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-primary-strong">
 <span class="relative">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-house lucide-home size-5" aria-hidden="true">
 <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8">
@@ -494,19 +494,19 @@
 </span>
 <span>홈</span>
 </button>
-<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-gray-500 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-blue-700">
+<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-fg-muted hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-primary-strong">
 <span class="relative">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-square size-5" aria-hidden="true">
 <path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z">
 </path>
 </svg>
 <span class="absolute -top-1.5 left-full -ml-1.5 *:px-1">
-<span aria-label="안 읽은 메시지 120개" class="inline-flex shrink-0 items-center rounded-full bg-red-600 px-1.5 py-0.5 text-xs font-bold whitespace-nowrap text-white">99+</span>
+<span aria-label="안 읽은 메시지 120개" class="inline-flex shrink-0 items-center rounded-full bg-notify px-1.5 py-0.5 text-xs font-bold whitespace-nowrap text-white">99+</span>
 </span>
 </span>
 <span>메시지</span>
 </button>
-<button type="button" aria-current="page" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-gray-500 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-blue-700">
+<button type="button" aria-current="page" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-fg-muted hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-primary-strong">
 <span class="relative">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard size-5" aria-hidden="true">
 <rect width="8" height="4" x="8" y="2" rx="1" ry="1">
@@ -515,12 +515,12 @@
 </path>
 </svg>
 <span class="absolute -top-1.5 left-full -ml-1.5 *:px-1">
-<span aria-label="지난 업무 120개" class="inline-flex shrink-0 items-center rounded-full bg-red-600 px-1.5 py-0.5 text-xs font-bold whitespace-nowrap text-white">99+</span>
+<span aria-label="지난 업무 120개" class="inline-flex shrink-0 items-center rounded-full bg-notify px-1.5 py-0.5 text-xs font-bold whitespace-nowrap text-white">99+</span>
 </span>
 </span>
 <span>업무</span>
 </button>
-<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-gray-500 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-blue-700">
+<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-fg-muted hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-primary-strong">
 <span class="relative">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar-days size-5" aria-hidden="true">
 <path d="M8 2v3">
@@ -547,7 +547,7 @@
 </span>
 <span>행사</span>
 </button>
-<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-gray-500 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-blue-700">
+<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-fg-muted hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-primary-strong">
 <span class="relative">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-menu size-5" aria-hidden="true">
 <path d="M4 5h16">
@@ -567,7 +567,7 @@
 <p class="text-xs">행사 · 배지 2</p>
 <nav aria-label="휴대폰 메뉴" class="inset-x-0 bottom-0 z-30 border-t bg-white bottom-navigation-space md:hidden relative">
 <div class="absolute inset-x-0 top-0 flex h-14">
-<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-gray-500 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-blue-700">
+<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-fg-muted hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-primary-strong">
 <span class="relative">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-house lucide-home size-5" aria-hidden="true">
 <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8">
@@ -578,19 +578,19 @@
 </span>
 <span>홈</span>
 </button>
-<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-gray-500 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-blue-700">
+<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-fg-muted hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-primary-strong">
 <span class="relative">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-square size-5" aria-hidden="true">
 <path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z">
 </path>
 </svg>
 <span class="absolute -top-1.5 left-full -ml-1.5 *:px-1">
-<span aria-label="안 읽은 메시지 2개" class="inline-flex shrink-0 items-center rounded-full bg-red-600 px-1.5 py-0.5 text-xs font-bold whitespace-nowrap text-white">2</span>
+<span aria-label="안 읽은 메시지 2개" class="inline-flex shrink-0 items-center rounded-full bg-notify px-1.5 py-0.5 text-xs font-bold whitespace-nowrap text-white">2</span>
 </span>
 </span>
 <span>메시지</span>
 </button>
-<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-gray-500 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-blue-700">
+<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-fg-muted hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-primary-strong">
 <span class="relative">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard size-5" aria-hidden="true">
 <rect width="8" height="4" x="8" y="2" rx="1" ry="1">
@@ -599,12 +599,12 @@
 </path>
 </svg>
 <span class="absolute -top-1.5 left-full -ml-1.5 *:px-1">
-<span aria-label="지난 업무 2개" class="inline-flex shrink-0 items-center rounded-full bg-red-600 px-1.5 py-0.5 text-xs font-bold whitespace-nowrap text-white">2</span>
+<span aria-label="지난 업무 2개" class="inline-flex shrink-0 items-center rounded-full bg-notify px-1.5 py-0.5 text-xs font-bold whitespace-nowrap text-white">2</span>
 </span>
 </span>
 <span>업무</span>
 </button>
-<button type="button" aria-current="page" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-gray-500 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-blue-700">
+<button type="button" aria-current="page" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-fg-muted hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-primary-strong">
 <span class="relative">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar-days size-5" aria-hidden="true">
 <path d="M8 2v3">
@@ -631,7 +631,7 @@
 </span>
 <span>행사</span>
 </button>
-<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-gray-500 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-blue-700">
+<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-fg-muted hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-primary-strong">
 <span class="relative">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-menu size-5" aria-hidden="true">
 <path d="M4 5h16">
@@ -651,7 +651,7 @@
 <p class="text-xs">메뉴 · 배지 0</p>
 <nav aria-label="휴대폰 메뉴" class="inset-x-0 bottom-0 z-30 border-t bg-white bottom-navigation-space md:hidden relative">
 <div class="absolute inset-x-0 top-0 flex h-14">
-<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-gray-500 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-blue-700">
+<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-fg-muted hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-primary-strong">
 <span class="relative">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-house lucide-home size-5" aria-hidden="true">
 <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8">
@@ -662,7 +662,7 @@
 </span>
 <span>홈</span>
 </button>
-<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-gray-500 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-blue-700">
+<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-fg-muted hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-primary-strong">
 <span class="relative">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-square size-5" aria-hidden="true">
 <path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z">
@@ -673,7 +673,7 @@
 </span>
 <span>메시지</span>
 </button>
-<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-gray-500 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-blue-700">
+<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-fg-muted hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-primary-strong">
 <span class="relative">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard size-5" aria-hidden="true">
 <rect width="8" height="4" x="8" y="2" rx="1" ry="1">
@@ -686,7 +686,7 @@
 </span>
 <span>업무</span>
 </button>
-<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-gray-500 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-blue-700">
+<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-fg-muted hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-primary-strong">
 <span class="relative">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar-days size-5" aria-hidden="true">
 <path d="M8 2v3">
@@ -713,7 +713,7 @@
 </span>
 <span>행사</span>
 </button>
-<button type="button" aria-current="page" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-gray-500 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-blue-700">
+<button type="button" aria-current="page" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-fg-muted hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-primary-strong">
 <span class="relative">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-menu size-5" aria-hidden="true">
 <path d="M4 5h16">
@@ -736,7 +736,7 @@
 <p class="text-xs">홈 · 배지 0</p>
 <nav aria-label="휴대폰 메뉴" class="inset-x-0 bottom-0 z-30 border-t bg-white bottom-navigation-space md:hidden relative">
 <div class="absolute inset-x-0 top-0 flex h-14">
-<button type="button" aria-current="page" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-gray-500 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-blue-700">
+<button type="button" aria-current="page" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-fg-muted hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-primary-strong">
 <span class="relative">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-house lucide-home size-5" aria-hidden="true">
 <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8">
@@ -747,7 +747,7 @@
 </span>
 <span>홈</span>
 </button>
-<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-gray-500 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-blue-700">
+<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-fg-muted hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-primary-strong">
 <span class="relative">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-square size-5" aria-hidden="true">
 <path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z">
@@ -758,7 +758,7 @@
 </span>
 <span>메시지</span>
 </button>
-<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-gray-500 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-blue-700">
+<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-fg-muted hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-primary-strong">
 <span class="relative">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard size-5" aria-hidden="true">
 <rect width="8" height="4" x="8" y="2" rx="1" ry="1">
@@ -771,7 +771,7 @@
 </span>
 <span>업무</span>
 </button>
-<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-gray-500 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-blue-700">
+<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-fg-muted hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-primary-strong">
 <span class="relative">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar-days size-5" aria-hidden="true">
 <path d="M8 2v3">
@@ -798,7 +798,7 @@
 </span>
 <span>행사</span>
 </button>
-<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-gray-500 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-blue-700">
+<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-fg-muted hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-primary-strong">
 <span class="relative">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-menu size-5" aria-hidden="true">
 <path d="M4 5h16">
@@ -818,7 +818,7 @@
 <p class="text-xs">메시지 · 배지 2</p>
 <nav aria-label="휴대폰 메뉴" class="inset-x-0 bottom-0 z-30 border-t bg-white bottom-navigation-space md:hidden relative">
 <div class="absolute inset-x-0 top-0 flex h-14">
-<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-gray-500 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-blue-700">
+<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-fg-muted hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-primary-strong">
 <span class="relative">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-house lucide-home size-5" aria-hidden="true">
 <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8">
@@ -829,19 +829,19 @@
 </span>
 <span>홈</span>
 </button>
-<button type="button" aria-current="page" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-gray-500 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-blue-700">
+<button type="button" aria-current="page" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-fg-muted hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-primary-strong">
 <span class="relative">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-square size-5" aria-hidden="true">
 <path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z">
 </path>
 </svg>
 <span class="absolute -top-1.5 left-full -ml-1.5 *:px-1">
-<span aria-label="안 읽은 메시지 2개" class="inline-flex shrink-0 items-center rounded-full bg-red-600 px-1.5 py-0.5 text-xs font-bold whitespace-nowrap text-white">2</span>
+<span aria-label="안 읽은 메시지 2개" class="inline-flex shrink-0 items-center rounded-full bg-notify px-1.5 py-0.5 text-xs font-bold whitespace-nowrap text-white">2</span>
 </span>
 </span>
 <span>메시지</span>
 </button>
-<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-gray-500 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-blue-700">
+<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-fg-muted hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-primary-strong">
 <span class="relative">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard size-5" aria-hidden="true">
 <rect width="8" height="4" x="8" y="2" rx="1" ry="1">
@@ -850,12 +850,12 @@
 </path>
 </svg>
 <span class="absolute -top-1.5 left-full -ml-1.5 *:px-1">
-<span aria-label="지난 업무 2개" class="inline-flex shrink-0 items-center rounded-full bg-red-600 px-1.5 py-0.5 text-xs font-bold whitespace-nowrap text-white">2</span>
+<span aria-label="지난 업무 2개" class="inline-flex shrink-0 items-center rounded-full bg-notify px-1.5 py-0.5 text-xs font-bold whitespace-nowrap text-white">2</span>
 </span>
 </span>
 <span>업무</span>
 </button>
-<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-gray-500 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-blue-700">
+<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-fg-muted hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-primary-strong">
 <span class="relative">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar-days size-5" aria-hidden="true">
 <path d="M8 2v3">
@@ -882,7 +882,7 @@
 </span>
 <span>행사</span>
 </button>
-<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-gray-500 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-blue-700">
+<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-fg-muted hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-primary-strong">
 <span class="relative">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-menu size-5" aria-hidden="true">
 <path d="M4 5h16">
@@ -902,7 +902,7 @@
 <p class="text-xs">업무 · 배지 120</p>
 <nav aria-label="휴대폰 메뉴" class="inset-x-0 bottom-0 z-30 border-t bg-white bottom-navigation-space md:hidden relative">
 <div class="absolute inset-x-0 top-0 flex h-14">
-<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-gray-500 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-blue-700">
+<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-fg-muted hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-primary-strong">
 <span class="relative">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-house lucide-home size-5" aria-hidden="true">
 <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8">
@@ -913,19 +913,19 @@
 </span>
 <span>홈</span>
 </button>
-<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-gray-500 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-blue-700">
+<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-fg-muted hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-primary-strong">
 <span class="relative">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-square size-5" aria-hidden="true">
 <path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z">
 </path>
 </svg>
 <span class="absolute -top-1.5 left-full -ml-1.5 *:px-1">
-<span aria-label="안 읽은 메시지 120개" class="inline-flex shrink-0 items-center rounded-full bg-red-600 px-1.5 py-0.5 text-xs font-bold whitespace-nowrap text-white">99+</span>
+<span aria-label="안 읽은 메시지 120개" class="inline-flex shrink-0 items-center rounded-full bg-notify px-1.5 py-0.5 text-xs font-bold whitespace-nowrap text-white">99+</span>
 </span>
 </span>
 <span>메시지</span>
 </button>
-<button type="button" aria-current="page" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-gray-500 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-blue-700">
+<button type="button" aria-current="page" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-fg-muted hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-primary-strong">
 <span class="relative">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard size-5" aria-hidden="true">
 <rect width="8" height="4" x="8" y="2" rx="1" ry="1">
@@ -934,12 +934,12 @@
 </path>
 </svg>
 <span class="absolute -top-1.5 left-full -ml-1.5 *:px-1">
-<span aria-label="지난 업무 120개" class="inline-flex shrink-0 items-center rounded-full bg-red-600 px-1.5 py-0.5 text-xs font-bold whitespace-nowrap text-white">99+</span>
+<span aria-label="지난 업무 120개" class="inline-flex shrink-0 items-center rounded-full bg-notify px-1.5 py-0.5 text-xs font-bold whitespace-nowrap text-white">99+</span>
 </span>
 </span>
 <span>업무</span>
 </button>
-<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-gray-500 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-blue-700">
+<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-fg-muted hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-primary-strong">
 <span class="relative">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar-days size-5" aria-hidden="true">
 <path d="M8 2v3">
@@ -966,7 +966,7 @@
 </span>
 <span>행사</span>
 </button>
-<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-gray-500 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-blue-700">
+<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-fg-muted hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-primary-strong">
 <span class="relative">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-menu size-5" aria-hidden="true">
 <path d="M4 5h16">
@@ -986,7 +986,7 @@
 <p class="text-xs">행사 · 배지 2</p>
 <nav aria-label="휴대폰 메뉴" class="inset-x-0 bottom-0 z-30 border-t bg-white bottom-navigation-space md:hidden relative">
 <div class="absolute inset-x-0 top-0 flex h-14">
-<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-gray-500 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-blue-700">
+<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-fg-muted hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-primary-strong">
 <span class="relative">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-house lucide-home size-5" aria-hidden="true">
 <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8">
@@ -997,19 +997,19 @@
 </span>
 <span>홈</span>
 </button>
-<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-gray-500 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-blue-700">
+<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-fg-muted hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-primary-strong">
 <span class="relative">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-square size-5" aria-hidden="true">
 <path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z">
 </path>
 </svg>
 <span class="absolute -top-1.5 left-full -ml-1.5 *:px-1">
-<span aria-label="안 읽은 메시지 2개" class="inline-flex shrink-0 items-center rounded-full bg-red-600 px-1.5 py-0.5 text-xs font-bold whitespace-nowrap text-white">2</span>
+<span aria-label="안 읽은 메시지 2개" class="inline-flex shrink-0 items-center rounded-full bg-notify px-1.5 py-0.5 text-xs font-bold whitespace-nowrap text-white">2</span>
 </span>
 </span>
 <span>메시지</span>
 </button>
-<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-gray-500 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-blue-700">
+<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-fg-muted hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-primary-strong">
 <span class="relative">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard size-5" aria-hidden="true">
 <rect width="8" height="4" x="8" y="2" rx="1" ry="1">
@@ -1018,12 +1018,12 @@
 </path>
 </svg>
 <span class="absolute -top-1.5 left-full -ml-1.5 *:px-1">
-<span aria-label="지난 업무 2개" class="inline-flex shrink-0 items-center rounded-full bg-red-600 px-1.5 py-0.5 text-xs font-bold whitespace-nowrap text-white">2</span>
+<span aria-label="지난 업무 2개" class="inline-flex shrink-0 items-center rounded-full bg-notify px-1.5 py-0.5 text-xs font-bold whitespace-nowrap text-white">2</span>
 </span>
 </span>
 <span>업무</span>
 </button>
-<button type="button" aria-current="page" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-gray-500 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-blue-700">
+<button type="button" aria-current="page" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-fg-muted hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-primary-strong">
 <span class="relative">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar-days size-5" aria-hidden="true">
 <path d="M8 2v3">
@@ -1050,7 +1050,7 @@
 </span>
 <span>행사</span>
 </button>
-<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-gray-500 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-blue-700">
+<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-fg-muted hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-primary-strong">
 <span class="relative">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-menu size-5" aria-hidden="true">
 <path d="M4 5h16">
@@ -1070,7 +1070,7 @@
 <p class="text-xs">메뉴 · 배지 0</p>
 <nav aria-label="휴대폰 메뉴" class="inset-x-0 bottom-0 z-30 border-t bg-white bottom-navigation-space md:hidden relative">
 <div class="absolute inset-x-0 top-0 flex h-14">
-<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-gray-500 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-blue-700">
+<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-fg-muted hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-primary-strong">
 <span class="relative">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-house lucide-home size-5" aria-hidden="true">
 <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8">
@@ -1081,7 +1081,7 @@
 </span>
 <span>홈</span>
 </button>
-<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-gray-500 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-blue-700">
+<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-fg-muted hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-primary-strong">
 <span class="relative">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-square size-5" aria-hidden="true">
 <path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z">
@@ -1092,7 +1092,7 @@
 </span>
 <span>메시지</span>
 </button>
-<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-gray-500 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-blue-700">
+<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-fg-muted hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-primary-strong">
 <span class="relative">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard size-5" aria-hidden="true">
 <rect width="8" height="4" x="8" y="2" rx="1" ry="1">
@@ -1105,7 +1105,7 @@
 </span>
 <span>업무</span>
 </button>
-<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-gray-500 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-blue-700">
+<button type="button" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-fg-muted hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-primary-strong">
 <span class="relative">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar-days size-5" aria-hidden="true">
 <path d="M8 2v3">
@@ -1132,7 +1132,7 @@
 </span>
 <span>행사</span>
 </button>
-<button type="button" aria-current="page" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-gray-500 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-blue-700">
+<button type="button" aria-current="page" class="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 text-xs break-keep text-fg-muted hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-[current=page]:font-semibold aria-[current=page]:text-primary-strong">
 <span class="relative">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-menu size-5" aria-hidden="true">
 <path d="M4 5h16">

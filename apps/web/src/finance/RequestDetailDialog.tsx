@@ -124,13 +124,13 @@ function OpenRequestDialog({
 function Facts({ request }: { request: PurchaseRequestDetail }) {
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-fg-muted">
         <StatusBadge status={request.status} />
         <span className="wrap-anywhere">{request.requestedBy.name}</span>
         {request.neededBy && <span>{neededByLabel(request.neededBy)}</span>}
       </div>
       {request.body && (
-        <p className="text-sm wrap-anywhere whitespace-pre-wrap text-gray-800">{request.body}</p>
+        <p className="text-sm wrap-anywhere whitespace-pre-wrap text-fg-body">{request.body}</p>
       )}
     </div>
   )

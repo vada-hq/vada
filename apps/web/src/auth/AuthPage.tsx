@@ -8,8 +8,8 @@ export function AuthPageCard({ children }: { children: ReactNode }) {
     <AuthCard>
       <div className="flex flex-wrap items-center gap-2">
         <BrandMark />
-        <h1 className="text-base font-semibold text-gray-900">VADA</h1>
-        <p className="ml-auto text-xs text-gray-500">학생회를 위한 공간</p>
+        <h1 className="text-base font-semibold text-fg">VADA</h1>
+        <p className="ml-auto text-xs text-fg-muted">학생회를 위한 공간</p>
       </div>
       {children}
     </AuthCard>

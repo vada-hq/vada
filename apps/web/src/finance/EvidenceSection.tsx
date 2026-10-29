@@ -45,7 +45,7 @@ export function EvidenceSection({ councilId, expense, upload, chat, message }: P
   const attachable = expense.actions.includes('expense.attach_evidence')
   return (
     <section aria-label="증빙 사진" className="flex flex-col gap-2">
-      <h3 className="text-sm font-medium text-gray-700">증빙 사진</h3>
+      <h3 className="text-sm font-medium text-fg-secondary">증빙 사진</h3>
       {attachable && <MessageEvidence councilId={councilId} message={message} />}
       {photos.length > 0 && <PhotoThumbs label="증빙 사진 목록" photos={photos} />}
       {photos.length === 0 && !expense.cancelled && (

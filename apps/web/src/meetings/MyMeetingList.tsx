@@ -40,7 +40,7 @@ export function MyMeetingList({ meetings, truncated, onOpen, onAll }: Props) {
               key={meeting.id}
               className={cn(
                 rowLinkBox,
-                'flex min-w-0 items-center gap-3 px-5 py-3 transition-colors hover:bg-gray-50 max-sm:flex-wrap',
+                'flex min-w-0 items-center gap-3 px-5 py-3 transition-colors hover:bg-surface-subtle max-sm:flex-wrap',
               )}
             >
               <span className="w-36 shrink-0 text-xs text-muted-foreground tabular-nums max-sm:w-full">
@@ -62,7 +62,7 @@ export function MyMeetingList({ meetings, truncated, onOpen, onAll }: Props) {
                 </p>
               </div>
               <span className={cn('shrink-0 text-sm', todo.className)}>{todo.label}</span>
-              <ChevronRight aria-hidden className="size-4 shrink-0 text-gray-300" />
+              <ChevronRight aria-hidden className="size-4 shrink-0 text-fg-faint" />
             </li>
           ))}
         </ul>

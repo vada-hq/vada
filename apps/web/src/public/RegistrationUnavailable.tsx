@@ -7,7 +7,8 @@ import { closedLine, STATUS_LABEL } from './registration-text'
 export default function RegistrationUnavailable({ data }: { data: PublicRegistrationForm }) {
   if (data.status === 'open') return null
   const title = STATUS_LABEL[data.status]
-  const tone = data.status === 'full' ? 'bg-orange-50 text-orange-700' : 'bg-gray-100 text-gray-600'
+  const tone =
+    data.status === 'full' ? 'bg-pending-surface text-pending' : 'bg-surface-muted text-fg-tertiary'
   return (
     <section
       aria-label={title}

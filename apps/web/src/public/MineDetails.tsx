@@ -91,7 +91,7 @@ function AnswersBlock({ mine }: { mine: MyRegistration }) {
 export function MineFacts({ mine }: { mine: MyRegistration }) {
   return (
     <div className="flex flex-col items-center gap-5 text-center break-keep wrap-anywhere">
-      <div className="flex size-20 items-center justify-center rounded-full bg-green-100 text-green-600">
+      <div className="flex size-20 items-center justify-center rounded-full bg-success-soft text-success-emphasis">
         <Check aria-hidden="true" className="size-10" />
       </div>
       <div className="flex min-w-0 flex-col gap-1">

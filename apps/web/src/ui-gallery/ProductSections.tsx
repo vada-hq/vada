@@ -93,7 +93,7 @@ export function ProductPanelSection() {
         ))}
         <div className="flex h-160 w-full overflow-hidden rounded-lg border bg-white">
           <div className="flex min-w-0 flex-1 flex-col gap-3 p-4">
-            <h3 className="text-base font-semibold text-gray-900">기획부 방</h3>
+            <h3 className="text-base font-semibold text-fg">기획부 방</h3>
             <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
               <Flow />
             </div>

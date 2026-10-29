@@ -41,7 +41,7 @@ function SampleHeader({ sample }: { sample: Sample }) {
   const trail = trailOf(sample.page, sample.council, sent ?? sample.deeper ?? null)
   const width = pageWidthOf(sample.page, sample.record)
   return (
-    <div className="flex flex-col border bg-gray-50">
+    <div className="flex flex-col border bg-surface-subtle">
       <WorkspaceHeader
         width={width}
         crumbs={trail.crumbs}

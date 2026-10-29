@@ -36,7 +36,7 @@ export default function RequestCard({
           <Button
             touch
             variant="link"
-            className="h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere break-keep"
+            className="h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-fg wrap-anywhere break-keep"
             onClick={onOpen}
           >
             <span className="line-clamp-2 sm:line-clamp-1">{request.title}</span>
@@ -44,7 +44,7 @@ export default function RequestCard({
         </h2>
         <StatusBadge status={request.status} />
       </div>
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-fg-muted">
         <span className="wrap-anywhere">{request.requestedBy.name}</span>
         <NeededBy date={request.neededBy} mark={mark} />
         <span>품목 {request.itemCount}개</span>
@@ -59,7 +59,7 @@ export default function RequestCard({
         )}
       </div>
       {request.bodyPreview && (
-        <p className="text-xs wrap-anywhere text-gray-600">{request.bodyPreview}</p>
+        <p className="text-xs wrap-anywhere text-fg-tertiary">{request.bodyPreview}</p>
       )}
       <CardProgress request={request} />
     </Card>

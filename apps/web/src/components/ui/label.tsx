@@ -6,7 +6,7 @@ export function Label({ className, ...props }: ComponentProps<'label'>) {
   return (
     <label
       data-slot="label"
-      className={cn('text-xs font-medium text-gray-700', className)}
+      className={cn('text-xs font-medium text-fg-secondary', className)}
       {...props}
     />
   )

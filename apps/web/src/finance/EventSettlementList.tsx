@@ -15,7 +15,7 @@ function MarkText({ row }: { row: EventSettlementRow }) {
   const mark = settlementMark(row)
   if (!mark) return null
   return (
-    <span className="shrink-0 text-sm font-semibold text-gray-900 tabular-nums">
+    <span className="shrink-0 text-sm font-semibold text-fg tabular-nums">
       {mark.kind === 'settled' ? settlementLabel(row.settlement) : remainingLabel(mark.count)}
     </span>
   )
@@ -31,7 +31,7 @@ export function EventSettlementList({ rows, onOpen }: Props) {
         return (
           <li
             key={row.event.id}
-            className={`${rowLinkBox} flex flex-col gap-1 px-4 py-3 transition-colors hover:bg-gray-50`}
+            className={`${rowLinkBox} flex flex-col gap-1 px-4 py-3 transition-colors hover:bg-surface-subtle`}
           >
             <div className="flex items-start gap-3">
               <Button
@@ -44,7 +44,7 @@ export function EventSettlementList({ rows, onOpen }: Props) {
               </Button>
               <MarkText row={row} />
             </div>
-            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500">
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-fg-muted">
               <EventStatusChip status={row.event.status} />
               {date && <span>{date}</span>}
             </div>

@@ -15,7 +15,7 @@ export function FormLink({ form }: { form: RegistrationForm }) {
       </dl>
       <CopyButton value={url} label="링크 복사" failedHint="길게 눌러 복사하세요." />
       <div className="flex flex-col gap-2">
-        <p className="text-xs font-medium text-gray-500">포스터용 QR</p>
+        <p className="text-xs font-medium text-fg-muted">포스터용 QR</p>
         <QrCode text={url} label={`${form.name} 신청 링크 QR`} />
       </div>
     </div>

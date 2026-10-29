@@ -16,7 +16,7 @@ type Line = BudgetItemUsage & {
 // 흐린 한 줄의 금액들. 좁으면 '·' 자리에서 줄을 바꾸고 금액 안에서는 바꾸지 않는다.
 function Dim({ parts }: { parts: string[] }) {
   return (
-    <p className="text-xs text-gray-500 tabular-nums">
+    <p className="text-xs text-fg-muted tabular-nums">
       {parts.map((part, index) => (
         <span key={part}>
           {index > 0 && ' · '}
@@ -33,7 +33,7 @@ function Numbers({ item }: { item: Line }) {
     return (
       <>
         <Dim parts={[`예산 ${wonLabel(item.amount)}`]} />
-        <p className="text-base font-semibold text-gray-900 tabular-nums">
+        <p className="text-base font-semibold text-fg tabular-nums">
           들어온 돈 {wonLabel(item.actual)}
         </p>
       </>
@@ -50,7 +50,7 @@ function Numbers({ item }: { item: Line }) {
       <p
         className={cn(
           'text-base font-semibold tabular-nums',
-          item.available < 0 ? 'text-red-600' : 'text-blue-700',
+          item.available < 0 ? 'text-danger-emphasis' : 'text-primary-strong',
         )}
       >
         사용 가능 {signedWon(item.available)}
@@ -68,7 +68,7 @@ function BudgetItemLine({ item, actions }: { item: Line; actions?: ReactNode }) 
       <div className="flex items-start gap-2">
         <span
           title={item.purpose}
-          className="line-clamp-2 min-w-0 flex-1 text-sm font-medium wrap-anywhere text-gray-900"
+          className="line-clamp-2 min-w-0 flex-1 text-sm font-medium wrap-anywhere text-fg"
         >
           {item.purpose}
         </span>
@@ -76,7 +76,7 @@ function BudgetItemLine({ item, actions }: { item: Line; actions?: ReactNode }) 
         {actions && <div className="-my-2 -mr-1.5 shrink-0">{actions}</div>}
       </div>
       {item.event && (
-        <span title={item.event.name} className="line-clamp-1 text-xs wrap-anywhere text-gray-500">
+        <span title={item.event.name} className="line-clamp-1 text-xs wrap-anywhere text-fg-muted">
           {item.event.name}
         </span>
       )}

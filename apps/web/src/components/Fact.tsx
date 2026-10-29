@@ -4,8 +4,8 @@ import type { ReactNode } from 'react'
 export function Fact({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="flex flex-col gap-1">
-      <dt className="text-xs font-medium text-gray-500">{label}</dt>
-      <dd className="text-sm break-keep text-gray-800 wrap-anywhere">{children}</dd>
+      <dt className="text-xs font-medium text-fg-muted">{label}</dt>
+      <dd className="text-sm break-keep text-fg-body wrap-anywhere">{children}</dd>
     </div>
   )
 }

@@ -24,7 +24,7 @@ export function DepartmentAdd({ open, onOpen, onClose, ...form }: Props) {
           element.focus()
         }}
         variant="outline"
-        className="min-h-11 w-full border-dashed border-gray-300 text-gray-500 shadow-none hover:border-gray-400"
+        className="min-h-11 w-full border-dashed border-border-strong text-fg-muted shadow-none hover:border-border-strong-hover"
         onClick={onOpen}
       >
         <Plus />
@@ -32,7 +32,7 @@ export function DepartmentAdd({ open, onOpen, onClose, ...form }: Props) {
       </Button>
     )
   return (
-    <div className={cn(cardClass, 'border-dashed border-gray-300 p-4 shadow-none')}>
+    <div className={cn(cardClass, 'border-dashed border-border-strong p-4 shadow-none')}>
       <DepartmentCreateForm
         {...form}
         onClose={() => {

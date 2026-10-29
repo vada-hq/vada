@@ -57,12 +57,12 @@ function DayNumber({ day, month, today }: { day: string; month: string; today: s
         day === today
           ? 'bg-primary font-semibold text-primary-foreground'
           : monthOf(day) !== month
-            ? 'text-gray-300'
+            ? 'text-fg-faint'
             : weekday === SUNDAY
-              ? 'text-red-600'
+              ? 'text-sunday'
               : weekday === SATURDAY
-                ? 'text-blue-600'
-                : 'text-gray-700',
+                ? 'text-saturday'
+                : 'text-fg-secondary',
       )}
     >
       {Number(day.slice(DAY_START))}
@@ -86,7 +86,7 @@ function Chip({
       type="button"
       title={`${task.title} · ${assigneeLabel(task.assignee)} · ${markLabel(task)}`}
       className={cn(
-        'pointer-events-auto flex min-w-0 cursor-pointer items-center gap-1 rounded px-1 py-0.5 text-left text-xs hover:bg-gray-100',
+        'pointer-events-auto flex min-w-0 cursor-pointer items-center gap-1 rounded px-1 py-0.5 text-left text-xs hover:bg-surface-muted',
         markTextClass(task),
       )}
       onClick={onOpen}
@@ -119,7 +119,7 @@ function DayTasks({
         {hidden > 0 && (
           <button
             type="button"
-            className="pointer-events-auto cursor-pointer self-start rounded px-1 text-xs text-gray-500 hover:bg-gray-100"
+            className="pointer-events-auto cursor-pointer self-start rounded px-1 text-xs text-fg-muted hover:bg-surface-muted"
             onClick={onMore}
           >
             +{hidden}개
@@ -149,7 +149,7 @@ function Bar({ bar, onOpenEvent }: { bar: EventBar; onOpenEvent: Props['onOpenEv
       <span
         className={cn(
           position,
-          'h-1 truncate bg-emerald-200 text-xs font-medium text-emerald-900 sm:h-5 sm:bg-emerald-100 sm:px-1.5',
+          'h-1 truncate bg-kind-event-bar text-xs font-medium text-kind-event-bar-fg sm:h-5 sm:bg-kind-event-soft sm:px-1.5',
         )}
       >
         <span className="hidden sm:inline">{bar.event.name}</span>
@@ -157,7 +157,7 @@ function Bar({ bar, onOpenEvent }: { bar: EventBar; onOpenEvent: Props['onOpenEv
     )
   return (
     <>
-      <span aria-hidden className={cn(position, 'h-1 bg-emerald-200 sm:hidden')} />
+      <span aria-hidden className={cn(position, 'h-1 bg-kind-event-bar sm:hidden')} />
       <Button
         variant="ghost"
         size="sm"
@@ -165,7 +165,7 @@ function Bar({ bar, onOpenEvent }: { bar: EventBar; onOpenEvent: Props['onOpenEv
         title={bar.event.name}
         className={cn(
           position,
-          'pointer-events-auto hidden h-5 min-w-0 justify-start truncate bg-emerald-100 px-1.5 py-0 text-left text-xs font-medium text-emerald-900 hover:bg-emerald-300 sm:flex',
+          'pointer-events-auto hidden h-5 min-w-0 justify-start truncate bg-kind-event-soft px-1.5 py-0 text-left text-xs font-medium text-kind-event-bar-fg hover:bg-kind-event-line sm:flex',
         )}
         onClick={() => onOpenEvent(bar.event.id)}
       >
@@ -186,9 +186,9 @@ function DayButtons({ week, month, selected, tasksOf, eventsOf, onSelect }: Prop
           aria-label={`${dayLabel(day)} 업무 ${tasksOf(day).length}개, 행사 ${eventsOf(day).length}개`}
           aria-pressed={selected === day}
           className={cn(
-            'cursor-pointer border-l first:border-l-0 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset',
-            monthOf(day) !== month && 'bg-gray-50/60',
-            selected === day && 'bg-blue-50 hover:bg-blue-50',
+            'cursor-pointer border-l first:border-l-0 hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset',
+            monthOf(day) !== month && 'bg-surface-subtle/60',
+            selected === day && 'bg-primary-surface hover:bg-primary-surface',
           )}
           onClick={() => onSelect(day)}
         />

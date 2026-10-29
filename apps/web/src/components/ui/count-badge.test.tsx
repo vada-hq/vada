@@ -20,7 +20,7 @@ test('99까지는 수 그대로, 넘으면 99+이고 읽는 이름을 받는다'
   expect(screen.getByLabelText('안 읽은 메시지 99개').textContent).toBe('99')
   const many = screen.getByLabelText('안 읽은 메시지 120개')
   expect(many.textContent).toBe('99+')
-  expect(many.className).toContain('bg-red-600')
+  expect(many.className).toContain('bg-notify')
   expect(many.className).toContain('text-white')
 })
 

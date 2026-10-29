@@ -15,7 +15,7 @@ export function RequestExpenses({
   if (expenses.length === 0) return null
   return (
     <section aria-label="결제한 지출" className="flex flex-col gap-2">
-      <h3 className="text-sm font-medium text-gray-700">결제한 지출</h3>
+      <h3 className="text-sm font-medium text-fg-secondary">결제한 지출</h3>
       <ul className="flex flex-col gap-1">
         {expenses.map(expense => (
           <li key={expense.id} className="flex items-center gap-2">

@@ -31,9 +31,7 @@ export function SettlementsTab({ councilId, onForbidden }: Props) {
   const List = wide ? EventSettlementTable : EventSettlementList
   return (
     <div className="flex flex-col gap-3">
-      {period && (
-        <h3 className="text-base font-medium wrap-anywhere text-gray-900">{period.name}</h3>
-      )}
+      {period && <h3 className="text-base font-medium wrap-anywhere text-fg">{period.name}</h3>}
       {events.length === 0 ? (
         <StateMessage kind="empty">행사 없음</StateMessage>
       ) : (

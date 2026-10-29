@@ -56,7 +56,7 @@ export function ProductPanelFrame({
         <h2
           ref={heading}
           tabIndex={-1}
-          className="min-w-0 text-base font-semibold text-gray-900 outline-none"
+          className="min-w-0 text-base font-semibold text-fg outline-none"
         >
           상품 정보
         </h2>

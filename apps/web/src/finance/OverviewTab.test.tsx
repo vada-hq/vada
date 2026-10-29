@@ -62,7 +62,7 @@ test('사용 가능이 음수면 빨갛다', async () => {
   const value = within(await screen.findByRole('region', { name: '사용 가능' })).getByText(
     '-20,000원',
   )
-  expect(value.className).toContain('text-red-600')
+  expect(value.className).toContain('text-danger-emphasis')
 })
 
 test('일반 부원도 예산 항목과 이력을 열람하고 고치기 동작은 보이지 않는다', async () => {
@@ -127,8 +127,8 @@ test('예정 포함 금액이 예산을 넘으면 전체와 행사 막대가 빨
     ...within(region('행사별')).getAllByRole('progressbar'),
   ]
   for (const bar of bars) {
-    expect(bar.className).toContain('[&::-webkit-progress-value]:bg-red-600')
-    expect(bar.className).toContain('[&::-moz-progress-bar]:bg-red-600')
+    expect(bar.className).toContain('[&::-webkit-progress-value]:bg-danger-emphasis')
+    expect(bar.className).toContain('[&::-moz-progress-bar]:bg-danger-emphasis')
   }
 })
 

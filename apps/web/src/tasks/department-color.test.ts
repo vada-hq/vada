@@ -19,6 +19,6 @@ test('저장된 선택색은 기본색보다 우선하고 조직/업무가 동�
 
 test('학생회 업무(부서 없음)와 목록에 없는 부서는 회색이다', () => {
   const gray = departmentColorOf(null, departments)
-  expect(gray.line).toBe('border-l-gray-400')
+  expect(gray.line).toBe('border-l-category-none')
   expect(departmentColorOf('d99', departments)).toEqual(gray)
 })

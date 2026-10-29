@@ -6,31 +6,31 @@
 </div>
 <div class="flex flex-wrap items-start gap-3">
 <div role="group" aria-label="구매 요청 거르기" class="flex flex-wrap gap-2">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 max-sm:min-h-11 break-keep" aria-pressed="false">전체 요청</button>
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-secondary text-secondary-foreground hover:bg-gray-200 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 max-sm:min-h-11 break-keep" aria-pressed="true">내 요청</button>
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 max-sm:min-h-11 break-keep" aria-pressed="false">결재 대기</button>
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 max-sm:min-h-11 break-keep" aria-pressed="false">내 부서</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-fg-secondary hover:bg-surface-subtle px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 max-sm:min-h-11 break-keep" aria-pressed="false">전체 요청</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-secondary text-secondary-foreground hover:bg-muted-strong px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 max-sm:min-h-11 break-keep" aria-pressed="true">내 요청</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-fg-secondary hover:bg-surface-subtle px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 max-sm:min-h-11 break-keep" aria-pressed="false">결재 대기</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-fg-secondary hover:bg-surface-subtle px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 max-sm:min-h-11 break-keep" aria-pressed="false">내 부서</button>
 </div>
 <div class="flex w-full flex-wrap items-center gap-2">
-<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-yellow-200 bg-yellow-50 text-yellow-700">결재 대기</span>
-<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-green-200 bg-green-50 text-green-700">승인</span>
-<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-red-200 bg-red-50 text-red-700">반려</span>
-<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-blue-200 bg-blue-50 text-blue-700">일부 승인</span>
-<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">취소</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-warning-border bg-warning-surface text-warning">결재 대기</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-success-border bg-success-surface text-success">승인</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-danger-border bg-danger-surface text-danger">반려</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-primary-border bg-primary-surface text-primary-strong">일부 승인</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-surface-muted text-fg-muted">취소</span>
 </div>
 <div class="flex w-80 flex-col gap-2">
 <div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-2 p-4 break-keep">
 <div class="flex items-start gap-2">
 <h2 class="min-w-0 flex-1">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-4 max-sm:min-h-11 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere break-keep">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-primary-strong [&amp;_svg]:size-4 max-sm:min-h-11 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-fg wrap-anywhere break-keep">
 <span class="line-clamp-2 sm:line-clamp-1">행사 포스터 인쇄</span>
 </button>
 </h2>
-<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-yellow-200 bg-yellow-50 text-yellow-700">결재 대기</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-warning-border bg-warning-surface text-warning">결재 대기</span>
 </div>
-<div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500">
+<div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-fg-muted">
 <span class="wrap-anywhere">김새내</span>
-<span class="inline-flex items-center gap-1.5">10월 25일까지 필요<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-yellow-200 bg-yellow-50 text-yellow-700">임박</span>
+<span class="inline-flex items-center gap-1.5">10월 25일까지 필요<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-warning-border bg-warning-surface text-warning">임박</span>
 </span>
 <span>품목 3개</span>
 <span>요청일 10월 21일 (수)</span>
@@ -39,15 +39,15 @@
 <div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-2 p-4 break-keep">
 <div class="flex items-start gap-2">
 <h2 class="min-w-0 flex-1">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-4 max-sm:min-h-11 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere break-keep">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-primary-strong [&amp;_svg]:size-4 max-sm:min-h-11 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-fg wrap-anywhere break-keep">
 <span class="line-clamp-2 sm:line-clamp-1">지난 요청</span>
 </button>
 </h2>
-<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-yellow-200 bg-yellow-50 text-yellow-700">결재 대기</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-warning-border bg-warning-surface text-warning">결재 대기</span>
 </div>
-<div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500">
+<div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-fg-muted">
 <span class="wrap-anywhere">김새내</span>
-<span class="inline-flex items-center gap-1.5">10월 25일까지 필요<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-red-200 bg-red-50 text-red-700">지남</span>
+<span class="inline-flex items-center gap-1.5">10월 25일까지 필요<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-danger-border bg-danger-surface text-danger">지남</span>
 </span>
 <span>품목 3개</span>
 <span>요청일 10월 21일 (수)</span>
@@ -56,13 +56,13 @@
 <div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-2 p-4 break-keep">
 <div class="flex items-start gap-2">
 <h2 class="min-w-0 flex-1">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-4 max-sm:min-h-11 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere break-keep">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-primary-strong [&amp;_svg]:size-4 max-sm:min-h-11 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-fg wrap-anywhere break-keep">
 <span class="line-clamp-2 sm:line-clamp-1">행사 포스터 인쇄</span>
 </button>
 </h2>
-<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-blue-200 bg-blue-50 text-blue-700">일부 승인</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-primary-border bg-primary-surface text-primary-strong">일부 승인</span>
 </div>
-<div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500">
+<div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-fg-muted">
 <span class="wrap-anywhere">김새내</span>
 <span>품목 1개</span>
 <span>요청일 10월 21일 (수)</span>
@@ -71,13 +71,13 @@
 <div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-2 p-4 break-keep">
 <div class="flex items-start gap-2">
 <h2 class="min-w-0 flex-1">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-4 max-sm:min-h-11 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere break-keep">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-primary-strong [&amp;_svg]:size-4 max-sm:min-h-11 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-fg wrap-anywhere break-keep">
 <span class="line-clamp-2 sm:line-clamp-1">행사 포스터 인쇄</span>
 </button>
 </h2>
-<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-gray-100 text-gray-500">취소</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-transparent bg-surface-muted text-fg-muted">취소</span>
 </div>
-<div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500">
+<div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-fg-muted">
 <span class="wrap-anywhere">김새내</span>
 <span class="inline-flex items-center gap-1.5">10월 25일까지 필요</span>
 <span>품목 3개</span>
@@ -87,13 +87,13 @@
 <div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-2 p-4 break-keep">
 <div class="flex items-start gap-2">
 <h2 class="min-w-0 flex-1">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-blue-700 [&amp;_svg]:size-4 max-sm:min-h-11 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere break-keep">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent underline-offset-4 hover:underline focus-visible:ring-primary-strong [&amp;_svg]:size-4 max-sm:min-h-11 h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-fg wrap-anywhere break-keep">
 <span class="line-clamp-2 sm:line-clamp-1">https://www.coupang.com/vp/products/123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890 2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</span>
 </button>
 </h2>
-<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-yellow-200 bg-yellow-50 text-yellow-700">결재 대기</span>
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-warning-border bg-warning-surface text-warning">결재 대기</span>
 </div>
-<div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500">
+<div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-fg-muted">
 <span class="wrap-anywhere">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</span>
 <span class="inline-flex items-center gap-1.5">10월 25일까지 필요</span>
 <span>품목 3개</span>

@@ -32,7 +32,7 @@ const shownRows = (card: HTMLElement) =>
 // 카드 머리 규칙(DEC-95): 3건 이하면 회색 '{n}건', 넘으면 파란 '전체 {n}건 보기'와 앞 3줄, 0건이면 가운데 빈 문구.
 test('3건이면 머리에 회색 수가 있고 세 줄을 모두 그린다', () => {
   const card = show(ready(3), { onSeeAll: vi.fn() })
-  expect(within(head(card)).getByText('3건').className).toContain('text-gray-500')
+  expect(within(head(card)).getByText('3건').className).toContain('text-fg-muted')
   expect(within(card).queryByRole('button', { name: /전체/ })).toBeNull()
   expect(shownRows(card)).toEqual(['줄 1', '줄 2', '줄 3'])
 })
@@ -41,7 +41,7 @@ test('5건이면 파란 전체 보기 링크와 앞 3줄만 그린다', () => {
   const onSeeAll = vi.fn()
   const card = show(ready(5), { onSeeAll })
   const link = within(head(card)).getByRole('button', { name: '전체 5건 보기' })
-  expect(link.className).toContain('text-blue-700')
+  expect(link.className).toContain('text-primary-strong')
   // 휴대폰에서 누르는 영역은 44px 이상이다(WCAG 2.5.8 권장).
   expect(link.className).toContain('max-sm:min-h-11')
   expect(shownRows(card)).toEqual(['줄 1', '줄 2', '줄 3'])
@@ -67,7 +67,7 @@ test('0건이면 카드를 두고 가운데 빈 문구와 머리에 회색 0건�
   })
   expect(within(card).getByText('확인할 일 없음')).toBeTruthy()
   expect(within(card).getByRole('button', { name: '새 행사' })).toBeTruthy()
-  expect(within(head(card)).getByText('0건').className).toContain('text-gray-500')
+  expect(within(head(card)).getByText('0건').className).toContain('text-fg-muted')
 })
 
 // 모르는 값은 0이 아니라 '집계 전'이다(기획자 D-11 ③). 실패면 다시 불러온다.

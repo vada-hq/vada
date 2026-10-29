@@ -96,15 +96,13 @@ function FormSummary({ form }: { form: RegistrationForm }) {
   return (
     <>
       <div className="flex items-start gap-2">
-        <h3 className="min-w-0 flex-1 text-sm font-semibold text-gray-900 wrap-anywhere">
-          {form.name}
-        </h3>
+        <h3 className="min-w-0 flex-1 text-sm font-semibold text-fg wrap-anywhere">{form.name}</h3>
         <Badge tone={STATUS_TONE[form.status]}>
           {registrationStatusLabel(form.status, form.applicantCount)}
         </Badge>
       </div>
-      <p className="text-xs text-gray-500">{periodLabel(form)}</p>
-      <p className="text-xs text-gray-700">{countLabel(form)}</p>
+      <p className="text-xs text-fg-muted">{periodLabel(form)}</p>
+      <p className="text-xs text-fg-secondary">{countLabel(form)}</p>
     </>
   )
 }

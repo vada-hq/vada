@@ -43,11 +43,11 @@ function LabelRow({
       <Label htmlFor={id}>{label}</Label>
       {required && (
         // 라벨(text-xs)과 줄 높이를 맞춘다. 아니면 별표 칸이 '(선택)' 칸보다 4px 높아 나란한 칸이 어긋난다.
-        <span aria-hidden className="text-sm leading-4 text-red-600">
+        <span aria-hidden className="text-sm leading-4 text-danger-emphasis">
           *
         </span>
       )}
-      {optional && <span className="text-xs text-gray-500">(선택)</span>}
+      {optional && <span className="text-xs text-fg-muted">(선택)</span>}
       {aside !== undefined && <div className="ml-auto">{aside}</div>}
     </div>
   )
@@ -74,7 +74,7 @@ export function Field({
     <div className={cn('flex flex-col gap-2', className)}>
       <LabelRow id={id} label={label} optional={optional} required={required} aside={aside} />
       {hint && (
-        <p id={hintId} className="-mt-1 text-xs text-gray-500">
+        <p id={hintId} className="-mt-1 text-xs text-fg-muted">
           {hint}
         </p>
       )}
@@ -85,7 +85,7 @@ export function Field({
         ...(describedBy && { 'aria-describedby': describedBy }),
       })}
       {error && (
-        <p id={errorId} className="text-xs text-red-600">
+        <p id={errorId} className="text-xs text-danger-emphasis">
           {error}
         </p>
       )}

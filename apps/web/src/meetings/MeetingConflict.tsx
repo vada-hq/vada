@@ -13,7 +13,7 @@ export function MeetingConflict({ meeting }: { meeting: MeetingDetail }) {
     ['참가자', meeting.attendees.map(person => person.name).join(', ')],
   ]
   return (
-    <Card className="flex min-w-0 flex-col gap-4 border-yellow-200 bg-yellow-50 p-5">
+    <Card className="flex min-w-0 flex-col gap-4 border-warning-border bg-warning-surface p-5">
       <h2 className="text-sm font-semibold">새로 불러온 회의</h2>
       <dl className="grid min-w-0 gap-3 text-sm sm:grid-cols-2">
         {fields.map(([label, value]) => (

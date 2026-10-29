@@ -126,10 +126,10 @@ export function RequestItemFields({
         onChange={event => onChange({ ...values, quantity: event.target.value })}
       />
       {sellerOf(values.link) && (
-        <span className="text-xs text-gray-500">{sellerOf(values.link)}</span>
+        <span className="text-xs text-fg-muted">{sellerOf(values.link)}</span>
       )}
       {!values.loadedProduct && values.loadedPrice != null && (
-        <span className="text-xs text-gray-500">{`불러온 가격 ${wonLabel(values.loadedPrice)}`}</span>
+        <span className="text-xs text-fg-muted">{`불러온 가격 ${wonLabel(values.loadedPrice)}`}</span>
       )}
       <Field label="옵션" error={errors.options} {...text('options')} />
       <RequestEstimateFields
@@ -153,7 +153,7 @@ function ProductReadout({
   return (
     <>
       {state.kind === 'loading' && (
-        <p role="status" className="text-xs text-gray-500">
+        <p role="status" className="text-xs text-fg-muted">
           상품 정보를 불러오는 중이에요.
         </p>
       )}

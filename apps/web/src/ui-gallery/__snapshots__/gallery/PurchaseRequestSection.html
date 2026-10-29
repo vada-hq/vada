@@ -5,26 +5,26 @@
 <a href="/ui.html?section=%EA%B5%AC%EB%A7%A4+%EC%9A%94%EC%B2%AD+%EC%9E%91%EC%84%B1+%ED%8E%98%EC%9D%B4%EC%A7%80" class="inline-flex items-center text-sm break-keep text-primary underline-offset-4 hover:underline max-sm:min-h-11">이것만 열기</a>
 </div>
 <div class="flex flex-wrap items-start gap-3">
-<nav class="text-xs text-gray-500">구매 / 구매 요청 / 새 요청</nav>
+<nav class="text-xs text-fg-muted">구매 / 구매 요청 / 새 요청</nav>
 <div class="grid gap-6 lg:grid-cols-3">
 <div class="flex min-w-0 flex-col gap-6 lg:col-span-2">
 <div class="flex flex-col gap-3 rounded-sm border bg-white p-4">
 <h3 class="font-semibold">기본 정보</h3>
 <div class="flex flex-col gap-2">
 <div class="flex items-baseline gap-1">
-<label data-slot="label" class="text-xs font-medium text-gray-700" for="_id1_">제목</label>
-<span aria-hidden="true" class="text-sm leading-4 text-red-600">*</span>
+<label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id1_">제목</label>
+<span aria-hidden="true" class="text-sm leading-4 text-danger-emphasis">*</span>
 </div>
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-gray-50" id="_id1_" aria-required="true" value="새내기 배움터 준비물 구매">
+<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-surface-subtle" id="_id1_" aria-required="true" value="새내기 배움터 준비물 구매">
 </div>
 </div>
 <div class="flex flex-col gap-3 rounded-sm border bg-white p-4">
 <h3 class="font-semibold">요청 품목</h3>
-<div class="flex flex-wrap gap-3 rounded-sm bg-gray-50 p-3">
-<div class="flex size-24 shrink-0 items-center justify-center rounded-sm border bg-gray-50 p-2 text-center text-xs text-gray-500">사진 없음</div>
-<div class="flex min-w-0 flex-1 flex-col gap-1 text-xs text-gray-600">
-<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-blue-200 bg-blue-50 text-blue-700 self-start">불러온 정보</span>
-<span class="font-medium wrap-anywhere text-gray-900">행사 안내판용 네임펜, 검정 12개 1세트</span>
+<div class="flex flex-wrap gap-3 rounded-sm bg-surface-subtle p-3">
+<div class="flex size-24 shrink-0 items-center justify-center rounded-sm border bg-surface-subtle p-2 text-center text-xs text-fg-muted">사진 없음</div>
+<div class="flex min-w-0 flex-1 flex-col gap-1 text-xs text-fg-tertiary">
+<span data-slot="badge" class="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap border-primary-border bg-primary-surface text-primary-strong self-start">불러온 정보</span>
+<span class="font-medium wrap-anywhere text-fg">행사 안내판용 네임펜, 검정 12개 1세트</span>
 <span class="wrap-anywhere">판매 단위 검정 12개 1세트</span>
 <span>불러온 가격 9,900원</span>
 <span>재고 있음</span>
@@ -36,17 +36,17 @@
 <div class="grid gap-3 sm:grid-cols-2">
 <div class="flex flex-col gap-2">
 <div class="flex items-baseline gap-1">
-<label data-slot="label" class="text-xs font-medium text-gray-700" for="_id2_">예상 단가(원)</label>
-<span class="text-xs text-gray-500">(선택)</span>
+<label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id2_">예상 단가(원)</label>
+<span class="text-xs text-fg-muted">(선택)</span>
 </div>
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-gray-50" aria-label="품목 1 예상 단가" inputmode="numeric" id="_id2_" value="9900">
+<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-surface-subtle" aria-label="품목 1 예상 단가" inputmode="numeric" id="_id2_" value="9900">
 </div>
 <div class="flex flex-col gap-2">
 <div class="flex items-baseline gap-1">
-<label data-slot="label" class="text-xs font-medium text-gray-700" for="_id3_">예상 배송비(원)</label>
-<span class="text-xs text-gray-500">(선택)</span>
+<label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id3_">예상 배송비(원)</label>
+<span class="text-xs text-fg-muted">(선택)</span>
 </div>
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-gray-50" aria-label="품목 1 예상 배송비" inputmode="numeric" id="_id3_" value="">
+<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-surface-subtle" aria-label="품목 1 예상 배송비" inputmode="numeric" id="_id3_" value="">
 </div>
 </div>
 </div>
@@ -54,31 +54,31 @@
 <aside aria-label="요청 요약" class="flex flex-col gap-4 self-start rounded-sm border bg-white p-4 lg:sticky lg:top-4">
 <h2 class="text-base font-semibold">요청 요약</h2>
 <dl class="grid grid-cols-2 gap-3 text-sm">
-<dt class="text-gray-500">품목 수</dt>
+<dt class="text-fg-muted">품목 수</dt>
 <dd>1개</dd>
-<dt class="text-gray-500">필요한 때</dt>
+<dt class="text-fg-muted">필요한 때</dt>
 <dd>11월 2일까지 필요</dd>
 <dt class="font-medium">예상 금액</dt>
 <dd class="font-semibold tabular-nums">미확인</dd>
 </dl>
-<p class="text-xs text-gray-500">상품 합계 19,800원 · 배송비 미확인</p>
+<p class="text-xs text-fg-muted">상품 합계 19,800원 · 배송비 미확인</p>
 <div class="flex justify-end gap-2">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11">취소</button>
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-primary text-primary-foreground hover:bg-blue-700 px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11">내기</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-fg-secondary hover:bg-surface-subtle px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11">취소</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-primary text-primary-foreground hover:bg-primary-strong px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11">내기</button>
 </div>
 </aside>
 </div>
 <h3 class="text-sm font-semibold">요청 진행 · 결재 후 결제 대기</h3>
 <ol aria-label="구매 요청 진행" class="grid grid-flow-col gap-2">
-<li class="flex min-w-0 flex-col gap-2 border-t-4 pt-2 text-sm break-keep border-blue-600 text-blue-700">
+<li class="flex min-w-0 flex-col gap-2 border-t-4 pt-2 text-sm break-keep border-primary-emphasis text-primary-strong">
 <span>요청함</span>
 <span class="text-xs">완료</span>
 </li>
-<li class="flex min-w-0 flex-col gap-2 border-t-4 pt-2 text-sm break-keep border-blue-600 text-blue-700">
+<li class="flex min-w-0 flex-col gap-2 border-t-4 pt-2 text-sm break-keep border-primary-emphasis text-primary-strong">
 <span>결재</span>
 <span class="text-xs">완료</span>
 </li>
-<li class="flex min-w-0 flex-col gap-2 border-t-4 pt-2 text-sm break-keep border-gray-200 text-gray-500">
+<li class="flex min-w-0 flex-col gap-2 border-t-4 pt-2 text-sm break-keep border-border-default text-fg-muted">
 <span>결제</span>
 <span class="text-xs">대기</span>
 </li>

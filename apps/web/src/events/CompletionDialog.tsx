@@ -36,8 +36,8 @@ function RemainingItems({ openTasks }: { openTasks: number }) {
   return (
     <Alert tone="warning">
       <ul aria-label="남은 항목" className="flex flex-col gap-2">
-        <li className="flex items-center gap-2 text-gray-700">
-          <CircleAlert aria-hidden className="size-3.5 shrink-0 text-red-500" />
+        <li className="flex items-center gap-2 text-fg-secondary">
+          <CircleAlert aria-hidden className="size-3.5 shrink-0 text-danger-mark" />
           {`끝나지 않은 업무 ${openTasks}개`}
         </li>
       </ul>

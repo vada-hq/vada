@@ -33,9 +33,9 @@ function dayClass(day: string, month: string, value: string | null, today: strin
   const selected = day === value
   return cn(
     'size-9 p-0 text-sm font-normal',
-    monthOf(day) !== month && 'text-gray-300',
-    day === today && !selected && 'font-semibold text-blue-700 ring-1 ring-blue-200',
-    selected && 'bg-primary text-primary-foreground hover:bg-blue-700 hover:text-white',
+    monthOf(day) !== month && 'text-fg-faint',
+    day === today && !selected && 'font-semibold text-primary-strong ring-1 ring-primary-border',
+    selected && 'bg-primary text-primary-foreground hover:bg-primary-strong hover:text-white',
   )
 }
 
@@ -71,7 +71,7 @@ export function Calendar({ value, today, onSelect }: Props) {
         <Button variant="ghost" size="icon" aria-label="이전 달" onClick={() => turn(-1)}>
           <ChevronLeft />
         </Button>
-        <span className="text-sm font-semibold text-gray-900" aria-live="polite">
+        <span className="text-sm font-semibold text-fg" aria-live="polite">
           {monthLabel(month)}
         </span>
         <Button variant="ghost" size="icon" aria-label="다음 달" onClick={() => turn(1)}>
@@ -82,7 +82,7 @@ export function Calendar({ value, today, onSelect }: Props) {
         <thead>
           <tr>
             {WEEKDAYS.map(name => (
-              <th key={name} scope="col" className="pb-1 text-xs font-normal text-gray-500">
+              <th key={name} scope="col" className="pb-1 text-xs font-normal text-fg-muted">
                 {name}
               </th>
             ))}

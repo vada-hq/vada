@@ -60,12 +60,12 @@ function TbdCheck({
       <input
         id={id}
         type="checkbox"
-        className="size-4 accent-blue-600"
+        className="size-4 accent-primary-emphasis"
         checked={checked}
         disabled={disabled}
         onChange={event => onChange(event.target.checked)}
       />
-      <Label htmlFor={id} className="font-normal text-gray-500">
+      <Label htmlFor={id} className="font-normal text-fg-muted">
         {label}
       </Label>
     </span>

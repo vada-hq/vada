@@ -47,7 +47,7 @@ function CardMenu({
           variant="ghost"
           size="icon"
           touch={variant === 'mine'}
-          className="relative z-10 -mt-1.5 -mr-2 shrink-0 p-1 text-gray-500"
+          className="relative z-10 -mt-1.5 -mr-2 shrink-0 p-1 text-fg-muted"
           aria-label={`${task.title} 더 보기`}
           busy={busy}
           onDragStart={event => {
@@ -76,7 +76,7 @@ function CardMenu({
 function AssigneeText({ task, direct }: Pick<Props, 'task' | 'direct'>) {
   const label = assigneeLabel(task.assignee)
   return (
-    <span className="max-w-full min-w-0 truncate text-xs text-gray-500" title={label}>
+    <span className="max-w-full min-w-0 truncate text-xs text-fg-muted" title={label}>
       <TaskAssigneeName assignee={task.assignee} direct={direct} />
     </span>
   )
@@ -85,7 +85,7 @@ function AssigneeText({ task, direct }: Pick<Props, 'task' | 'direct'>) {
 function cardStyle(color: DepartmentColor, drag: TaskCardDrag) {
   return cn(
     cardClass,
-    'relative border-l-4 p-4 transition-shadow focus-within:ring-2 focus-within:ring-blue-300 hover:shadow-md',
+    'relative border-l-4 p-4 transition-shadow focus-within:ring-2 focus-within:ring-primary-border-strong hover:shadow-md',
     color.line,
     drag.enabled && 'cursor-grab',
     drag.active && 'cursor-grabbing opacity-50',
@@ -102,7 +102,7 @@ function MyTaskCard({ task, color, busy, error, menu, onOpen, onFinish }: Props)
           <div className="flex min-w-0 flex-wrap items-center gap-2">
             <Button
               variant="link"
-              className="h-auto min-w-0 max-w-full justify-start p-0 text-left text-sm leading-snug font-semibold whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 max-sm:min-h-11"
+              className="h-auto min-w-0 max-w-full justify-start p-0 text-left text-sm leading-snug font-semibold whitespace-normal text-fg wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0 max-sm:min-h-11"
               onClick={onOpen}
             >
               <span className="line-clamp-2">{task.title}</span>
@@ -114,8 +114,8 @@ function MyTaskCard({ task, color, busy, error, menu, onOpen, onFinish }: Props)
             )}
             {task.status === 'in_progress' && <Badge tone="info">진행 중</Badge>}
           </div>
-          {result && <p className="text-xs text-gray-700 wrap-anywhere">{result}</p>}
-          <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-1 text-xs text-gray-500">
+          {result && <p className="text-xs text-fg-secondary wrap-anywhere">{result}</p>}
+          <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-1 text-xs text-fg-muted">
             <span className="line-clamp-2 min-w-0 wrap-anywhere">
               {task.event?.name ?? COUNCIL_TASK_LABEL}
             </span>
@@ -137,7 +137,9 @@ function MyTaskCard({ task, color, busy, error, menu, onOpen, onFinish }: Props)
 function MyCardDue({ task }: Pick<Props, 'task'>) {
   const overdue = task.status !== 'done' && task.overdue
   return (
-    <span className={cn('text-right tabular-nums', overdue && 'font-semibold text-red-600')}>
+    <span
+      className={cn('text-right tabular-nums', overdue && 'font-semibold text-danger-emphasis')}
+    >
       {task.dueDate ? dayLabel(`${task.dueDate}T00:00:00+09:00`) : '마감 없음'}
     </span>
   )
@@ -195,7 +197,7 @@ function BoardTaskCard({
       <div className="flex items-start gap-2">
         <Button
           variant="link"
-          className="h-auto min-w-0 flex-1 justify-start p-0 text-left text-sm leading-tight font-bold whitespace-normal text-gray-800 wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0"
+          className="h-auto min-w-0 flex-1 justify-start p-0 text-left text-sm leading-tight font-bold whitespace-normal text-fg-body wrap-anywhere after:absolute after:inset-0 focus-visible:ring-0"
           title={task.title}
           onClick={onOpen}
         >
@@ -210,17 +212,17 @@ function BoardTaskCard({
         {overdue && <Badge tone="danger">지남</Badge>}
         <AssigneeText task={task} direct={direct} />
       </div>
-      <div className="flex items-center justify-between border-t border-gray-50 pt-3">
+      <div className="flex items-center justify-between border-t border-border-faint pt-3">
         <span
           className={cn(
             'flex items-center gap-1.5 text-xs',
-            overdue ? 'font-semibold text-red-600' : 'text-gray-500',
+            overdue ? 'font-semibold text-danger-emphasis' : 'text-fg-muted',
           )}
         >
           <Calendar aria-hidden className="size-3.5" />
           {overdue ? `${dueLabel(task.dueDate)} · 지남` : dueLabel(task.dueDate)}
         </span>
-        {hasResult && <FileText aria-label="결과물 있음" className="size-4 text-gray-300" />}
+        {hasResult && <FileText aria-label="결과물 있음" className="size-4 text-fg-faint" />}
       </div>
       {error && (
         <p role="alert" className="mt-2 text-xs text-destructive wrap-anywhere">

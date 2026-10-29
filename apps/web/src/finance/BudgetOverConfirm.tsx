@@ -24,13 +24,13 @@ type Props = {
 export function BudgetOverConfirm({ lines, when, ...rest }: Props) {
   return (
     <ConfirmDialog title="사용 가능 금액 초과" {...rest}>
-      <ul className="flex flex-col gap-3 text-sm text-gray-700">
+      <ul className="flex flex-col gap-3 text-sm text-fg-secondary">
         {lines.map(line => (
           <li key={line.id} className="flex flex-col gap-1">
-            <p className="font-semibold wrap-anywhere text-gray-900">{line.purpose}</p>
+            <p className="font-semibold wrap-anywhere text-fg">{line.purpose}</p>
             <p>
               {when} 사용 가능{' '}
-              <span className="font-semibold text-red-600 tabular-nums">
+              <span className="font-semibold text-danger-emphasis tabular-nums">
                 {signedWon(line.available)}
               </span>
             </p>

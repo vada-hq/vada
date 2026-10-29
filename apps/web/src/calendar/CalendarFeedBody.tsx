@@ -36,7 +36,7 @@ export function CalendarFeedBody({ state, busy, onChange, onConfirm, onReload }:
     )
   return (
     <div className="flex flex-col gap-4">
-      <p className="text-sm text-gray-500 wrap-anywhere">
+      <p className="text-sm text-fg-muted wrap-anywhere">
         구독 주소 사용 중 · {dayLabel(state.feed.createdAt, now)}
       </p>
       <div className="flex flex-wrap gap-2">

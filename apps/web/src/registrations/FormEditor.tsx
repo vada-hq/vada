@@ -204,7 +204,7 @@ export function FormEditor(props: Props) {
           <ChevronLeft aria-hidden />
           {props.backLabel ?? '신청 양식 목록'}
         </Button>
-        <h2 className="text-lg font-semibold text-gray-900">{mode.label}</h2>
+        <h2 className="text-lg font-semibold text-fg">{mode.label}</h2>
       </div>
       <form
         ref={formRef}

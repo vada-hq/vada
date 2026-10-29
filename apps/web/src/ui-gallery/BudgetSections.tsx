@@ -143,9 +143,9 @@ function DialogFrame({
         width,
       )}
     >
-      <h3 className="pr-6 text-base font-semibold text-gray-900">{title}</h3>
+      <h3 className="pr-6 text-base font-semibold text-fg">{title}</h3>
       <div className="@container flex flex-col gap-4">{children}</div>
-      <span aria-hidden className="absolute top-6 right-6 p-1 text-gray-400">
+      <span aria-hidden className="absolute top-6 right-6 p-1 text-fg-subtle">
         <X className="size-4" />
       </span>
     </div>
@@ -267,7 +267,7 @@ export function BudgetPlanSection() {
     <Section title="예산 편성·항목 고치기 창">
       {WIDTHS.map(({ label, wide, normal }) => (
         <div key={label} className="flex flex-col gap-3">
-          <p className="text-xs text-gray-500">{label}</p>
+          <p className="text-xs text-fg-muted">{label}</p>
           <PlanFrame width={wide} rows={SAMPLES.event} errors={{}} event />
           <PlanFrame width={wide} rows={SAMPLES.errors} errors={ERRORS} />
           <EditFrame width={normal} />
@@ -298,7 +298,7 @@ export function BudgetPlanSection() {
         onConfirm={close}
         onClose={close}
       >
-        <p className="text-sm wrap-anywhere text-gray-700">예비비</p>
+        <p className="text-sm wrap-anywhere text-fg-secondary">예비비</p>
       </ConfirmDialog>
     </Section>
   )

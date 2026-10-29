@@ -76,7 +76,7 @@ function ShipmentFields({ request, busy, values, onChange, errors }: FieldsProps
             <label key={item.id} className="flex items-start gap-2 text-sm wrap-anywhere">
               <input
                 type="checkbox"
-                className="mt-0.5 size-4 shrink-0 accent-blue-600"
+                className="mt-0.5 size-4 shrink-0 accent-primary-emphasis"
                 checked={values.lineItemIds.includes(item.id)}
                 disabled={busy}
                 onChange={event => toggle(item.id, event.target.checked)}

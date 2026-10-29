@@ -47,9 +47,7 @@ export function SheetContent({
       >
         <DialogPrimitive.Title
           className={
-            side === 'adaptive'
-              ? 'px-6 pt-5 pr-12 pb-1 text-base font-semibold text-gray-900'
-              : 'sr-only'
+            side === 'adaptive' ? 'px-6 pt-5 pr-12 pb-1 text-base font-semibold text-fg' : 'sr-only'
           }
         >
           {title}
@@ -59,7 +57,7 @@ export function SheetContent({
         <DialogPrimitive.Close
           aria-label={closeLabel}
           className={cn(
-            'absolute top-5 right-3 cursor-pointer rounded-sm p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none max-sm:flex max-sm:size-11 max-sm:items-center max-sm:justify-center',
+            'absolute top-5 right-3 cursor-pointer rounded-sm p-1 text-fg-subtle hover:bg-surface-muted hover:text-fg-tertiary focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none max-sm:flex max-sm:size-11 max-sm:items-center max-sm:justify-center',
             // 휴대폰에서 누르는 칸은 44px다.
             side === 'adaptive' ? 'max-sm:top-2 max-sm:right-1' : 'max-sm:top-2.5 max-sm:right-0.5',
           )}

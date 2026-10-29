@@ -14,7 +14,7 @@ type Props = Pick<
   'draft' | 'set' | 'renameDepartment' | 'removeDepartment' | 'addDepartment'
 > & { errors: FieldErrors }
 
-const line = 'border-gray-300'
+const line = 'border-border-strong'
 
 // 조직도의 한 칸. 넓은 화면은 위 가로선(칸마다 나눠 그림)에서 내려오는 짧은 선, 휴대폰은 왼쪽 세로선에서 꺾여 오는 선으로 잇는다.
 // 부서 카드는 목록 항목이고, [부서 추가]는 목록 밖 칸이다(화면 읽기 프로그램이 세는 부서 수가 맞게).
@@ -137,7 +137,7 @@ export default function DepartmentTree(props: Props) {
               variant="outline"
               touch
               data-row="add"
-              className="h-auto w-full flex-1 border-dashed text-gray-500 sm:flex-col sm:py-3"
+              className="h-auto w-full flex-1 border-dashed text-fg-muted sm:flex-col sm:py-3"
               onClick={tree.addBlank}
             >
               <Plus />

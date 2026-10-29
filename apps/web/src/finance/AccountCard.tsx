@@ -19,19 +19,19 @@ export function AccountCard({ account, onEdit, onClose }: Props) {
   return (
     <Card className="flex flex-col gap-2 p-3 text-sm">
       <div className="flex flex-wrap items-center gap-2">
-        <span className="min-w-0 font-medium wrap-anywhere text-gray-900">{account.name}</span>
+        <span className="min-w-0 font-medium wrap-anywhere text-fg">{account.name}</span>
         <Badge tone={account.type === 'main' ? 'info' : 'neutral'}>
           {ACCOUNT_TYPE_LABEL[account.type]}
         </Badge>
         {account.closedOn && <Badge tone="danger">닫힘 {account.closedOn}</Badge>}
       </div>
-      <div className="flex flex-col gap-1 text-xs text-gray-500">
+      <div className="flex flex-col gap-1 text-xs text-fg-muted">
         <span className="wrap-anywhere">{account.bank}</span>
-        <span className="wrap-anywhere text-gray-800">{account.accountNumber}</span>
+        <span className="wrap-anywhere text-fg-body">{account.accountNumber}</span>
         <span className="wrap-anywhere">예금주 {account.holder}</span>
       </div>
       {account.closedOn === null && account.formsInUse > 0 && (
-        <span className="text-xs text-gray-500">{ACCOUNT_IN_USE_LABEL(account.formsInUse)}</span>
+        <span className="text-xs text-fg-muted">{ACCOUNT_IN_USE_LABEL(account.formsInUse)}</span>
       )}
       {(canUpdate || canClose) && (
         <div className="flex gap-2">

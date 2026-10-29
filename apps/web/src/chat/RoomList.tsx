@@ -40,7 +40,7 @@ function Group({
   return (
     <section aria-label={title} className="flex flex-col gap-2">
       <div className="flex items-center justify-between gap-2">
-        <h2 className="text-sm font-semibold text-gray-900">{title}</h2>
+        <h2 className="text-sm font-semibold text-fg">{title}</h2>
         {action}
       </div>
       {rooms.length > 0 ? (

@@ -91,7 +91,7 @@ export function InputsSection() {
         <Input id="g-disabled" disabled value="입력할 수 없음" />
       </div>
       <label className="flex items-center gap-2 text-sm">
-        <input type="checkbox" className="size-4 accent-blue-600" defaultChecked />
+        <input type="checkbox" className="size-4 accent-primary-emphasis" defaultChecked />
         체크박스
       </label>
     </Section>
@@ -116,7 +116,7 @@ export function CardsSection() {
     <Section title="카드·배너">
       <Card className="w-72 p-4">
         <p className="text-sm font-semibold">카드 제목</p>
-        <p className="text-xs text-gray-500">카드 설명</p>
+        <p className="text-xs text-fg-muted">카드 설명</p>
       </Card>
       <div className="flex w-full flex-col gap-2">
         <Alert tone="info">학생회 초대 링크로 들어왔어요. 로그인하면 참여할 수 있어요.</Alert>

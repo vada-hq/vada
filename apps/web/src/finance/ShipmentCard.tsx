@@ -30,7 +30,7 @@ function Tracking({
   const event = tracking?.lastEvent
   return (
     <>
-      <div className="flex flex-wrap gap-x-2 gap-y-1 text-xs text-gray-600">
+      <div className="flex flex-wrap gap-x-2 gap-y-1 text-xs text-fg-tertiary">
         <span>{loading ? '조회 중' : statusLabel(tracking)}</span>
         {event?.description && <span className="wrap-anywhere">{event.description}</span>}
         {event?.time && <time dateTime={event.time}>{dayTimeLabel(event.time)}</time>}
@@ -39,7 +39,7 @@ function Tracking({
         href={tracking?.trackingUrl ?? SHIPMENT_TRACKING_PAGES[shipment.carrierId]}
         target="_blank"
         rel="noopener noreferrer"
-        className="self-start text-xs text-blue-700 underline underline-offset-4"
+        className="self-start text-xs text-primary-strong underline underline-offset-4"
       >
         택배사에서 보기
       </a>
@@ -63,7 +63,7 @@ export function ShipmentCard({
         <span className="wrap-anywhere tabular-nums">{shipment.trackingNumber}</span>
         {shipment.cancelledAt && <Badge>송장 취소됨</Badge>}
       </div>
-      <p className="text-xs wrap-anywhere text-gray-600">{itemNames.join(' · ')}</p>
+      <p className="text-xs wrap-anywhere text-fg-tertiary">{itemNames.join(' · ')}</p>
       {!shipment.cancelledAt && (
         <Tracking shipment={shipment} tracking={tracking} loading={loading} />
       )}

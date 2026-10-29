@@ -43,7 +43,7 @@ export function DepartmentPurchasesCard({
             side={
               <>
                 <Badge tone={STATUS_TONE[row.status]}>{STATUS_LABEL[row.status]}</Badge>
-                <ChevronRight aria-hidden className="size-4 text-gray-400" />
+                <ChevronRight aria-hidden className="size-4 text-fg-subtle" />
               </>
             }
             onOpen={() => onOpen(row.id)}

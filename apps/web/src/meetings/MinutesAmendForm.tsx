@@ -48,7 +48,7 @@ function OverlapNotice({
       {fields.map(key => (
         <div key={key} className="min-w-0">
           <p className="text-xs text-muted-foreground">{labelOf[key]}</p>
-          <p className="wrap-anywhere whitespace-pre-wrap text-gray-800">{current[key]}</p>
+          <p className="wrap-anywhere whitespace-pre-wrap text-fg-body">{current[key]}</p>
         </div>
       ))}
     </Alert>

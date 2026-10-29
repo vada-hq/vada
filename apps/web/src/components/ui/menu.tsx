@@ -37,7 +37,7 @@ export function MenuItem({
   return (
     <MenuPrimitive.Item
       className={cn(
-        'flex cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-sm wrap-anywhere text-gray-700 outline-none select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-45 data-[highlighted]:bg-gray-100 [&_svg]:size-4 [&_svg]:shrink-0',
+        'flex cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-sm wrap-anywhere text-fg-secondary outline-none select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-45 data-[highlighted]:bg-border-subtle [&_svg]:size-4 [&_svg]:shrink-0',
         destructive && 'text-destructive',
         className,
       )}
@@ -49,7 +49,7 @@ export function MenuItem({
 export function MenuLabel({ className, ...props }: ComponentProps<typeof MenuPrimitive.Label>) {
   return (
     <MenuPrimitive.Label
-      className={cn('px-3 py-1.5 text-xs text-gray-500', className)}
+      className={cn('px-3 py-1.5 text-xs text-fg-muted', className)}
       {...props}
     />
   )
@@ -59,5 +59,7 @@ export function MenuSeparator({
   className,
   ...props
 }: ComponentProps<typeof MenuPrimitive.Separator>) {
-  return <MenuPrimitive.Separator className={cn('my-1 h-px bg-gray-100', className)} {...props} />
+  return (
+    <MenuPrimitive.Separator className={cn('my-1 h-px bg-border-subtle', className)} {...props} />
+  )
 }

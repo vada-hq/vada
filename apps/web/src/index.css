@@ -61,6 +61,185 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  /* 의미 색. 화면은 이 이름만 쓰고 팔레트 단계(text-gray-700 등)를 직접 쓰지 않는다(pnpm palette가 막는다). 값은 팔레트
+     변수를 그대로 가리켜(inline) text-gray-900을 text-fg로 바꿔도 만들어지는 CSS가 같다. 위의 shadcn 이름(muted, border,
+     primary, destructive)은 hex라 글자 가장자리 픽셀이 조금 달라 팔레트 자리에 쓰지 않았다. 새 색은 쓰임을 말하는 이름을
+     여기에 먼저 더한다. 값이 같아도 쓰임이 다르면(글자와 선, 위험과 알림) 이름을 나눈다. 이름마다 위 줄이 쓰임이다. */
+  /* ── 글자 ── */
+  /* 제목·강한 본문 */
+  --color-fg: var(--color-gray-900);
+  /* 사람이 쓴 본문·입력칸 글자 */
+  --color-fg-body: var(--color-gray-800);
+  /* 중간 글자: 사실 글, 라벨 */
+  --color-fg-secondary: var(--color-gray-700);
+  /* 중간과 약 사이: 작은 글, 회색 바탕 위 글 */
+  --color-fg-tertiary: var(--color-gray-600);
+  /* 약한 글자: 보조 글, 날짜 */
+  --color-fg-muted: var(--color-gray-500);
+  /* 더 약한 글자·아이콘: 화살표, 빈 값, placeholder, 할 일 점 */
+  --color-fg-subtle: var(--color-gray-400);
+  /* 가장 흐린 글자·아이콘: 다른 달 날짜, 0, 끝난 일 점 */
+  --color-fg-faint: var(--color-gray-300);
+  /* ── 면·선(중립) ── */
+  /* 중립 면: 중립 칩, 뼈대, 아이콘 단추 hover(muted와 값 같음) */
+  --color-surface-muted: var(--color-gray-100);
+  /* 옅은 면: 표 머리, 줄 hover, 카드 머리 */
+  --color-surface-subtle: var(--color-gray-50);
+  /* muted보다 진한 면: 막대 바탕, 아바타, 꺼진 단계 점, 보조 버튼 hover */
+  --color-muted-strong: var(--color-gray-200);
+  /* 기본 선: 말풍선·견본·단계 테두리, 칸 사이 선(border와 값 같음) */
+  --color-border-default: var(--color-gray-200);
+  /* 가장 옅은 선(업무 카드 아래 칸) */
+  --color-border-faint: var(--color-gray-50);
+  /* 옅은 선: 줄 사이(divide), 메뉴 구분선 */
+  --color-border-subtle: var(--color-gray-100);
+  /* 진한 선: 점선 더하기 칸, 부서 나무 선, 날짜 구분선 */
+  --color-border-strong: var(--color-gray-300);
+  /* 진한 선 hover */
+  --color-border-strong-hover: var(--color-gray-400);
+  /* 라디오 단추 테두리 */
+  --color-border-control: var(--color-gray-600);
+  /* 고른 색 견본 테두리·고리 */
+  --color-border-selected: var(--color-gray-900);
+  /* ── 어두운 면(되돌리기 막대·카메라) ── */
+  /* 어두운 면 */
+  --color-surface-inverse: var(--color-gray-900);
+  /* 어두운 면 위 단추 hover */
+  --color-surface-inverse-hover: var(--color-gray-800);
+  /* 어두운 면 위 약한 글자 */
+  --color-fg-inverse-muted: var(--color-gray-300);
+  /* 어두운 면 위 동작 글자 */
+  --color-primary-inverse: var(--color-blue-200);
+  /* 어두운 면 위 오류 글자 */
+  --color-danger-inverse: var(--color-red-200);
+  /* ── 주 색(파랑) ── */
+  /* 주 색 글자·아이콘·막대·체크박스(primary와 값 같음) */
+  --color-primary-emphasis: var(--color-blue-600);
+  /* 링크 글자, 켜진 탭·메뉴 글자, 주 버튼 hover 면, 링크 초점 고리 */
+  --color-primary-strong: var(--color-blue-700);
+  /* 주 색 옅은 면: 고른 날·줄, 안내 칩·배너, 아이콘 바탕 */
+  --color-primary-surface: var(--color-blue-50);
+  /* 안내 칩·배너 테두리, 오늘 날짜 고리 */
+  --color-primary-border: var(--color-blue-200);
+  /* 카드 hover·펼침 테두리, 초점 고리 */
+  --color-primary-border-strong: var(--color-blue-300);
+  /* 고른 선택 카드 테두리 */
+  --color-primary-border-selected: var(--color-blue-500);
+  /* 막대의 예정 몫(실제는 primary) */
+  --color-primary-soft: var(--color-blue-300);
+  /* 진행 중·안내 점 */
+  --color-primary-mark: var(--color-blue-500);
+  /* ── 위험(빨강) ── */
+  /* 오류 글자, 필수 별표, 모자란 금액, 지남, 넘친 막대(destructive와 값 같음) */
+  --color-danger-emphasis: var(--color-red-600);
+  /* 위험 글자: 지남·오늘, 위험 칩 글자, 지우기 버튼 hover 면 */
+  --color-danger: var(--color-red-700);
+  /* 위험 칩·배너 면 */
+  --color-danger-surface: var(--color-red-50);
+  /* 위험 칩·배너 테두리 */
+  --color-danger-border: var(--color-red-200);
+  /* 지남 거르기 칩 테두리 */
+  --color-danger-border-strong: var(--color-red-300);
+  /* 지남·위험 점과 작은 경고 아이콘 */
+  --color-danger-mark: var(--color-red-500);
+  /* ── 알림(빨강, 위험 아님) ── */
+  /* 안 읽은 수 배지 면, 안 읽음 글자, 새 메시지 경계 글자 */
+  --color-notify: var(--color-red-600);
+  /* 새 메시지 경계 선 */
+  --color-notify-line: var(--color-red-200);
+  /* ── 경고(노랑) ── */
+  /* 경고 글자: 담당자 없음, 경고 칩 글자 */
+  --color-warning: var(--color-yellow-700);
+  /* 경고 칩·배너 면 */
+  --color-warning-surface: var(--color-yellow-50);
+  /* 경고 칩·배너 테두리 */
+  --color-warning-border: var(--color-yellow-200);
+  /* 경고 점 */
+  --color-warning-mark: var(--color-yellow-500);
+  /* ── 성공(초록) ── */
+  /* 성공 글자, 승인 버튼 hover 면 */
+  --color-success: var(--color-green-700);
+  /* 성공 면 위 본문 글자 */
+  --color-success-strong: var(--color-green-800);
+  /* 완료 아이콘, 승인 버튼 면, 실제 지출 숫자 */
+  --color-success-emphasis: var(--color-green-600);
+  /* 성공 칩·배너·결정 카드 면 */
+  --color-success-surface: var(--color-green-50);
+  /* 신청 완료 큰 원 바탕 */
+  --color-success-soft: var(--color-green-100);
+  /* 성공 칩·배너·결정 카드 테두리 */
+  --color-success-border: var(--color-green-200);
+  /* 끝남 점 */
+  --color-success-mark: var(--color-green-500);
+  /* ── 살펴볼 것(호박색) ── */
+  /* 증빙 없음·지급일 안내 글자 */
+  --color-attention: var(--color-amber-700);
+  /* 살펴볼 신청자 아이콘 */
+  --color-attention-icon: var(--color-amber-600);
+  /* 살펴볼 신청자 줄 면 */
+  --color-attention-surface: var(--color-amber-50);
+  /* ── 대기(주황) ── */
+  /* 회의록 정리 필요, 정원 참 글자 */
+  --color-pending: var(--color-orange-700);
+  /* 지출 예정 숫자·아이콘, 일정 보기의 업무 아이콘 */
+  --color-pending-emphasis: var(--color-orange-600);
+  /* 지출 예정 아이콘 바탕, 정원 참 칩 면 */
+  --color-pending-surface: var(--color-orange-50);
+  /* 일정 보기의 업무 점 */
+  --color-pending-mark: var(--color-orange-500);
+  /* ── 개인 대화(호박색) ── */
+  /* 개인 대화 머리·칩 글자 */
+  --color-personal-fg: var(--color-amber-900);
+  /* 개인 대화 창·칩 면 */
+  --color-personal-surface: var(--color-amber-50);
+  /* 개인 대화 칩 hover */
+  --color-personal-surface-hover: var(--color-amber-100);
+  /* 개인 대화 선 */
+  --color-personal-border: var(--color-amber-200);
+  /* 개인 대화 옆 창 왼쪽 선 */
+  --color-personal-border-strong: var(--color-amber-300);
+  /* ── 그 밖의 표시 ── */
+  /* 회장단 별(학생회 설정) */
+  --color-star: var(--color-amber-500);
+  /* 회장단 별(조직도) */
+  --color-star-bright: var(--color-yellow-500);
+  /* 달력 일요일 */
+  --color-sunday: var(--color-red-600);
+  /* 달력 토요일 */
+  --color-saturday: var(--color-blue-600);
+  /* 재정 개요 사용 가능 숫자·아이콘 */
+  --color-metric-available: var(--color-violet-600);
+  /* 재정 개요 사용 가능 아이콘 바탕 */
+  --color-metric-available-surface: var(--color-violet-50);
+  /* 부서 없는 업무의 선·점(category-* 짝) */
+  --color-category-none: var(--color-gray-400);
+  /* ── 캘린더 일정 종류(DEC-102) ── */
+  /* 행사 글자 */
+  --color-kind-event: var(--color-emerald-700);
+  /* 행사 칩 면 */
+  --color-kind-event-soft: var(--color-emerald-100);
+  /* 업무 달력의 행사 막대(휴대폰)·범례 */
+  --color-kind-event-bar: var(--color-emerald-200);
+  /* 행사 줄 왼쪽 선, 행사 막대 hover */
+  --color-kind-event-line: var(--color-emerald-300);
+  /* 행사 막대 글자 */
+  --color-kind-event-bar-fg: var(--color-emerald-900);
+  /* 회의 글자 */
+  --color-kind-meeting: var(--color-violet-700);
+  /* 회의 칩 면 */
+  --color-kind-meeting-soft: var(--color-violet-100);
+  /* 마감 글자 */
+  --color-kind-deadline: var(--color-orange-700);
+  /* 마감 칩 면 */
+  --color-kind-deadline-soft: var(--color-orange-100);
+  /* 학사 글자 */
+  --color-kind-academic: var(--color-blue-700);
+  /* 학사 칩 면 */
+  --color-kind-academic-soft: var(--color-blue-100);
+  /* 바깥 일정 글자 */
+  --color-kind-external: var(--color-rose-700);
+  /* 바깥 일정 칩 면 */
+  --color-kind-external-soft: var(--color-rose-100);
   /* 범주 색 여덟(업무 카드의 부서 색, DEC-94): 선 500, 칩 배경 100, 칩 글자 700. 와이어프레임 부서 색 넷(teal, violet, emerald, pink)에
      상태 색(빨강·노랑·파랑·초록)과 멀리 떨어진 넷을 더했다. */
   --color-category-1: var(--color-teal-500);
@@ -111,9 +290,9 @@
   h2,
   h3,
   h4 {
-    @apply font-semibold text-gray-900;
+    @apply font-semibold text-fg;
   }
   a {
-    @apply text-blue-700 hover:underline;
+    @apply text-primary-strong hover:underline;
   }
 }

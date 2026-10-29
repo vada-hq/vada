@@ -3,9 +3,9 @@ import { cn } from '@/lib/utils'
 import type { Attention, AttentionTone } from './home-attention'
 
 const NUMBER_TONE: Record<AttentionTone, string> = {
-  danger: 'text-red-600',
-  warning: 'text-yellow-700',
-  info: 'text-blue-600',
+  danger: 'text-danger-emphasis',
+  warning: 'text-warning',
+  info: 'text-primary-emphasis',
 }
 // 숫자 칸은 네 개까지(와이어프레임 홈 위 줄)
 const TILE_LIMIT = 4
@@ -25,11 +25,11 @@ export default function AttentionTiles({ items }: { items: Attention[] }) {
           className="h-auto flex-col items-start gap-1 bg-card p-4 text-left shadow-sm"
           onClick={() => jump(item.target)}
         >
-          <span className="text-xs font-medium text-gray-500">{item.label}</span>
+          <span className="text-xs font-medium text-fg-muted">{item.label}</span>
           <span
             className={cn(
               'text-2xl font-bold',
-              item.count > 0 ? NUMBER_TONE[item.tone] : 'text-gray-300',
+              item.count > 0 ? NUMBER_TONE[item.tone] : 'text-fg-faint',
             )}
           >
             {item.count}

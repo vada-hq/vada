@@ -48,21 +48,21 @@ function ResultLine({ result, openable }: { result: TaskResult; openable: boolea
   const chip = STAGE_CHIP[result.stage]
   return (
     <>
-      <Icon aria-hidden className="size-4 shrink-0 text-gray-400" />
+      <Icon aria-hidden className="size-4 shrink-0 text-fg-subtle" />
       <span className="flex min-w-0 flex-1 flex-col">
-        <span className="text-xs font-normal text-gray-500">{RESULT_KIND_LABEL[result.kind]}</span>
-        <span className="text-sm font-normal wrap-anywhere text-gray-900">
+        <span className="text-xs font-normal text-fg-muted">{RESULT_KIND_LABEL[result.kind]}</span>
+        <span className="text-sm font-normal wrap-anywhere text-fg">
           {result.title ?? DELETED_MESSAGE}
         </span>
       </span>
       {chip && <Badge tone={chip.tone}>{chip.label}</Badge>}
-      {openable && <ChevronRight aria-hidden className="size-4 shrink-0 text-gray-300" />}
+      {openable && <ChevronRight aria-hidden className="size-4 shrink-0 text-fg-faint" />}
     </>
   )
 }
 
 function ResultRows({ task, openerOf }: Pick<Props, 'task' | 'openerOf'>) {
-  if (task.results.length === 0) return <p className="text-sm text-gray-400">결과물 없음</p>
+  if (task.results.length === 0) return <p className="text-sm text-fg-subtle">결과물 없음</p>
   return (
     <ul className="flex flex-col divide-y rounded-md border">
       {task.results.map(result => {
@@ -72,7 +72,7 @@ function ResultRows({ task, openerOf }: Pick<Props, 'task' | 'openerOf'>) {
             {open ? (
               <Button
                 variant="ghost"
-                className="h-auto flex-1 justify-start gap-3 rounded-none px-3 py-2.5 text-left whitespace-normal hover:bg-gray-50"
+                className="h-auto flex-1 justify-start gap-3 rounded-none px-3 py-2.5 text-left whitespace-normal hover:bg-surface-subtle"
                 onClick={open}
               >
                 <ResultLine result={result} openable />
@@ -103,10 +103,10 @@ function MakeMenu({ task, busy, onMake }: Omit<Props, 'openerOf'>) {
           const Icon = ICON[kind]
           return (
             <MenuItem key={kind} className="items-start" onSelect={() => onMake(kind)}>
-              <Icon aria-hidden className="mt-0.5 text-gray-500" />
+              <Icon aria-hidden className="mt-0.5 text-fg-muted" />
               <span className="flex flex-col">
                 <span>{RESULT_KIND_LABEL[kind]}</span>
-                <span className="text-xs text-gray-500">{EFFECT[kind]}</span>
+                <span className="text-xs text-fg-muted">{EFFECT[kind]}</span>
               </span>
             </MenuItem>
           )

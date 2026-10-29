@@ -43,7 +43,7 @@ function EventMeetingCard({ meeting, onOpen }: { meeting: MeetingSummary; onOpen
     <Card
       className={cn(
         rowLinkBox,
-        'flex min-w-0 items-center gap-3 p-5 transition-colors hover:border-blue-300',
+        'flex min-w-0 items-center gap-3 p-5 transition-colors hover:border-primary-border-strong',
       )}
     >
       <div className="flex min-w-0 flex-1 flex-col items-start gap-2">
@@ -75,7 +75,7 @@ function EventMeetingCard({ meeting, onOpen }: { meeting: MeetingSummary; onOpen
           </span>
         </p>
       </div>
-      <ChevronRight aria-hidden className="size-4 shrink-0 text-gray-300" />
+      <ChevronRight aria-hidden className="size-4 shrink-0 text-fg-faint" />
     </Card>
   )
 }

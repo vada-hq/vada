@@ -40,8 +40,10 @@ export function DepartmentColorOptions({
           key={key}
           htmlFor={`${id}-${key}`}
           className={cn(
-            'flex min-h-11 cursor-pointer items-center gap-2 rounded-md border px-3 py-2 text-sm text-gray-900',
-            color === key ? 'border-gray-900 ring-1 ring-gray-900' : 'border-gray-200',
+            'flex min-h-11 cursor-pointer items-center gap-2 rounded-md border px-3 py-2 text-sm text-fg',
+            color === key
+              ? 'border-border-selected ring-1 ring-border-selected'
+              : 'border-border-default',
           )}
         >
           <RadioGroupItem id={`${id}-${key}`} value={key} />

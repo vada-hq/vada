@@ -42,7 +42,7 @@ test.each<TaskStatus>(['todo', 'in_progress', 'done'])(
     expect(card.className).toContain('border-l-category-1')
     expect(card.className).not.toMatch(/border-(?:l-)?red-/)
     const assignee = within(card).getByText('담당자 없음')
-    expect(assignee.className).toContain('text-gray-500')
+    expect(assignee.className).toContain('text-fg-muted')
     expect(card.textContent).not.toContain('배정 필요')
     expect(within(card).getByText('기획부')).toBeTruthy()
   },
@@ -50,7 +50,7 @@ test.each<TaskStatus>(['todo', 'in_progress', 'done'])(
 
 test('부서 없는 미배정 카드도 학생회 업무의 회색선을 유지한다', () => {
   const card = draw({ department: null })
-  expect(card.className).toContain('border-l-gray-400')
+  expect(card.className).toContain('border-l-category-none')
   expect(within(card).getByText('학생회 업무')).toBeTruthy()
 })
 
@@ -59,16 +59,16 @@ test.each<TaskStatus>(['todo', 'in_progress'])(
   status => {
     const card = draw({ status, overdue: true })
     expect(card.className).toContain('border-l-category-1')
-    expect(within(card).getByText('지남').className).toContain('text-red-700')
-    expect(within(card).getByText('10월 25일 · 지남').className).toContain('text-red-600')
-    expect(within(card).getByText('담당자 없음').className).not.toContain('text-red')
+    expect(within(card).getByText('지남').className).toContain('text-danger')
+    expect(within(card).getByText('10월 25일 · 지남').className).toContain('text-danger-emphasis')
+    expect(within(card).getByText('담당자 없음').className).not.toContain('text-danger')
   },
 )
 
 test('완료 카드에는 오래된 지남 값이 있어도 긴급 표시가 없다', () => {
   const card = draw({ status: 'done', overdue: true })
   expect(within(card).queryByText('지남')).toBeNull()
-  expect(within(card).getByText('10월 25일').className).not.toContain('text-red')
+  expect(within(card).getByText('10월 25일').className).not.toContain('text-danger')
 })
 
 test('떠난 담당자 이름과 실제 저장 오류의 강조는 유지한다', () => {

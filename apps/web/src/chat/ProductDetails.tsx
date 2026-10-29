@@ -13,15 +13,15 @@ function Unit({ item }: { item: ProductInfo['items'][number] }) {
   const listed = item.listPrice !== null && item.listPrice !== item.price
   return (
     <li className="flex items-start justify-between gap-3 px-3 py-2 text-sm">
-      <span className="min-w-0 break-keep wrap-anywhere text-gray-800">{item.name}</span>
+      <span className="min-w-0 break-keep wrap-anywhere text-fg-body">{item.name}</span>
       <span className="flex shrink-0 flex-col items-end tabular-nums">
         {item.price === null ? (
-          <span className="text-gray-500">가격 없음</span>
+          <span className="text-fg-muted">가격 없음</span>
         ) : (
-          <span className="font-semibold text-gray-900">{wonLabel(item.price)}</span>
+          <span className="font-semibold text-fg">{wonLabel(item.price)}</span>
         )}
         {listed && (
-          <span className="text-xs text-gray-500">
+          <span className="text-xs text-fg-muted">
             <span className="sr-only">정가 </span>
             <s>{wonLabel(item.listPrice ?? 0)}</s>
           </span>
@@ -34,8 +34,8 @@ function Unit({ item }: { item: ProductInfo['items'][number] }) {
 function Fact({ label, children }: { label: string; children: ReactNode }) {
   return (
     <>
-      <dt className="text-gray-500">{label}</dt>
-      <dd className="min-w-0 break-keep wrap-anywhere text-gray-800">{children}</dd>
+      <dt className="text-fg-muted">{label}</dt>
+      <dd className="min-w-0 break-keep wrap-anywhere text-fg-body">{children}</dd>
     </>
   )
 }
@@ -47,9 +47,7 @@ function Loaded({ product }: { product: ProductInfo }) {
       <div className="flex flex-wrap items-center gap-2">
         <Badge tone="info">불러온 정보</Badge>
       </div>
-      <p className="text-base font-semibold break-keep wrap-anywhere text-gray-900">
-        {product.name}
-      </p>
+      <p className="text-base font-semibold break-keep wrap-anywhere text-fg">{product.name}</p>
       <ul aria-label="판매 단위" className="flex flex-col divide-y rounded-md border">
         {product.items.map(item => (
           <Unit key={item.itemId} item={item} />
@@ -69,9 +67,9 @@ function Loaded({ product }: { product: ProductInfo }) {
 function Placeholder() {
   return (
     <div className="flex flex-col gap-3" aria-hidden>
-      <span className="h-5 w-24 rounded-sm bg-gray-100" />
-      <span className="h-6 w-4/5 rounded-sm bg-gray-100" />
-      <span className="h-20 rounded-md bg-gray-100" />
+      <span className="h-5 w-24 rounded-sm bg-surface-muted" />
+      <span className="h-6 w-4/5 rounded-sm bg-surface-muted" />
+      <span className="h-20 rounded-md bg-surface-muted" />
     </div>
   )
 }

@@ -75,7 +75,7 @@ function CheckField({
       <input
         id={id}
         type="checkbox"
-        className="size-4 accent-blue-600"
+        className="size-4 accent-primary-emphasis"
         checked={checked}
         disabled={disabled || locked}
         onChange={event => onChange?.(event.target.checked)}
@@ -124,7 +124,7 @@ export function FeeFields(props: FieldsProps & { children?: ReactNode }) {
               id={`fee-${kind}`}
               type="radio"
               name="fee-kind"
-              className="size-4 accent-blue-600"
+              className="size-4 accent-primary-emphasis"
               checked={kind === 'none' ? !charged : charged}
               onChange={() => onChange({ ...values, feeKind: kind })}
             />

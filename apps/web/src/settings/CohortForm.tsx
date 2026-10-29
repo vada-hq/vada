@@ -69,7 +69,7 @@ export default function CohortForm({
           if (attempt()) onSubmit(event)
         }}
       >
-        <h2 className="text-base font-semibold text-gray-900">지금 기수</h2>
+        <h2 className="text-base font-semibold text-fg">지금 기수</h2>
         <Field label="기수 이름" required={canEdit} error={fieldErrors.cohortName}>
           <Input
             value={value.name}

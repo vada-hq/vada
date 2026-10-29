@@ -36,7 +36,7 @@ type Props = {
 const [PARTICIPATING, UPCOMING] = HOME_PLANS.member.cards
 
 // 행사를 만들 수 없는 사람의 행사 빈 상태: 누가 만드는지 한 줄(DEC-95, DEC-78 이동 규칙 9).
-const whoCreates = <p className="text-xs text-gray-500">회장단과 부서장이 만들어요</p>
+const whoCreates = <p className="text-xs text-fg-muted">회장단과 부서장이 만들어요</p>
 
 // 부원 홈(HOME-01M, DEC-95): 인사 카드(메시지함, 학생회 주요 행사 타일 3) → 2×2
 // '참여 행사 진행' · '가까운 일정' / '내 요청'(와이어프레임 '확정된 결정·안내' 자리) · '내 업무'.

@@ -16,14 +16,14 @@ type Props = {
   onAll: () => void
 }
 
-const head = 'px-4 py-2 text-xs font-medium text-gray-500'
+const head = 'px-4 py-2 text-xs font-medium text-fg-muted'
 // 결제일은 한국 날짜다. 한국 자정으로 읽어 '10월 17일 (토)'로 쓴다.
 const paidLabel = (paidOn: string) => dayLabel(`${paidOn}T00:00:00+09:00`)
 
 function RecentTable({ rows, onOpen }: Pick<Props, 'rows' | 'onOpen'>) {
   return (
     <table aria-label="최근 지출 목록" className="w-full border-collapse text-left">
-      <thead className="bg-gray-50">
+      <thead className="bg-surface-subtle">
         <tr>
           <th scope="col" className={cn(head, 'w-36')}>
             날짜
@@ -43,10 +43,10 @@ function RecentTable({ rows, onOpen }: Pick<Props, 'rows' | 'onOpen'>) {
         {rows.map(row => (
           <tr
             key={row.id}
-            className="cursor-pointer border-t transition-colors hover:bg-gray-50 has-[:focus-visible]:bg-gray-100"
+            className="cursor-pointer border-t transition-colors hover:bg-surface-subtle has-[:focus-visible]:bg-surface-muted"
             onClick={() => onOpen(row.id)}
           >
-            <td className="px-4 py-3 text-sm whitespace-nowrap text-gray-500">
+            <td className="px-4 py-3 text-sm whitespace-nowrap text-fg-muted">
               {paidLabel(row.paidOn)}
             </td>
             <td className="px-4 py-3">
@@ -54,8 +54,8 @@ function RecentTable({ rows, onOpen }: Pick<Props, 'rows' | 'onOpen'>) {
                 <span className="line-clamp-2">{row.description}</span>
               </Button>
             </td>
-            <td className="px-4 py-3 text-sm wrap-anywhere text-gray-700">{placeOf(row)}</td>
-            <td className="px-4 py-3 text-right text-sm font-semibold whitespace-nowrap text-gray-900 tabular-nums">
+            <td className="px-4 py-3 text-sm wrap-anywhere text-fg-secondary">{placeOf(row)}</td>
+            <td className="px-4 py-3 text-right text-sm font-semibold whitespace-nowrap text-fg tabular-nums">
               {wonLabel(row.amount)}
             </td>
           </tr>
@@ -71,7 +71,7 @@ function RecentList({ rows, onOpen }: Pick<Props, 'rows' | 'onOpen'>) {
       {rows.map(row => (
         <li
           key={row.id}
-          className={`${rowLinkBox} flex flex-col gap-1 px-4 py-3 transition-colors hover:bg-gray-50`}
+          className={`${rowLinkBox} flex flex-col gap-1 px-4 py-3 transition-colors hover:bg-surface-subtle`}
         >
           <div className="flex items-start gap-3">
             <Button
@@ -81,11 +81,11 @@ function RecentList({ rows, onOpen }: Pick<Props, 'rows' | 'onOpen'>) {
             >
               <span className="line-clamp-2">{row.description}</span>
             </Button>
-            <span className="shrink-0 text-sm font-semibold text-gray-900 tabular-nums">
+            <span className="shrink-0 text-sm font-semibold text-fg tabular-nums">
               {wonLabel(row.amount)}
             </span>
           </div>
-          <p className="text-xs wrap-anywhere text-gray-500">
+          <p className="text-xs wrap-anywhere text-fg-muted">
             {paidLabel(row.paidOn)} · {placeOf(row)}
           </p>
         </li>
@@ -99,11 +99,11 @@ export function OverviewRecent({ rows, wide, onOpen, onAll }: Props) {
   return (
     <section aria-label="최근 지출" className={cn(cardClass, 'overflow-hidden')}>
       <div className="flex items-center justify-between gap-3 border-b px-4 py-3">
-        <h3 className="text-sm font-semibold text-gray-900">최근 지출</h3>
+        <h3 className="text-sm font-semibold text-fg">최근 지출</h3>
         <Button
           variant="link"
           size="sm"
-          className={cn('h-auto p-0 text-xs text-gray-500', headLinkTouch)}
+          className={cn('h-auto p-0 text-xs text-fg-muted', headLinkTouch)}
           onClick={onAll}
         >
           지출 전체 보기

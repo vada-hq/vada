@@ -29,14 +29,14 @@ function Tile({ tile }: { tile: FeaturedTile }) {
     <li
       className={cn(
         rowLinkBox,
-        'flex flex-col rounded-lg border px-3 py-2 transition-colors hover:border-blue-300 hover:bg-blue-50',
+        'flex flex-col rounded-lg border px-3 py-2 transition-colors hover:border-primary-border-strong hover:bg-primary-surface',
       )}
     >
       <div className="flex flex-col items-start gap-1">
         <Button
           variant="link"
           className={cn(
-            'h-auto w-full min-w-0 line-clamp-2 justify-start p-0 text-left text-sm font-bold break-keep whitespace-normal text-gray-900 wrap-anywhere',
+            'h-auto w-full min-w-0 line-clamp-2 justify-start p-0 text-left text-sm font-bold break-keep whitespace-normal text-fg wrap-anywhere',
             rowLinkTarget,
           )}
           onClick={tile.onOpen}
@@ -45,7 +45,7 @@ function Tile({ tile }: { tile: FeaturedTile }) {
         </Button>
         <span>{tile.chip}</span>
       </div>
-      <p className="mt-auto pt-1 text-xs text-gray-500">{tile.when}</p>
+      <p className="mt-auto pt-1 text-xs text-fg-muted">{tile.when}</p>
     </li>
   )
 }
@@ -56,12 +56,12 @@ export default function FeaturedEvents({ read }: { read: TilesRead }) {
   const titleId = useId()
   return (
     <section aria-labelledby={titleId} className="flex flex-col gap-1.5">
-      <h3 className="text-xs font-normal text-gray-500">
+      <h3 className="text-xs font-normal text-fg-muted">
         <span id={titleId}>{TITLE}</span>
         <span className="ml-1">{countOf(read)}</span>
       </h3>
       {read.kind === 'ready' && read.tiles.length === 0 && (
-        <p className="py-2 text-sm text-gray-500">진행할 행사 없음</p>
+        <p className="py-2 text-sm text-fg-muted">진행할 행사 없음</p>
       )}
       {read.kind === 'ready' && read.tiles.length > 0 && (
         <ul className="grid gap-2 @2xl:grid-cols-3">

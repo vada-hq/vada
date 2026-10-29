@@ -24,7 +24,7 @@ type Props = {
 // 지우는 날은 서버가 늘 주지만, 운영진이 만드는 중인 미리보기에는 셀 날짜가 아직 없을 수 있다.
 function Notice({ data }: { data: PublicRegistrationForm }) {
   return (
-    <p className="text-xs break-keep text-gray-500 wrap-anywhere">
+    <p className="text-xs break-keep text-fg-muted wrap-anywhere">
       받는 곳: {data.councilName} · 받는 항목: {collectedItems(data).join(', ')} · 목적:{' '}
       {noticePurpose(data)} · 지우는 날:{' '}
       {data.purgeOn ? dateText(data.purgeOn) : '행사가 끝나고 1년 뒤'}.{' '}

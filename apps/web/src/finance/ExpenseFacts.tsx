@@ -18,15 +18,15 @@ export function ExpenseFacts({
   return (
     <div className="flex flex-col gap-2">
       <div className="flex flex-wrap items-center gap-2">
-        <span className="text-base font-semibold text-gray-900">{wonLabel(expense.amount)}</span>
+        <span className="text-base font-semibold text-fg">{wonLabel(expense.amount)}</span>
         {chipsOf(expense).map(chip => (
           <Badge key={chip.label} tone={chip.tone}>
             {chip.label}
           </Badge>
         ))}
       </div>
-      <p className="text-sm wrap-anywhere text-gray-800">{expense.description}</p>
-      <div className="flex flex-col gap-1 text-xs text-gray-500">
+      <p className="text-sm wrap-anywhere text-fg-body">{expense.description}</p>
+      <div className="flex flex-col gap-1 text-xs text-fg-muted">
         <span>
           {monthDay(expense.paidOn)} · {METHOD_LABEL[expense.method]}
         </span>
@@ -60,16 +60,16 @@ export function ExpenseLines({ lines }: { lines: ExpenseDetail['lines'] }) {
   if (lines.length === 0) return null
   return (
     <section aria-label="결제한 품목" className="flex flex-col gap-2">
-      <h3 className="text-sm font-medium text-gray-700">결제한 품목</h3>
+      <h3 className="text-sm font-medium text-fg-secondary">결제한 품목</h3>
       <ul className="flex flex-col gap-2">
         {lines.map(line => (
           <li key={line.lineItemId} className="flex flex-col gap-1 rounded-sm border p-3 text-xs">
-            <span className="text-sm font-medium wrap-anywhere text-gray-900">
+            <span className="text-sm font-medium wrap-anywhere text-fg">
               {line.name} · {wonLabel(line.amount)}
             </span>
-            <span className="wrap-anywhere text-gray-500">요청 {line.requestTitle}</span>
+            <span className="wrap-anywhere text-fg-muted">요청 {line.requestTitle}</span>
             {line.budgetPurpose && (
-              <span className="wrap-anywhere text-gray-500">{line.budgetPurpose}</span>
+              <span className="wrap-anywhere text-fg-muted">{line.budgetPurpose}</span>
             )}
           </li>
         ))}
@@ -83,8 +83,8 @@ export function ExpenseApprovals({ approvals }: { approvals: ExpenseDetail['appr
   if (approvals.length === 0) return null
   return (
     <section aria-label="결재" className="flex flex-col gap-2">
-      <h3 className="text-sm font-medium text-gray-700">결재</h3>
-      <ul className="flex flex-col gap-1 text-xs text-gray-500">
+      <h3 className="text-sm font-medium text-fg-secondary">결재</h3>
+      <ul className="flex flex-col gap-1 text-xs text-fg-muted">
         {approvals.map(approval => (
           <li key={approval.id} className="wrap-anywhere">
             {approvalLine(approval)}

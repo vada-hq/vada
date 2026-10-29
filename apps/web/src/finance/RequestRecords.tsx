@@ -13,11 +13,11 @@ export function RequestDecisions({
   const nameOf = (id: string) => items.find(item => item.id === id)?.name
   return (
     <section aria-label="결재" className="flex flex-col gap-2">
-      <h3 className="text-sm font-medium text-gray-700">결재</h3>
-      <ul className="flex flex-col gap-1 text-xs text-gray-500">
+      <h3 className="text-sm font-medium text-fg-secondary">결재</h3>
+      <ul className="flex flex-col gap-1 text-xs text-fg-muted">
         {decisions.map(decision => (
           <li key={decision.id} className="wrap-anywhere">
-            <span className="font-medium text-gray-700">{nameOf(decision.lineItemId)}</span>
+            <span className="font-medium text-fg-secondary">{nameOf(decision.lineItemId)}</span>
             {' — '}
             {decisionLine(decision)}
           </li>

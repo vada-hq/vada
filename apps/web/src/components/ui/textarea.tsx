@@ -8,7 +8,7 @@ export function Textarea({ className, ...props }: ComponentProps<'textarea'>) {
       data-slot="textarea"
       className={cn(
         baseFieldClass,
-        'min-h-20 resize-y read-only:border-border read-only:bg-gray-50',
+        'min-h-20 resize-y read-only:border-border read-only:bg-surface-subtle',
         className,
       )}
       {...props}

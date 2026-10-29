@@ -39,7 +39,7 @@ function SettlementItems({ items }: { items: EventSettlement['budget']['items'] 
   if (items.length === 0) return null
   return (
     <section aria-label="예산 항목" className="flex flex-col gap-2">
-      <h3 className="text-sm font-medium text-gray-700">예산 항목</h3>
+      <h3 className="text-sm font-medium text-fg-secondary">예산 항목</h3>
       <BudgetItemList items={items} />
     </section>
   )

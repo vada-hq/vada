@@ -17,14 +17,14 @@ export default function LoginPanel({ kakao, homeScreenApp, busy, onLogin, onLogi
   if (homeScreenApp)
     return (
       <div className="flex flex-col gap-3">
-        <p className="text-sm text-gray-500">Google 계정으로 로그인해 주세요.</p>
+        <p className="text-sm text-fg-muted">Google 계정으로 로그인해 주세요.</p>
         <Button busy={busy} onClick={onLoginInApp}>
           {label}
         </Button>
         <Button variant="link" busy={busy} onClick={onLogin}>
           다른 방법으로 로그인
         </Button>
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-fg-muted">
           로그인이 안 되면 사파리에서 VADA에 로그인한 뒤, 홈 화면의 VADA를 지우고 다시 추가해
           주세요.
         </p>
@@ -32,7 +32,7 @@ export default function LoginPanel({ kakao, homeScreenApp, busy, onLogin, onLogi
     )
   return (
     <div className="flex flex-col gap-3">
-      <p className="text-sm text-gray-500">Google 계정으로 로그인해 주세요.</p>
+      <p className="text-sm text-fg-muted">Google 계정으로 로그인해 주세요.</p>
       <Button busy={busy} onClick={onLogin}>
         {label}
       </Button>

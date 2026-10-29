@@ -50,7 +50,7 @@ test('홈 줄은 제목 단추 하나가 줄 전체를 덮고 휴대폰에서 44
     'items-center',
     'gap-3',
     'transition-colors',
-    'hover:bg-gray-50',
+    'hover:bg-surface-subtle',
     'px-5',
     'py-2.5',
   ])

@@ -24,7 +24,7 @@ export default function IncomeCard({
           <Button
             variant="link"
             className={cn(
-              'h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere',
+              'h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-fg wrap-anywhere',
               rowLinkTarget,
             )}
             onClick={onOpen}
@@ -32,14 +32,14 @@ export default function IncomeCard({
             {SOURCE_LABEL[income.source]}
           </Button>
         </h2>
-        <span className="text-sm font-semibold whitespace-nowrap text-gray-900">
+        <span className="text-sm font-semibold whitespace-nowrap text-fg">
           {wonLabel(income.amount)}
         </span>
       </div>
       {income.description && (
-        <p className="text-sm wrap-anywhere text-gray-700">{income.description}</p>
+        <p className="text-sm wrap-anywhere text-fg-secondary">{income.description}</p>
       )}
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-fg-muted">
         <span>{monthDay(income.receivedOn)}</span>
         {income.account && <span className="wrap-anywhere">{income.account.name}</span>}
         {income.cancelled && <Badge>취소됨</Badge>}

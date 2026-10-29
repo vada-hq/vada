@@ -303,7 +303,7 @@ test('결재 대기에서 필요한 때가 3일 안이면 임박(노랑), 이미
         .closest('div')!.parentElement!
       const badge = within(card).queryByText(/^(임박|지남)$/)
       return badge
-        ? `${badge.textContent} ${badge.className.includes('yellow') ? '노랑' : '빨강'}`
+        ? `${badge.textContent} ${badge.className.includes('warning') ? '노랑' : '빨강'}`
         : null
     }
     // 내 요청에는 표시가 없다(재정 역할 부서의 결재 목록에만).

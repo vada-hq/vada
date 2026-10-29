@@ -14,7 +14,7 @@ export default function AuthDone({ failed }: { failed: boolean }) {
   return (
     <main className="flex min-h-dvh items-center justify-center p-4">
       <AuthCard>
-        <p className="text-sm text-gray-900">
+        <p className="text-sm text-fg">
           {failed
             ? '로그인이 완료되지 않았어요. 이 창을 닫고 다시 시도해 주세요.'
             : '로그인했어요. 이 창을 닫아 주세요.'}

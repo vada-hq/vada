@@ -105,12 +105,12 @@ function SubmitBar({
   const warn = unreviewedShown && tally.unreviewed > 0
   return (
     <div className="flex flex-wrap items-center justify-end gap-x-3 gap-y-2 border-t pt-3">
-      <span className="text-xs text-gray-500">
+      <span className="text-xs text-fg-muted">
         {decidedText(tally)}
         {' · '}
         <span
           role={warn ? 'alert' : undefined}
-          className={warn ? 'font-medium text-red-600' : undefined}
+          className={warn ? 'font-medium text-danger-emphasis' : undefined}
         >
           미검토 {tally.unreviewed}
         </span>
@@ -181,8 +181,8 @@ export function DecisionPanel({ items, onForbidden, ...rest }: Props) {
 export function DecisionFrame({ count, children }: { count: number; children: ReactNode }) {
   return (
     <section aria-label="결재" className="flex flex-col gap-2">
-      <h3 className="text-sm font-semibold text-gray-900">
-        결재 <span className="font-normal text-gray-500">{count}건</span>
+      <h3 className="text-sm font-semibold text-fg">
+        결재 <span className="font-normal text-fg-muted">{count}건</span>
       </h3>
       {children}
     </section>

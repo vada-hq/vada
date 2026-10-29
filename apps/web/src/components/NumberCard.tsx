@@ -30,17 +30,17 @@ export function NumberCard({
         </div>
       )}
       <div className="flex items-center justify-between gap-2">
-        <h3 className="text-sm text-gray-600">{label}</h3>
+        <h3 className="text-sm text-fg-tertiary">{label}</h3>
         {!icon && link}
       </div>
       {value === null ? (
-        <span className="py-1.5 text-sm text-gray-500">{sub}</span>
+        <span className="py-1.5 text-sm text-fg-muted">{sub}</span>
       ) : (
         <>
-          <span className={cn('text-2xl font-bold wrap-anywhere text-gray-900', valueClassName)}>
+          <span className={cn('text-2xl font-bold wrap-anywhere text-fg', valueClassName)}>
             {value}
           </span>
-          <span className="text-xs text-gray-500">{sub}</span>
+          <span className="text-xs text-fg-muted">{sub}</span>
         </>
       )}
       {children}

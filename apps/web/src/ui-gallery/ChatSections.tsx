@@ -34,7 +34,7 @@ function MessageHomeSample() {
         elsewhereUnread={3}
         direct={!split ? { active: false, unread: 2, onPick: noop } : undefined}
       />
-      <div className="flex h-96 flex-col bg-gray-50">
+      <div className="flex h-96 flex-col bg-surface-subtle">
         <ul className="mt-auto flex flex-col overflow-y-auto px-2 py-3 sm:px-4">
           {FLOW.slice(1, 1 + HOME_PREVIEW_COUNT).map(item => (
             <MessageItem
@@ -82,7 +82,7 @@ function SideChatSample() {
   }
   return (
     <SideChatContext value={access}>
-      <div className="h-128 w-96 max-w-full border-l-2 border-amber-300 bg-amber-50/60">
+      <div className="h-128 w-96 max-w-full border-l-2 border-personal-border-strong bg-personal-surface/60">
         {opened ? (
           <div className="flex h-full flex-col">
             <SideChatRoomTitle

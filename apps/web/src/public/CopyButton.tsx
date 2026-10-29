@@ -21,8 +21,8 @@ export default function CopyButton({ value, label, failedHint }: Props) {
         {result === 'copied' ? '복사했어요' : label}
       </Button>
       {result === 'failed' && (
-        <p role="status" className="text-xs text-gray-500 wrap-anywhere">
-          {failedHint} <span className="text-gray-900 select-all">{value}</span>
+        <p role="status" className="text-xs text-fg-muted wrap-anywhere">
+          {failedHint} <span className="text-fg select-all">{value}</span>
         </p>
       )}
     </div>

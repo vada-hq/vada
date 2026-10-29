@@ -98,7 +98,7 @@ export function PaymentFields({
           />
         </Field>
         {paidOnNotice && (
-          <p id={noticeId} role="status" className="text-xs break-keep text-amber-700">
+          <p id={noticeId} role="status" className="text-xs break-keep text-attention">
             {paidOnNotice}
           </p>
         )}

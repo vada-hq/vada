@@ -70,7 +70,7 @@ function MonthBar({
         <Button size="icon" variant="ghost" touch aria-label="이전 달" onClick={() => onGo(-1)}>
           <ChevronLeft />
         </Button>
-        <h2 className="min-w-28 text-center text-base font-semibold text-gray-900">
+        <h2 className="min-w-28 text-center text-base font-semibold text-fg">
           {monthLabel(month)}
         </h2>
         <Button size="icon" variant="ghost" touch aria-label="다음 달" onClick={() => onGo(1)}>
@@ -95,14 +95,14 @@ function MonthBar({
 // 요일 머리. 일요일은 빨강, 토요일은 파랑(한국 달력).
 function WeekdayHeader() {
   return (
-    <div className="grid grid-cols-7 bg-gray-50 text-center text-xs font-medium text-gray-500">
+    <div className="grid grid-cols-7 bg-surface-subtle text-center text-xs font-medium text-fg-muted">
       {WEEKDAYS.map((name, index) => (
         <span
           key={name}
           className={cn(
             'py-2',
-            index === 0 && 'text-red-600',
-            index === WEEKDAYS.length - 1 && 'text-blue-600',
+            index === 0 && 'text-sunday',
+            index === WEEKDAYS.length - 1 && 'text-saturday',
           )}
         >
           {name}

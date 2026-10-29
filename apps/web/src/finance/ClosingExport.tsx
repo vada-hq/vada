@@ -73,7 +73,7 @@ function ExportNotes({ closing }: { closing: Closing }) {
   return (
     <>
       {closing.actions.includes('closing.export_public') && (
-        <p className="text-xs text-gray-500">{PUBLIC_NOTE}</p>
+        <p className="text-xs text-fg-muted">{PUBLIC_NOTE}</p>
       )}
       {reasons.map(
         reason =>
@@ -103,7 +103,7 @@ export function ClosingExport({ councilId, closing }: Props) {
   const problem = exporter.problem ?? gone
   return (
     <Card className="flex flex-col gap-3 p-4">
-      <h3 className="text-sm font-semibold text-gray-900">내보내기</h3>
+      <h3 className="text-sm font-semibold text-fg">내보내기</h3>
       <ExportButtons
         closing={closing}
         busy={exporter.busy}

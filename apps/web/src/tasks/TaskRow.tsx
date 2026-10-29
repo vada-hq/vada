@@ -51,14 +51,14 @@ function Meta({
     show.assignee && (
       <span
         key="assignee"
-        className={cn('wrap-anywhere', task.assignee === null && 'text-yellow-700')}
+        className={cn('wrap-anywhere', task.assignee === null && 'text-warning')}
       >
         <TaskAssigneeName assignee={task.assignee} direct={direct} />
       </span>
     ),
   ].filter(Boolean)
   return (
-    <div className="flex flex-wrap items-center gap-x-1.5 text-xs text-gray-500">
+    <div className="flex flex-wrap items-center gap-x-1.5 text-xs text-fg-muted">
       {parts.map((part, index) => [
         index > 0 && (
           <span key={`dot-${index}`} aria-hidden>
@@ -76,7 +76,7 @@ function DueText({ task }: Pick<Props, 'task'>) {
     <span
       className={cn(
         'shrink-0 text-xs',
-        task.overdue ? 'font-medium text-red-600' : 'text-gray-500',
+        task.overdue ? 'font-medium text-danger-emphasis' : 'text-fg-muted',
       )}
     >
       {dueLabel(task.dueDate)}
@@ -120,7 +120,7 @@ export function TaskRow(props: Props) {
             <Button
               variant="link"
               touch
-              className="h-auto min-w-0 shrink justify-start p-0 text-left text-sm font-medium break-keep whitespace-normal text-gray-900 wrap-anywhere"
+              className="h-auto min-w-0 shrink justify-start p-0 text-left text-sm font-medium break-keep whitespace-normal text-fg wrap-anywhere"
               onClick={props.onOpen}
             >
               {task.title}

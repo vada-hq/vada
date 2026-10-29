@@ -16,7 +16,7 @@ export const settlementDate = (event: EventSummary) => whenLabel(event)
 
 // 이름 버튼. 표는 줄(tr)이 누르기를 받고 이 버튼은 키보드·화면 낭독기로 여는 길이다.
 export const nameLinkClass =
-  'h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 wrap-anywhere'
+  'h-auto max-w-full justify-start p-0 text-left text-sm font-semibold whitespace-normal text-fg wrap-anywhere'
 // 카드 줄 전체가 눌리는 이름 버튼(줄 상자는 rowLinkBox). 표에서는 쓰지 않는다: 표 줄의 position: relative는
 // CSS 2.1이 정하지 않아 덮개가 줄 밖으로 커질 수 있다.
 export const rowNameLinkClass = `${nameLinkClass} ${rowLinkTarget}`

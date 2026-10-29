@@ -62,7 +62,7 @@ export function DialogSheetSection() {
       </Button>
       <Sheet open={panelOpen} onOpenChange={setPanelOpen}>
         <SheetContent side="right" title="예시 패널" closeLabel="패널 닫기" className="w-96">
-          <div className="p-6 pt-14 text-sm text-gray-700">대화 링크의 상품 정보 패널</div>
+          <div className="p-6 pt-14 text-sm text-fg-secondary">대화 링크의 상품 정보 패널</div>
         </SheetContent>
       </Sheet>
     </Section>

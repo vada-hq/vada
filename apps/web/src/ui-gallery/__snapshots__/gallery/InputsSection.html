@@ -8,61 +8,61 @@
 <div class="flex w-72 flex-col gap-3">
 <div class="flex flex-col gap-2">
 <div class="flex items-baseline gap-1">
-<label data-slot="label" class="text-xs font-medium text-gray-700" for="_id1_">행사 이름</label>
-<span aria-hidden="true" class="text-sm leading-4 text-red-600">*</span>
+<label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id1_">행사 이름</label>
+<span aria-hidden="true" class="text-sm leading-4 text-danger-emphasis">*</span>
 </div>
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-gray-50" id="_id1_" aria-required="true" aria-invalid="true" aria-describedby="_id1_-error">
-<p id="_id1_-error" class="text-xs text-red-600">이름을 입력해 주세요</p>
-</div>
-<div class="flex flex-col gap-2">
-<div class="flex items-baseline gap-1">
-<label data-slot="label" class="text-xs font-medium text-gray-700" for="_id2_">장소</label>
-<span class="text-xs text-gray-500">(선택)</span>
-</div>
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-gray-50" id="_id2_">
+<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-surface-subtle" id="_id1_" aria-required="true" aria-invalid="true" aria-describedby="_id1_-error">
+<p id="_id1_-error" class="text-xs text-danger-emphasis">이름을 입력해 주세요</p>
 </div>
 <div class="flex flex-col gap-2">
 <div class="flex items-baseline gap-1">
-<label data-slot="label" class="text-xs font-medium text-gray-700" for="_id3_">학번</label>
-<span aria-hidden="true" class="text-sm leading-4 text-red-600">*</span>
+<label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id2_">장소</label>
+<span class="text-xs text-fg-muted">(선택)</span>
 </div>
-<p id="_id3_-hint" class="-mt-1 text-xs text-gray-500">줄바꿈이나 쉼표로 구분</p>
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-gray-50" id="_id3_" aria-required="true" aria-describedby="_id3_-hint">
+<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-surface-subtle" id="_id2_">
+</div>
+<div class="flex flex-col gap-2">
+<div class="flex items-baseline gap-1">
+<label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id3_">학번</label>
+<span aria-hidden="true" class="text-sm leading-4 text-danger-emphasis">*</span>
+</div>
+<p id="_id3_-hint" class="-mt-1 text-xs text-fg-muted">줄바꿈이나 쉼표로 구분</p>
+<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-surface-subtle" id="_id3_" aria-required="true" aria-describedby="_id3_-hint">
 </div>
 <div class="flex flex-wrap justify-end gap-2">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-primary text-primary-foreground hover:bg-blue-700 px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11">만들기</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-primary text-primary-foreground hover:bg-primary-strong px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11">만들기</button>
 </div>
 </div>
 <div class="flex w-72 flex-col gap-1.5">
-<label data-slot="label" class="text-xs font-medium text-gray-700" for="g-input">행사 이름</label>
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-gray-50" id="g-input">
+<label data-slot="label" class="text-xs font-medium text-fg-secondary" for="g-input">행사 이름</label>
+<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-surface-subtle" id="g-input">
 </div>
 <div class="flex w-72 flex-col gap-1.5">
-<label data-slot="label" class="text-xs font-medium text-gray-700" for="g-code">초대 코드</label>
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-gray-50 font-mono text-xl font-bold tracking-widest sm:text-xl" id="g-code" readonly="" value="ABCD2345">
+<label data-slot="label" class="text-xs font-medium text-fg-secondary" for="g-code">초대 코드</label>
+<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-surface-subtle font-mono text-xl font-bold tracking-widest sm:text-xl" id="g-code" readonly="" value="ABCD2345">
 </div>
 <div class="flex w-72 flex-col gap-1.5">
-<label data-slot="label" class="text-xs font-medium text-gray-700" for="g-invalid">송장번호</label>
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-gray-50" id="g-invalid" aria-invalid="true" value="잘못된 값">
+<label data-slot="label" class="text-xs font-medium text-fg-secondary" for="g-invalid">송장번호</label>
+<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-surface-subtle" id="g-invalid" aria-invalid="true" value="잘못된 값">
 </div>
 <div class="flex w-72 flex-col gap-1.5">
-<label data-slot="label" class="text-xs font-medium text-gray-700" for="g-select">상태 필터</label>
-<select data-slot="native-select" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive max-sm:min-h-11 cursor-pointer" id="g-select">
+<label data-slot="label" class="text-xs font-medium text-fg-secondary" for="g-select">상태 필터</label>
+<select data-slot="native-select" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 cursor-pointer" id="g-select">
 <option>전체 상태</option>
 <option>승인</option>
 </select>
 </div>
 <div class="flex w-72 flex-col gap-1.5">
-<label data-slot="label" class="text-xs font-medium text-gray-700" for="g-textarea">메시지</label>
-<textarea data-slot="textarea" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive min-h-20 resize-y read-only:border-border read-only:bg-gray-50" id="g-textarea">
+<label data-slot="label" class="text-xs font-medium text-fg-secondary" for="g-textarea">메시지</label>
+<textarea data-slot="textarea" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive min-h-20 resize-y read-only:border-border read-only:bg-surface-subtle" id="g-textarea">
 </textarea>
 </div>
 <div class="flex w-72 flex-col gap-1.5">
-<label data-slot="label" class="text-xs font-medium text-gray-700" for="g-disabled">비활성</label>
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-gray-50" id="g-disabled" disabled="" value="입력할 수 없음">
+<label data-slot="label" class="text-xs font-medium text-fg-secondary" for="g-disabled">비활성</label>
+<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-surface-subtle" id="g-disabled" disabled="" value="입력할 수 없음">
 </div>
 <label class="flex items-center gap-2 text-sm">
-<input class="size-4 accent-blue-600" type="checkbox" checked="">체크박스</label>
+<input class="size-4 accent-primary-emphasis" type="checkbox" checked="">체크박스</label>
 </div>
 </section>
 </div>

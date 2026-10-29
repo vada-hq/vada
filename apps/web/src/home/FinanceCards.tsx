@@ -9,7 +9,7 @@ import HomeRow from './HomeRow'
 import { remainingTidyLabel } from './council-view'
 
 const [PENDING, NEARBY, EXCEPTIONS] = HOME_PLANS.finance.cards
-const chevron = <ChevronRight aria-hidden className="size-4 text-gray-400" />
+const chevron = <ChevronRight aria-hidden className="size-4 text-fg-subtle" />
 
 export function PendingCard({
   pending,

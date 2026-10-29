@@ -20,15 +20,15 @@ function BudgetNumbers({ row }: { row: FinanceOverviewEvent }) {
         />
       )}
       <div className="flex flex-wrap justify-between gap-x-3 gap-y-1 text-right text-xs tabular-nums">
-        <span className="ml-auto text-gray-500">
-          실제 지출 <strong className="text-gray-900">{wonLabel(row.actual)}</strong>
+        <span className="ml-auto text-fg-muted">
+          실제 지출 <strong className="text-fg">{wonLabel(row.actual)}</strong>
         </span>
-        <span className="ml-auto text-gray-500">
-          지출 예정 <strong className="text-gray-900">{wonLabel(row.committed)}</strong>
+        <span className="ml-auto text-fg-muted">
+          지출 예정 <strong className="text-fg">{wonLabel(row.committed)}</strong>
         </span>
-        <span className="ml-auto text-gray-500">
+        <span className="ml-auto text-fg-muted">
           사용 가능{' '}
-          <strong className={row.available < 0 ? 'text-red-600' : 'text-blue-600'}>
+          <strong className={row.available < 0 ? 'text-danger-emphasis' : 'text-primary-emphasis'}>
             {wonLabel(row.available)}
           </strong>
         </span>
@@ -47,19 +47,22 @@ export default function FinanceBudgets({
   onSeeAll: () => void
 }) {
   const rows = budgets.events.map(({ event, budget }) => (
-    <li key={event.id} className="relative flex min-w-0 flex-col gap-2 px-5 py-3 hover:bg-gray-50">
+    <li
+      key={event.id}
+      className="relative flex min-w-0 flex-col gap-2 px-5 py-3 hover:bg-surface-subtle"
+    >
       <div className="flex items-start gap-2">
         <Button
           variant="link"
-          className="h-auto min-w-0 flex-1 justify-start p-0 text-left text-sm break-keep whitespace-normal text-gray-900 wrap-anywhere after:absolute after:inset-0"
+          className="h-auto min-w-0 flex-1 justify-start p-0 text-left text-sm break-keep whitespace-normal text-fg wrap-anywhere after:absolute after:inset-0"
           onClick={() => onOpen(event.id)}
         >
           <span className="line-clamp-2">{event.name}</span>
         </Button>
-        <span className="shrink-0 text-right text-xs text-gray-500 tabular-nums">
+        <span className="shrink-0 text-right text-xs text-fg-muted tabular-nums">
           {budget === null ? '예산 미입력' : `배정 ${wonLabel(budget.amount)}`}
         </span>
-        <ChevronRight aria-hidden className="size-4 shrink-0 text-gray-400" />
+        <ChevronRight aria-hidden className="size-4 shrink-0 text-fg-subtle" />
       </div>
       {budget !== null && <BudgetNumbers row={budget} />}
     </li>

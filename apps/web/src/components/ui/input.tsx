@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils'
 // 640px 미만에서는 16px(text-base)이다. iOS는 16px보다 작은 입력칸에 포커스가 가면 화면을 확대한다. 글자 크기를 바꾸는 쪽은 sm: 값도 같이 준다.
 // 선택칸은 :read-only에 걸리므로 읽기 전용 모양은 입력칸과 여러 줄 입력에만 준다.
 export const baseFieldClass =
-  'w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive'
+  'w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive'
 
 export const fieldClass = `${baseFieldClass} max-sm:min-h-11`
 
@@ -13,7 +13,7 @@ export function Input({ className, ...props }: ComponentProps<'input'>) {
   return (
     <input
       data-slot="input"
-      className={cn(fieldClass, 'read-only:border-border read-only:bg-gray-50', className)}
+      className={cn(fieldClass, 'read-only:border-border read-only:bg-surface-subtle', className)}
       {...props}
     />
   )

@@ -32,12 +32,12 @@ type Props = {
 function UsageLine({ item, overages }: { item: BudgetItemView; overages: readonly Overage[] }) {
   const line = usageLineOf(item, overages)
   return (
-    <p className="text-xs text-gray-500 tabular-nums">
-      사용 가능 <span className="font-medium text-blue-700">{line.available}</span>
+    <p className="text-xs text-fg-muted tabular-nums">
+      사용 가능 <span className="font-medium text-primary-strong">{line.available}</span>
       {line.after && (
         <>
           {' · '}
-          <span className="font-medium text-red-600">승인하면 {line.after}</span>
+          <span className="font-medium text-danger-emphasis">승인하면 {line.after}</span>
         </>
       )}
     </p>
@@ -95,8 +95,8 @@ function BudgetFields({
 }
 
 const CHOICES = [
-  { value: 'approve', label: '승인', on: 'bg-green-600 text-white hover:bg-green-700' },
-  { value: 'reject', label: '반려', on: 'bg-destructive text-white hover:bg-red-700' },
+  { value: 'approve', label: '승인', on: 'bg-success-emphasis text-white hover:bg-success' },
+  { value: 'reject', label: '반려', on: 'bg-destructive text-white hover:bg-danger' },
 ] as const
 
 // 검토 결과: 승인·반려 중 하나를 고른다(와이어프레임 FIN-REV-01의 버튼 묶음). 보내기는 아래 버튼 하나다.
@@ -146,14 +146,14 @@ function ChoiceField({
 // 카드 머리: 이름과 수량(품목 목록과 같은 '× 3'), 아래 줄에 옵션과 링크(가격 근거). 와이어프레임 FIN-REV-01의 구매 정보 자리다.
 function RowHead({ item, councilId }: { item: PurchaseLineItem; councilId?: string | undefined }) {
   return (
-    <div className="flex flex-col gap-1 rounded-t-lg border-b bg-gray-50 px-4 py-3">
-      <span className="text-sm font-semibold wrap-anywhere text-gray-900">
+    <div className="flex flex-col gap-1 rounded-t-lg border-b bg-surface-subtle px-4 py-3">
+      <span className="text-sm font-semibold wrap-anywhere text-fg">
         {item.name} × {item.quantity}
       </span>
       <RequestProductInfo councilId={councilId} link={item.link} />
       <ItemEstimate item={item} />
       {(item.options || item.link) && (
-        <div className="flex flex-col gap-1 text-xs text-gray-500">
+        <div className="flex flex-col gap-1 text-xs text-fg-muted">
           {item.options && <span className="wrap-anywhere">{item.options}</span>}
           {item.link && <ItemLink href={item.link} />}
         </div>

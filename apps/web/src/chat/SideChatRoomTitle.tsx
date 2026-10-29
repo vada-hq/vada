@@ -23,7 +23,7 @@ export default function SideChatRoomTitle({
     <div
       className={cn(
         'flex min-h-14 shrink-0 items-center gap-2 border-b px-4 py-2 sm:px-6',
-        amber ? 'border-amber-200 bg-amber-50' : 'bg-white',
+        amber ? 'border-personal-border bg-personal-surface' : 'bg-white',
       )}
     >
       {onBack && (
@@ -38,7 +38,7 @@ export default function SideChatRoomTitle({
           {side && DIRECT_LIST_TITLE}
         </Button>
       )}
-      <h2 className="min-w-0 flex-1 text-base font-semibold break-keep wrap-anywhere text-gray-900">
+      <h2 className="min-w-0 flex-1 text-base font-semibold break-keep wrap-anywhere text-fg">
         {amber ? directTitle(name) : name}
       </h2>
       {readOnly && <Badge>보기만</Badge>}

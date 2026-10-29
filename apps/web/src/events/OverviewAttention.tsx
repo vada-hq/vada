@@ -5,9 +5,9 @@ import { OverviewLink } from './OverviewLink'
 import type { Attention, AttentionKey } from './overview-view'
 
 const VALUE_TONE: Record<Attention['tone'], string> = {
-  danger: 'text-red-600',
-  warning: 'text-yellow-700',
-  info: 'text-blue-700',
+  danger: 'text-danger-emphasis',
+  warning: 'text-warning',
+  info: 'text-primary-strong',
 }
 const GOES_TO: Record<AttentionKey, { tab: EventTab; label: string }> = {
   overdue: { tab: 'tasks', label: '업무 보기' },
@@ -17,9 +17,9 @@ const GOES_TO: Record<AttentionKey, { tab: EventTab; label: string }> = {
 }
 
 const DOT_TONE: Record<Attention['tone'], string> = {
-  danger: 'bg-red-500',
-  warning: 'bg-yellow-500',
-  info: 'bg-blue-500',
+  danger: 'bg-danger-mark',
+  warning: 'bg-warning-mark',
+  info: 'bg-primary-mark',
 }
 
 // 챙길 것: 막힌 업무와 끝난 행사의 정산. 줄마다 수와 앞의 몇 개, 그 일을 하는 탭으로 가는 링크다(와이어프레임 Event Overview의 주의 칸).
@@ -37,7 +37,7 @@ export function OverviewAttention({
   if (items.length === 0) return null
   return (
     <section aria-labelledby="overview-attention" className={cn(cardClass, 'px-4 py-3')}>
-      <h3 id="overview-attention" className="pb-1 text-sm font-semibold text-gray-900">
+      <h3 id="overview-attention" className="pb-1 text-sm font-semibold text-fg">
         챙길 것
       </h3>
       <ul className="divide-y">
@@ -48,7 +48,7 @@ export function OverviewAttention({
               className={cn('mt-2 size-2 shrink-0 rounded-full', DOT_TONE[item.tone])}
             />
             <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-              <span className="text-sm text-gray-900">
+              <span className="text-sm text-fg">
                 {item.title}
                 {item.value && (
                   <span className={cn('ml-1.5 font-semibold', VALUE_TONE[item.tone])}>
@@ -57,7 +57,7 @@ export function OverviewAttention({
                 )}
               </span>
               {item.detail && (
-                <span className="text-xs text-gray-500 wrap-anywhere">{item.detail}</span>
+                <span className="text-xs text-fg-muted wrap-anywhere">{item.detail}</span>
               )}
             </div>
             <OverviewLink

@@ -93,7 +93,7 @@ export function CalendarHeader({
           >
             <ChevronLeft />
           </Button>
-          <h2 className="min-w-28 text-center text-base font-semibold text-gray-900">
+          <h2 className="min-w-28 text-center text-base font-semibold text-fg">
             {monthLabel(month)}
           </h2>
           <Button size="icon" variant="ghost" touch aria-label="다음 달" onClick={() => onShift(1)}>
@@ -114,7 +114,7 @@ function CalendarLegend() {
   return (
     <ul
       aria-label="일정 범례"
-      className="hidden flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500 sm:flex"
+      className="hidden flex-wrap items-center gap-x-3 gap-y-1 text-xs text-fg-muted sm:flex"
     >
       {kinds.map(kind => {
         const { Icon, text } = KIND_STYLE[kind]

@@ -21,14 +21,16 @@ export function TwoPartMeter({
 }) {
   const over = first + second > max
   return (
-    <div className={cn('relative h-2 w-full overflow-hidden rounded-full bg-gray-200', className)}>
+    <div
+      className={cn('relative h-2 w-full overflow-hidden rounded-full bg-muted-strong', className)}
+    >
       <progress
         className={cn(
           bar,
           'bg-transparent',
           over
-            ? '[&::-moz-progress-bar]:bg-red-600 [&::-webkit-progress-value]:bg-red-600'
-            : '[&::-moz-progress-bar]:bg-blue-300 [&::-webkit-progress-value]:bg-blue-300',
+            ? '[&::-moz-progress-bar]:bg-danger-emphasis [&::-webkit-progress-value]:bg-danger-emphasis'
+            : '[&::-moz-progress-bar]:bg-primary-soft [&::-webkit-progress-value]:bg-primary-soft',
         )}
         value={first + second}
         max={max}
@@ -39,8 +41,8 @@ export function TwoPartMeter({
           bar,
           'bg-transparent',
           over
-            ? '[&::-moz-progress-bar]:bg-red-600 [&::-webkit-progress-value]:bg-red-600'
-            : '[&::-moz-progress-bar]:bg-blue-600 [&::-webkit-progress-value]:bg-blue-600',
+            ? '[&::-moz-progress-bar]:bg-danger-emphasis [&::-webkit-progress-value]:bg-danger-emphasis'
+            : '[&::-moz-progress-bar]:bg-primary-emphasis [&::-webkit-progress-value]:bg-primary-emphasis',
         )}
         value={first}
         max={max}

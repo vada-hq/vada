@@ -23,12 +23,12 @@ const END_COLUMN = 'w-11 shrink-0 @md:w-15'
 // 칸마다의 이름은 '항목 n 이름'·'항목 n 금액'으로 따로 붙는다(화면 읽기 프로그램과 시험이 이것으로 찾는다).
 function Head() {
   return (
-    <div aria-hidden className="flex gap-2 text-xs font-medium text-gray-700">
+    <div aria-hidden className="flex gap-2 text-xs font-medium text-fg-secondary">
       <span className="min-w-0 flex-1">
-        항목 이름 <span className="text-red-600">*</span>
+        항목 이름 <span className="text-danger-emphasis">*</span>
       </span>
       <span className={AMOUNT_COLUMN}>
-        금액(원) <span className="text-red-600">*</span>
+        금액(원) <span className="text-danger-emphasis">*</span>
       </span>
       <span className={END_COLUMN} />
     </div>
@@ -76,7 +76,7 @@ function Row({ row, number, errors, saving, removable, onChange, onRemove }: Row
           {...described(amountError, amountId)}
         />
         <div className={cn(END_COLUMN, 'flex items-center gap-2')}>
-          <span aria-hidden className="hidden text-sm text-gray-500 @md:inline">
+          <span aria-hidden className="hidden text-sm text-fg-muted @md:inline">
             원
           </span>
           <Button
@@ -95,7 +95,7 @@ function Row({ row, number, errors, saving, removable, onChange, onRemove }: Row
         </div>
       </div>
       {(purposeError || amountError) && (
-        <div className="flex gap-2 text-xs text-red-600">
+        <div className="flex gap-2 text-xs text-danger-emphasis">
           <p id={purposeId} className="min-w-0 flex-1">
             {purposeError}
           </p>
@@ -112,11 +112,9 @@ function Row({ row, number, errors, saving, removable, onChange, onRemove }: Row
 // 창 아래 버튼 줄 왼쪽의 합계: '총 배정 예산 3,000,000원'(와이어프레임처럼 금액만 굵게). 수입 예산이면 '총 수입 예산'이다.
 export function BudgetRowsTotal({ rows, income }: { rows: BudgetRow[]; income: boolean }) {
   return (
-    <p className="text-sm text-gray-700">
+    <p className="text-sm text-fg-secondary">
       {income ? '총 수입 예산' : '총 배정 예산'}{' '}
-      <strong className="font-semibold text-gray-900 tabular-nums">
-        {wonLabel(rowsTotal(rows))}
-      </strong>
+      <strong className="font-semibold text-fg tabular-nums">{wonLabel(rowsTotal(rows))}</strong>
     </p>
   )
 }
@@ -148,7 +146,7 @@ export function BudgetRows({ rows, errors, saving, onChange }: Props) {
           type="button"
           variant="ghost"
           size="sm"
-          className="-ml-3 self-start text-blue-700"
+          className="-ml-3 self-start text-primary-strong"
           busy={saving}
           onClick={() => onChange([...rows, blankRow()])}
         >

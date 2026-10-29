@@ -28,7 +28,9 @@ export default function SettlingSection({ settling, onOpenEvent, onSeeAll }: Pro
           key={event.id}
           title={event.name}
           meta={[whenLabel(event)]}
-          side={<span className="font-medium text-gray-700">{settlementLabel(settlement)}</span>}
+          side={
+            <span className="font-medium text-fg-secondary">{settlementLabel(settlement)}</span>
+          }
           onOpen={() => onOpenEvent(event.id, 'money')}
         />
       ))}

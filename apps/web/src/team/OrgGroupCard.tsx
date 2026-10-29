@@ -59,19 +59,19 @@ export function OrgGroupCard({ title, icon, badge, meta, action, editor, wide, .
           <>
             <h2
               id={titleId}
-              className="flex min-w-0 items-center gap-2 text-sm font-semibold wrap-anywhere text-gray-900"
+              className="flex min-w-0 items-center gap-2 text-sm font-semibold wrap-anywhere text-fg"
             >
               {icon}
               {title}
             </h2>
             {badge}
-            <p className="ml-auto shrink-0 text-xs text-gray-500">{meta}</p>
+            <p className="ml-auto shrink-0 text-xs text-fg-muted">{meta}</p>
             {action}
           </>
         )}
       </div>
       {props.people.length === 0 ? (
-        <p className="px-4 py-3 text-sm text-gray-500">구성원 없음</p>
+        <p className="px-4 py-3 text-sm text-fg-muted">구성원 없음</p>
       ) : (
         <ul aria-label={`${title} 구성원`} className={cn('divide-y', wide && wideList)}>
           {props.people.map(member => props.person(member, props.groupKey))}

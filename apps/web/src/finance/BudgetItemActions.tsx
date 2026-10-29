@@ -37,7 +37,7 @@ function DeleteConfirm({ councilId, item, onClose, ...handlers }: DeleteProps) {
       onConfirm={() => void change.submit()}
       onClose={onClose}
     >
-      <p className="text-sm wrap-anywhere text-gray-700">{item.purpose}</p>
+      <p className="text-sm wrap-anywhere text-fg-secondary">{item.purpose}</p>
     </ConfirmDialog>
   )
 }

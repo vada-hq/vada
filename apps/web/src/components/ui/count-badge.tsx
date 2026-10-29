@@ -29,7 +29,7 @@ export function CountBadge({
     <span
       aria-label={label}
       className={cn(
-        'inline-flex shrink-0 items-center rounded-full bg-red-600 px-1.5 py-0.5 text-xs font-bold whitespace-nowrap text-white',
+        'inline-flex shrink-0 items-center rounded-full bg-notify px-1.5 py-0.5 text-xs font-bold whitespace-nowrap text-white',
         className,
       )}
     >

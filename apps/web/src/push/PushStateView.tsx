@@ -22,13 +22,13 @@ type Props = {
 function NeedsHomeScreen() {
   return (
     <>
-      <p className="text-gray-900">아이폰은 홈 화면에 추가해야 알림을 받아요.</p>
+      <p className="text-fg">아이폰은 홈 화면에 추가해야 알림을 받아요.</p>
       <ol className="list-decimal space-y-1 pl-5">
         <li>아래쪽 공유 버튼을 눌러요.</li>
         <li>'홈 화면에 추가'를 눌러요.</li>
         <li>홈 화면의 VADA로 열어요.</li>
       </ol>
-      <p className="text-xs text-gray-500">로그인한 채로 추가하면 다시 로그인하지 않아도 돼요.</p>
+      <p className="text-xs text-fg-muted">로그인한 채로 추가하면 다시 로그인하지 않아도 돼요.</p>
     </>
   )
 }
@@ -71,7 +71,7 @@ function Ask({ enableFailed, onEnable }: { enableFailed: boolean; onEnable: () =
 function On({ sending, onTest }: { sending: boolean; onTest: () => void }) {
   return (
     <>
-      <p className="text-gray-900">이 기기에서 알림을 받아요.</p>
+      <p className="text-fg">이 기기에서 알림을 받아요.</p>
       <Button variant="outline" className="self-start" busy={sending} onClick={onTest}>
         시험 알림 보내기
       </Button>

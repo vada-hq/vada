@@ -27,12 +27,12 @@ export function MemberDepartmentList({
 }: Props) {
   return (
     <section aria-label="지금 부서" className="flex flex-col gap-2">
-      {member.departments.length === 0 && <p className="text-sm text-gray-500">부서 없음</p>}
+      {member.departments.length === 0 && <p className="text-sm text-fg-muted">부서 없음</p>}
       {member.departments.map(item => {
         const name = departments.find(department => department.id === item.id)?.name ?? ''
         return (
           <div key={item.id} className="flex items-center gap-2">
-            <span className="min-w-0 flex-1 text-sm wrap-anywhere text-gray-800">{name}</span>
+            <span className="min-w-0 flex-1 text-sm wrap-anywhere text-fg-body">{name}</span>
             <NativeSelect
               aria-label={`${name} 부서 직급`}
               className="w-32"

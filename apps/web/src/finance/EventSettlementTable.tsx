@@ -12,12 +12,12 @@ type Props = {
   onOpen: (eventId: string) => void
 }
 
-const head = 'px-4 py-2 text-xs font-medium text-gray-500'
+const head = 'px-4 py-2 text-xs font-medium text-fg-muted'
 
 function MarkCell({ row }: { row: EventSettlementRow }) {
   const mark = settlementMark(row)
   return (
-    <td className="px-4 py-3 text-right text-sm font-semibold whitespace-nowrap text-gray-900 tabular-nums">
+    <td className="px-4 py-3 text-right text-sm font-semibold whitespace-nowrap text-fg tabular-nums">
       {mark?.kind === 'settled' ? settlementLabel(row.settlement) : mark?.count}
     </td>
   )
@@ -29,7 +29,7 @@ export function EventSettlementTable({ rows, onOpen }: Props) {
   return (
     <div className={cn(cardClass, 'overflow-hidden')}>
       <table aria-label="행사 정산" className="w-full border-collapse text-left">
-        <thead className="bg-gray-50">
+        <thead className="bg-surface-subtle">
           <tr>
             <th scope="col" className={cn(head, 'min-w-40')}>
               행사
@@ -49,7 +49,7 @@ export function EventSettlementTable({ rows, onOpen }: Props) {
           {rows.map(row => (
             <tr
               key={row.event.id}
-              className="cursor-pointer border-t transition-colors hover:bg-gray-50 has-[:focus-visible]:bg-gray-100"
+              className="cursor-pointer border-t transition-colors hover:bg-surface-subtle has-[:focus-visible]:bg-surface-muted"
               onClick={() => onOpen(row.event.id)}
             >
               <td className="px-4 py-3">
@@ -61,7 +61,7 @@ export function EventSettlementTable({ rows, onOpen }: Props) {
               <td className="px-4 py-3">
                 <EventStatusChip status={row.event.status} />
               </td>
-              <td className="px-4 py-3 text-sm text-gray-500">{settlementDate(row.event)}</td>
+              <td className="px-4 py-3 text-sm text-fg-muted">{settlementDate(row.event)}</td>
               <MarkCell row={row} />
             </tr>
           ))}

@@ -18,11 +18,11 @@ export function TaskDuePicker({ value, today, onPick }: Props) {
           <Button
             key={pick.label}
             variant="ghost"
-            className="justify-between font-normal text-gray-700"
+            className="justify-between font-normal text-fg-secondary"
             onClick={() => onPick(pick.date)}
           >
             {pick.label}
-            <span className="text-xs text-gray-400">{dayLabel(pick.date)}</span>
+            <span className="text-xs text-fg-subtle">{dayLabel(pick.date)}</span>
           </Button>
         ))}
       </div>
@@ -31,7 +31,7 @@ export function TaskDuePicker({ value, today, onPick }: Props) {
         <div className="border-t pt-1">
           <Button
             variant="ghost"
-            className="w-full justify-start font-normal text-gray-700"
+            className="w-full justify-start font-normal text-fg-secondary"
             onClick={() => onPick(null)}
           >
             마감 없음

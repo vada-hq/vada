@@ -141,7 +141,7 @@ function EventMessages({ sample: item }: { sample: Sample }) {
         bar={<RoomSwitch rooms={item.rooms} activeId={item.active} onPick={noop} />}
         {...headerHandlers}
       />
-      <div className="flex h-96 flex-col overflow-hidden rounded-lg border bg-gray-50">
+      <div className="flex h-96 flex-col overflow-hidden rounded-lg border bg-surface-subtle">
         <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-2 py-3 sm:px-4">
           <Flow />
         </div>
@@ -172,7 +172,7 @@ export function EventMessagesSection() {
       <div className="flex w-full max-w-5xl flex-col gap-8">
         {SAMPLES.map(item => (
           <div key={item.key} className="flex flex-col gap-1">
-            <p className="text-xs text-gray-500">{item.key}</p>
+            <p className="text-xs text-fg-muted">{item.key}</p>
             <EventMessages sample={item} />
           </div>
         ))}

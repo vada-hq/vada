@@ -56,22 +56,22 @@ function EventTile({
   const { event, tasks } = card
   const clear = tasks.overdue === 0 && tasks.unassigned === 0
   return (
-    <li className="relative flex min-w-0 flex-col gap-1.5 rounded-lg border p-3 transition-colors hover:border-blue-300 hover:bg-blue-50">
+    <li className="relative flex min-w-0 flex-col gap-1.5 rounded-lg border p-3 transition-colors hover:border-primary-border-strong hover:bg-primary-surface">
       {/* 칸이 좁으면(1024px 창의 3열) 행사명 자리를 지키고 날짜를 다음 줄로 내린다. */}
       <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
         <EventStatusChip status={event.status} />
         <Button
           variant="link"
-          className="h-auto min-w-24 flex-1 justify-start p-0 text-left text-sm font-bold text-gray-900 after:absolute after:inset-0"
+          className="h-auto min-w-24 flex-1 justify-start p-0 text-left text-sm font-bold text-fg after:absolute after:inset-0"
           onClick={() => onOpenEvent(event.id)}
         >
           <span className="truncate">{event.name}</span>
         </Button>
-        <span className="shrink-0 text-xs text-gray-500">{eventDayLabel(event, today)}</span>
+        <span className="shrink-0 text-xs text-fg-muted">{eventDayLabel(event, today)}</span>
       </div>
       <HomeProgress label="업무" done={tasks.done} total={tasks.total} />
       <div className="flex min-h-6 flex-wrap items-center gap-1.5 max-sm:gap-3">
-        {clear && <span className="text-xs text-gray-500">확인 필요 없음</span>}
+        {clear && <span className="text-xs text-fg-muted">확인 필요 없음</span>}
         {tasks.overdue > 0 && (
           <ReasonChip
             label="지남"
@@ -87,7 +87,7 @@ function EventTile({
           />
         )}
       </div>
-      <p className="mt-auto truncate border-t border-gray-100 pt-2 text-xs text-gray-700">
+      <p className="mt-auto truncate border-t border-border-subtle pt-2 text-xs text-fg-secondary">
         {nextDeadlineLabel(card.next)}
       </p>
     </li>

@@ -21,13 +21,13 @@ export function OverviewRate({ overview }: { overview: FinanceOverview }) {
   return (
     <section aria-label="전체 예산 집행률" className={cn(cardClass, 'flex flex-col gap-3 p-4')}>
       <p className="flex flex-wrap items-baseline gap-x-3 gap-y-1 text-sm">
-        <span className="font-semibold text-gray-900">
+        <span className="font-semibold text-fg">
           전체 예산 집행률 {spent === null ? '' : `${spent}%`}
         </span>
-        {planned !== null && <span className="text-gray-600">지출 예정 포함 {planned}%</span>}
+        {planned !== null && <span className="text-fg-tertiary">지출 예정 포함 {planned}%</span>}
       </p>
       {spent === null ? (
-        <span className="text-sm text-gray-500">수입 예산 없음</span>
+        <span className="text-sm text-fg-muted">수입 예산 없음</span>
       ) : (
         <>
           <TwoPartMeter
@@ -37,9 +37,9 @@ export function OverviewRate({ overview }: { overview: FinanceOverview }) {
             max={total}
             labels={{ first: '실제 지출', both: '지출 예정 포함' }}
           />
-          <div className="flex gap-4 text-xs text-gray-500">
-            <Legend tone="bg-blue-600" label="실제 지출" />
-            <Legend tone="bg-blue-300" label="지출 예정" />
+          <div className="flex gap-4 text-xs text-fg-muted">
+            <Legend tone="bg-primary-emphasis" label="실제 지출" />
+            <Legend tone="bg-primary-soft" label="지출 예정" />
           </div>
         </>
       )}

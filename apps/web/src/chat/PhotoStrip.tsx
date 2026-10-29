@@ -8,12 +8,12 @@ type Props = { photos: PhotoDraft[]; onRemove: (id: number) => void }
 function Thumb({ photo, onRemove }: { photo: PhotoDraft; onRemove: (id: number) => void }) {
   return (
     <li className="flex max-w-full flex-col gap-1">
-      <div className="relative size-20 overflow-hidden rounded-sm border bg-gray-50">
+      <div className="relative size-20 overflow-hidden rounded-sm border bg-surface-subtle">
         {photo.preview && (
           <img src={photo.preview} alt={photo.name} className="size-full object-cover" />
         )}
         {photo.state === 'uploading' && (
-          <span className="absolute inset-0 grid place-items-center bg-white/70 text-xs text-gray-600">
+          <span className="absolute inset-0 grid place-items-center bg-white/70 text-xs text-fg-tertiary">
             올리는 중…
           </span>
         )}

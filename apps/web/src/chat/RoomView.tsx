@@ -104,20 +104,20 @@ type Ready = Extract<RoomState, { kind: 'ready' }>
 // 새 메시지 경계(Slack '여기부터 새 메시지')
 function UnreadLine() {
   return (
-    <li className="flex items-center gap-2 py-1 text-xs font-medium text-red-600">
-      <span className="h-px flex-1 bg-red-200" aria-hidden />
+    <li className="flex items-center gap-2 py-1 text-xs font-medium text-notify">
+      <span className="h-px flex-1 bg-notify-line" aria-hidden />
       여기부터 새 메시지
-      <span className="h-px flex-1 bg-red-200" aria-hidden />
+      <span className="h-px flex-1 bg-notify-line" aria-hidden />
     </li>
   )
 }
 
 function DateLine({ label }: { label: string }) {
   return (
-    <li className="flex items-center gap-2 pt-3 pb-1 text-xs text-gray-500">
-      <span className="h-px flex-1 bg-gray-300" aria-hidden />
+    <li className="flex items-center gap-2 pt-3 pb-1 text-xs text-fg-muted">
+      <span className="h-px flex-1 bg-border-strong" aria-hidden />
       {label}
-      <span className="h-px flex-1 bg-gray-300" aria-hidden />
+      <span className="h-px flex-1 bg-border-strong" aria-hidden />
     </li>
   )
 }
@@ -295,7 +295,7 @@ export default function RoomView({
     <div
       className={cn(
         'flex h-full min-h-0 flex-col',
-        side ? 'bg-amber-50/60' : 'bg-gray-50',
+        side ? 'bg-personal-surface/60' : 'bg-surface-subtle',
         className,
       )}
     >

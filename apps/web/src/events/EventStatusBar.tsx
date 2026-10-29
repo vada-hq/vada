@@ -10,7 +10,7 @@ import EventStatusChip from './EventStatusChip'
 function Meta({ icon: Icon, children }: { icon: LucideIcon; children: ReactNode }) {
   return (
     <span className="flex min-w-0 items-center gap-1">
-      <Icon aria-hidden className="size-3.5 shrink-0 text-gray-400" />
+      <Icon aria-hidden className="size-3.5 shrink-0 text-fg-subtle" />
       <span className="min-w-0 wrap-anywhere">{children}</span>
     </span>
   )
@@ -47,10 +47,10 @@ function Summary({ event }: { event: EventDetail }) {
         <Badge tone={health.tone} className="whitespace-normal">
           {health.text}
         </Badge>
-        {ended && <span className="text-xs font-medium text-red-700">{ended}</span>}
+        {ended && <span className="text-xs font-medium text-danger">{ended}</span>}
       </div>
       <span aria-hidden className="hidden h-4 border-l lg:block" />
-      <div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500">
+      <div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-1 text-xs text-fg-muted">
         <span className="min-w-0 wrap-anywhere">{ownerLine(event)}</span>
         <Meta icon={CalendarDays}>{whenLabel(event)}</Meta>
         <Meta icon={MapPin}>{event.place ?? '장소 미정'}</Meta>

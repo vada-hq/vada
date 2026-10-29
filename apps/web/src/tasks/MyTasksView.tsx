@@ -101,8 +101,8 @@ function MyTasksCards({ tasks, ...props }: Props & { tasks: TaskSummary[] }) {
             <h2
               className={
                 section.key === 'overdue'
-                  ? 'text-sm font-semibold text-red-600'
-                  : 'text-sm font-semibold text-gray-600'
+                  ? 'text-sm font-semibold text-danger-emphasis'
+                  : 'text-sm font-semibold text-fg-tertiary'
               }
             >
               {section.title}

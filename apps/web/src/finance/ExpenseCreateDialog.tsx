@@ -74,7 +74,7 @@ function ModeFields({ team, ...props }: ModeProps) {
     ) : (
       <>
         <ExpenseRequestFields {...props} />
-        <p className="text-sm text-gray-700">합계 {wonLabel(linesTotal(values.lines))}</p>
+        <p className="text-sm text-fg-secondary">합계 {wonLabel(linesTotal(values.lines))}</p>
       </>
     )
   return (

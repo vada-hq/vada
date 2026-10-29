@@ -15,15 +15,15 @@ export function RequestDetailSummary({
     <>
       <h2 className="text-base font-semibold">요청 요약</h2>
       <dl className="grid grid-cols-2 gap-2 text-sm">
-        <dt className="text-gray-500">품목 수</dt>
+        <dt className="text-fg-muted">품목 수</dt>
         <dd>{request.itemCount}개</dd>
-        <dt className="text-gray-500">예상 금액</dt>
+        <dt className="text-fg-muted">예상 금액</dt>
         <dd className="font-semibold tabular-nums">
           {estimate?.total != null ? wonLabel(estimate.total) : '미확인'}
         </dd>
       </dl>
       {estimate?.total == null && estimate?.subtotal != null && (
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-fg-muted">
           상품 합계 {wonLabel(estimate.subtotal)} · 배송비 미확인
         </p>
       )}

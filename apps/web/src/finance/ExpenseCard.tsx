@@ -26,7 +26,7 @@ export default function ExpenseCard({
           <Button
             variant="link"
             className={cn(
-              'h-auto max-w-full justify-start p-0 text-left text-sm font-semibold break-keep whitespace-normal text-gray-900 wrap-anywhere',
+              'h-auto max-w-full justify-start p-0 text-left text-sm font-semibold break-keep whitespace-normal text-fg wrap-anywhere',
               rowLinkTarget,
             )}
             onClick={onOpen}
@@ -34,12 +34,12 @@ export default function ExpenseCard({
             {expense.vendor}
           </Button>
         </h2>
-        <span className="text-right text-sm font-semibold whitespace-nowrap text-gray-900 tabular-nums">
+        <span className="text-right text-sm font-semibold whitespace-nowrap text-fg tabular-nums">
           {wonLabel(expense.amount)}
         </span>
       </div>
-      <p className="text-sm break-keep wrap-anywhere text-gray-700">{expense.description}</p>
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500">
+      <p className="text-sm break-keep wrap-anywhere text-fg-secondary">{expense.description}</p>
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-fg-muted">
         <span>{dayLabel(expense.paidOn)}</span>
         <span>{METHOD_LABEL[expense.method]}</span>
         {chips.map(chip => (
@@ -48,7 +48,7 @@ export default function ExpenseCard({
           </Badge>
         ))}
       </div>
-      {context && <p className="text-xs break-keep text-gray-500 wrap-anywhere">{context}</p>}
+      {context && <p className="text-xs break-keep text-fg-muted wrap-anywhere">{context}</p>}
       <ExpenseCopyButton expense={expense} />
     </Card>
   )

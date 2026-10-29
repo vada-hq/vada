@@ -53,10 +53,10 @@ export function MemberRow(props: Props) {
   const placements = placementsText(others, departments, titles)
   return (
     <li className="group flex min-h-11 items-center gap-2 px-4 py-1">
-      <p className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-0.5 text-sm wrap-anywhere text-gray-900">
+      <p className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-0.5 text-sm wrap-anywhere text-fg">
         {member.name}
         <RankBadge member={member} titles={titles} inDepartment={inDepartment} />
-        {placements && <span className="text-xs text-gray-500">{placements}</span>}
+        {placements && <span className="text-xs text-fg-muted">{placements}</span>}
       </p>
       {(actions.assign || actions.rank || actions.transfer) && (
         // 마우스가 있는 화면에서는 줄에 올리거나 초점이 들어올 때만 ⋯를 보여 줄마다 같은 버튼이 늘어서지 않는다(대화 메시지 메뉴와 같다).

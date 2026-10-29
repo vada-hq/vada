@@ -26,7 +26,7 @@ function CardMeta({ parts, sub }: { parts: ReactNode[]; sub: ReactNode }) {
   return (
     <>
       {parts.length > 0 && (
-        <p className="truncate text-xs text-gray-500">
+        <p className="truncate text-xs text-fg-muted">
           {parts.map((part, index) => (
             <span key={index}>
               {index > 0 && <span aria-hidden> · </span>}
@@ -35,7 +35,7 @@ function CardMeta({ parts, sub }: { parts: ReactNode[]; sub: ReactNode }) {
           ))}
         </p>
       )}
-      {sub && <p className="truncate text-xs text-gray-700">{sub}</p>}
+      {sub && <p className="truncate text-xs text-fg-secondary">{sub}</p>}
     </>
   )
 }
@@ -51,7 +51,7 @@ function RowTitle({
     <Button
       variant="link"
       className={cn(
-        'h-auto max-w-full justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere',
+        'h-auto max-w-full justify-start p-0 text-left text-sm font-medium whitespace-normal text-fg wrap-anywhere',
         rowLinkTarget,
         card && 'break-keep',
         // Button은 shrink-0이라 칩 옆에서는 줄어들게 해야 긴 제목이 칸 안에서 접힌다.
@@ -87,7 +87,7 @@ export default function HomeRow({
     <li
       className={cn(
         rowLinkBox,
-        'flex items-center gap-3 px-4 py-3 transition-colors hover:bg-gray-50',
+        'flex items-center gap-3 px-4 py-3 transition-colors hover:bg-surface-subtle',
         card && 'px-5 py-2.5',
       )}
     >
@@ -96,7 +96,7 @@ export default function HomeRow({
         <RowTitle title={title} chip={chip} card={card} onOpen={onOpen} />
         {card && <CardMeta parts={parts} sub={sub} />}
         {!card && parts.length > 0 && (
-          <div className="flex flex-wrap items-center gap-x-1.5 text-xs text-gray-500">
+          <div className="flex flex-wrap items-center gap-x-1.5 text-xs text-fg-muted">
             {parts.map((part, index) => [
               index > 0 && (
                 <span key={`dot-${index}`} aria-hidden>

@@ -36,20 +36,20 @@ function eventTime(event: EventSummary) {
 
 function EventRow({ event, onOpen }: { event: EventSummary; onOpen: Props['onOpenEvent'] }) {
   return (
-    <li className="flex flex-wrap items-center gap-x-3 gap-y-1 border-l-4 border-l-emerald-300 px-4 py-3">
+    <li className="flex flex-wrap items-center gap-x-3 gap-y-1 border-l-4 border-l-kind-event-line px-4 py-3">
       {onOpen ? (
         <Button
           variant="link"
           touch
-          className="h-auto min-w-0 justify-start p-0 text-left text-sm font-medium break-keep whitespace-normal text-gray-900 wrap-anywhere"
+          className="h-auto min-w-0 justify-start p-0 text-left text-sm font-medium break-keep whitespace-normal text-fg wrap-anywhere"
           onClick={() => onOpen(event.id)}
         >
           {event.name}
         </Button>
       ) : (
-        <span className="text-sm font-medium text-gray-900 wrap-anywhere">{event.name}</span>
+        <span className="text-sm font-medium text-fg wrap-anywhere">{event.name}</span>
       )}
-      <span className="text-xs text-gray-500">
+      <span className="text-xs text-fg-muted">
         {[eventTime(event), event.place].filter(Boolean).join(' · ')}
       </span>
     </li>
@@ -62,9 +62,9 @@ export function CalendarDayList({ selected, tasks, events, row, onOpenEvent }: P
   const count = tasks.length + events.length
   return (
     <section aria-label={title} className="flex scroll-mt-4 flex-col gap-2">
-      <h2 className="text-sm font-semibold text-gray-900">
+      <h2 className="text-sm font-semibold text-fg">
         {title}
-        <span className="ml-1.5 font-normal text-gray-500 tabular-nums">{count}건</span>
+        <span className="ml-1.5 font-normal text-fg-muted tabular-nums">{count}건</span>
       </h2>
       {count === 0 ? (
         <StateMessage kind="empty">일정 없음</StateMessage>

@@ -78,7 +78,7 @@ export default function DepartmentCard({
             }}
           />
           {error && (
-            <p id={errorId} className="text-xs text-red-600">
+            <p id={errorId} className="text-xs text-danger-emphasis">
               {error}
             </p>
           )}
@@ -134,7 +134,7 @@ function ReadView({ row, name, badge, onStart, onRemove }: ReadProps) {
           variant="ghost"
           touch
           aria-label={`${shown} 이름 바꾸기`}
-          className="-ml-1 h-auto min-w-0 justify-start px-1 py-1 text-left font-semibold whitespace-normal wrap-anywhere text-gray-900"
+          className="-ml-1 h-auto min-w-0 justify-start px-1 py-1 text-left font-semibold whitespace-normal wrap-anywhere text-fg"
           onClick={onStart}
         >
           {name}

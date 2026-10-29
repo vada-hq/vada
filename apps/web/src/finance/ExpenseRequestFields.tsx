@@ -74,7 +74,7 @@ function ItemRow({
       <Label className="flex items-center gap-2 text-sm max-sm:min-h-11">
         <input
           type="checkbox"
-          className="size-4 accent-blue-600"
+          className="size-4 accent-primary-emphasis"
           checked={line !== undefined}
           disabled={disabled}
           aria-invalid={invalid || undefined}
@@ -100,7 +100,7 @@ function ItemRow({
         </Label>
       )}
       {line && error && (
-        <p id={errorId} className="text-xs text-red-600">
+        <p id={errorId} className="text-xs text-danger-emphasis">
           {error}
         </p>
       )}
@@ -247,7 +247,7 @@ export function ExpenseRequestFields({
       />
       {values.requestId && <ItemPicker {...props} requestId={values.requestId} errors={errors} />}
       {errors.lines && (
-        <p id={LINES_ERROR_ID} className="text-xs text-red-600">
+        <p id={LINES_ERROR_ID} className="text-xs text-danger-emphasis">
           {errors.lines}
         </p>
       )}

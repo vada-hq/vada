@@ -17,8 +17,8 @@ export default function CouncilFields({ draft, set, years, errors }: Props) {
     <>
       <fieldset className="flex flex-col">
         <legend className="mb-1 flex items-baseline gap-1">
-          <span className="text-xs font-medium text-gray-700">학생회 유형</span>
-          <span aria-hidden className="text-sm leading-4 text-red-600">
+          <span className="text-xs font-medium text-fg-secondary">학생회 유형</span>
+          <span aria-hidden className="text-sm leading-4 text-danger-emphasis">
             *
           </span>
         </legend>
@@ -26,13 +26,13 @@ export default function CouncilFields({ draft, set, years, errors }: Props) {
         {unitChoices.map(unit => (
           <Label
             key={unit}
-            className="flex cursor-pointer items-center gap-2 py-1.5 text-sm font-normal text-gray-800 max-sm:min-h-11"
+            className="flex cursor-pointer items-center gap-2 py-1.5 text-sm font-normal text-fg-body max-sm:min-h-11"
           >
             <input
               type="radio"
               name={unitId}
               value={unit}
-              className="size-4 accent-blue-600"
+              className="size-4 accent-primary-emphasis"
               checked={draft.unit === unit}
               onChange={set('unit')}
             />

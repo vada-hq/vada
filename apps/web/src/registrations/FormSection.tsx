@@ -15,7 +15,7 @@ export function FormSection({
   return (
     <section aria-label={title} className={cn(cardClass, 'flex flex-col gap-4 p-4')}>
       <div className="flex items-center justify-between gap-2">
-        <h3 className="text-sm font-semibold text-gray-900">{title}</h3>
+        <h3 className="text-sm font-semibold text-fg">{title}</h3>
         {action}
       </div>
       {children}

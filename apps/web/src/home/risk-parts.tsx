@@ -4,12 +4,12 @@ import { NO_ASSIGNEE_LABEL } from '../tasks/task-view'
 export function riskParts({ overdue, unassigned }: { overdue: number; unassigned: number }) {
   return [
     overdue > 0 && (
-      <span key="overdue" className="font-medium text-red-600">
+      <span key="overdue" className="font-medium text-danger-emphasis">
         지남 {overdue}
       </span>
     ),
     unassigned > 0 && (
-      <span key="unassigned" className="font-medium text-yellow-700">
+      <span key="unassigned" className="font-medium text-warning">
         {NO_ASSIGNEE_LABEL} {unassigned}
       </span>
     ),

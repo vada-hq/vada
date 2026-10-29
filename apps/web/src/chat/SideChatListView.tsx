@@ -30,7 +30,7 @@ function DirectRooms({ state, now, onOpen }: ListProps) {
   return (
     <ul
       aria-label={DIRECT_ROOMS_LABEL}
-      className="min-h-0 flex-1 divide-y divide-amber-200 overflow-y-auto"
+      className="min-h-0 flex-1 divide-y divide-personal-border overflow-y-auto"
     >
       {rooms.map(room => (
         <RoomRow
@@ -57,8 +57,8 @@ export default function SideChatListView({
 }) {
   return (
     <section aria-label="1:1 대화" className="flex h-full min-h-0 flex-col break-keep">
-      <header className="flex min-h-14 shrink-0 items-center justify-between gap-2 border-b border-amber-200 bg-amber-50 px-4 py-2">
-        <h2 className="text-sm font-semibold text-amber-900">{DIRECT_LIST_TITLE}</h2>
+      <header className="flex min-h-14 shrink-0 items-center justify-between gap-2 border-b border-personal-border bg-personal-surface px-4 py-2">
+        <h2 className="text-sm font-semibold text-personal-fg">{DIRECT_LIST_TITLE}</h2>
         {canDirect && (
           <Button variant="ghost" size="icon" touch aria-label={DIRECT_START} onClick={onStart}>
             <Plus aria-hidden />

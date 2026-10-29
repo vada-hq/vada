@@ -35,7 +35,7 @@ export function NoEvents({ canCreate, onCreate }: { canCreate: boolean; onCreate
   return (
     <EmptyState
       icon={CalendarDays}
-      iconClassName="bg-gray-100 text-gray-400"
+      iconClassName="bg-surface-muted text-fg-subtle"
       className="break-keep"
       title="행사 없음"
       {...(canCreate ? {} : { description: '회장단과 부서장이 만들어요' })}

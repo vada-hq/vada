@@ -44,17 +44,17 @@ function GroupRow({
         colSpan={cols}
         scope="colgroup"
         role="rowheader"
-        className="bg-gray-50 px-3 py-2 text-left"
+        className="bg-surface-subtle px-3 py-2 text-left"
       >
         <span className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
           <span
             className={cn(
               'text-sm font-semibold wrap-anywhere',
-              section.key === 'overdue' ? 'text-red-600' : 'text-gray-900',
+              section.key === 'overdue' ? 'text-danger-emphasis' : 'text-fg',
             )}
           >
             {section.title}
-            <span className="ml-1.5 font-normal text-gray-500">{section.tasks.length}</span>
+            <span className="ml-1.5 font-normal text-fg-muted">{section.tasks.length}</span>
           </span>
           {summary && <SummaryText tasks={section.tasks} />}
         </span>
@@ -133,7 +133,7 @@ export function TaskTable(props: Props) {
                 key={column}
                 role="columnheader"
                 scope="col"
-                className={cn('px-2 py-2 text-xs font-medium text-gray-500', columnWidth(column))}
+                className={cn('px-2 py-2 text-xs font-medium text-fg-muted', columnWidth(column))}
               >
                 {COLUMN_LABEL[column]}
               </th>

@@ -67,7 +67,7 @@ function ExpensePreview({ phone }: { phone: boolean }) {
           onChange={noop}
         />
         <ExpensePaymentItems {...shared} items={items} />
-        <p className="text-sm text-gray-700">
+        <p className="text-sm text-fg-secondary">
           합계 {wonLabel(Number(values.lines[0]?.amount ?? 0))}
         </p>
         <ChoiceSelect

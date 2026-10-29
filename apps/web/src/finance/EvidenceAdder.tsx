@@ -50,12 +50,12 @@ function PendingCard({ upload }: { upload: Upload }) {
   if (!photo) return null
   return (
     <div role="group" aria-label="붙일 사진" className="flex flex-col gap-3 rounded-sm border p-3">
-      <div className="relative size-24 overflow-hidden rounded-sm border bg-gray-50">
+      <div className="relative size-24 overflow-hidden rounded-sm border bg-surface-subtle">
         {photo.preview && (
           <img src={photo.preview} alt={photo.name} className="size-full object-cover" />
         )}
         {photo.state === 'uploading' && (
-          <span className="absolute inset-0 grid place-items-center bg-white/70 text-xs text-gray-600">
+          <span className="absolute inset-0 grid place-items-center bg-white/70 text-xs text-fg-tertiary">
             올리는 중…
           </span>
         )}

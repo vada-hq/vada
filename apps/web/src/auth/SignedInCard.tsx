@@ -36,8 +36,8 @@ export default function SignedInCard({
         {children}
         <div className="flex items-center gap-2 border-t pt-4">
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-medium wrap-anywhere text-gray-700">{user.name}</p>
-            <p className="text-xs wrap-anywhere text-gray-500">{user.email}</p>
+            <p className="text-xs font-medium wrap-anywhere text-fg-secondary">{user.name}</p>
+            <p className="text-xs wrap-anywhere text-fg-muted">{user.email}</p>
           </div>
           <PushSettingsButton />
           <Button variant="ghost" size="sm" touch busy={busy} onClick={onLogout}>
@@ -48,10 +48,10 @@ export default function SignedInCard({
     )
   return (
     <Frame>
-      <div className="flex flex-col gap-0.5 rounded-md bg-gray-50 px-3 py-2">
-        <h2 className="text-xs font-medium text-gray-500">로그인 완료</h2>
-        <p className="text-sm font-medium text-gray-900">{user.name}</p>
-        <p className="text-xs wrap-anywhere text-gray-500">{user.email}</p>
+      <div className="flex flex-col gap-0.5 rounded-md bg-surface-subtle px-3 py-2">
+        <h2 className="text-xs font-medium text-fg-muted">로그인 완료</h2>
+        <p className="text-sm font-medium text-fg">{user.name}</p>
+        <p className="text-xs wrap-anywhere text-fg-muted">{user.email}</p>
       </div>
       {children}
       <div className="flex items-center gap-2">

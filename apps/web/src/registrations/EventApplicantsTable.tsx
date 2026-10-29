@@ -33,7 +33,7 @@ function Check({
     <label className="flex min-h-11 min-w-11 cursor-pointer items-center justify-center">
       <input
         type="checkbox"
-        className="size-4 accent-blue-600"
+        className="size-4 accent-primary-emphasis"
         aria-label={label}
         checked={checked}
         disabled={busy}
@@ -80,7 +80,7 @@ function AnswerLines({ answers }: { answers: EventApplicant['answers'] }) {
       {answers.map(answer => (
         <div key={answer.questionId} className="wrap-anywhere">
           <dt className="inline">{answer.title}</dt>{' '}
-          <dd className="inline text-gray-700">{answer.values.join(', ') || '—'}</dd>
+          <dd className="inline text-fg-secondary">{answer.values.join(', ') || '—'}</dd>
         </div>
       ))}
     </dl>
@@ -106,7 +106,7 @@ function ApplicantCells({ row, props }: { row: EventApplicant; props: Props }) {
           {row.needsAttention && (
             <TriangleAlert
               aria-label={EVENT_APPLICANTS.attention}
-              className="size-4 shrink-0 text-amber-600"
+              className="size-4 shrink-0 text-attention-icon"
             />
           )}
         </span>
@@ -201,7 +201,7 @@ export function EventApplicantsTable(props: Props) {
               key={row.id}
               className={cn(
                 'border-t align-middle @max-2xl:flex @max-2xl:flex-wrap @max-2xl:items-center @max-2xl:p-2',
-                row.needsAttention && 'bg-amber-50',
+                row.needsAttention && 'bg-attention-surface',
               )}
             >
               <ApplicantCells row={row} props={props} />

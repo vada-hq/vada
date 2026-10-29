@@ -92,7 +92,7 @@ export function DialogContent({
           <DialogPrimitive.Close
             aria-label="닫기"
             disabled={closeDisabled}
-            className="absolute top-6 right-6 cursor-pointer rounded-sm p-1 max-sm:top-3.5 max-sm:right-3.5 max-sm:p-3.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
+            className="absolute top-6 right-6 cursor-pointer rounded-sm p-1 max-sm:top-3.5 max-sm:right-3.5 max-sm:p-3.5 text-fg-subtle hover:bg-surface-muted hover:text-fg-tertiary focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
           >
             <X className="size-4" />
           </DialogPrimitive.Close>
@@ -109,7 +109,7 @@ export function DialogHeader({ className, ...props }: ComponentProps<'div'>) {
 export function DialogTitle({ className, ...props }: ComponentProps<typeof DialogPrimitive.Title>) {
   return (
     <DialogPrimitive.Title
-      className={cn('text-base font-semibold text-gray-900', className)}
+      className={cn('text-base font-semibold text-fg', className)}
       {...props}
     />
   )
@@ -120,7 +120,7 @@ export function DialogDescription({
   ...props
 }: ComponentProps<typeof DialogPrimitive.Description>) {
   return (
-    <DialogPrimitive.Description className={cn('text-sm text-gray-500', className)} {...props} />
+    <DialogPrimitive.Description className={cn('text-sm text-fg-muted', className)} {...props} />
   )
 }
 

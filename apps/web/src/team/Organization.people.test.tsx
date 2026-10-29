@@ -112,10 +112,10 @@ test('사람 줄은 들어온 순서대로 이름, 학생회가 정한 직급 �
   // 회장은 노랑, 부서 직급은 회색 배지다.
   expect(
     within(screen.getByRole('list', { name: '회장단 구성원' })).getByText('위원장').className,
-  ).toContain('yellow')
+  ).toContain('warning')
   expect(
     within(screen.getByRole('list', { name: '재정부 구성원' })).getByText('국장').className,
-  ).toContain('gray')
+  ).toContain('text-fg-muted')
   expect(document.body.textContent).not.toContain('@')
 })
 

@@ -23,7 +23,7 @@ test('방 줄은 이름 아래 마지막 말을 "보낸 사람: 미리보기"로
       unread: 3,
     }),
   )
-  expect(screen.getByLabelText('안 읽은 메시지 3개').className).toContain('bg-red-600')
+  expect(screen.getByLabelText('안 읽은 메시지 3개').className).toContain('bg-notify')
   const row = screen.getByRole('button', { name: /공지방/ })
   expect(screen.getByText('떠난 운영진 2: 사진')).toBeTruthy()
   expect(screen.getByText('참여 12명')).toBeTruthy()

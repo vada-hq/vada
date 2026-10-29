@@ -93,7 +93,7 @@ export function EventApplicantsFilters({ query, onQuery, busy }: Props) {
       <label className="flex min-h-11 cursor-pointer items-center gap-2 text-sm">
         <input
           type="checkbox"
-          className="size-4 accent-blue-600"
+          className="size-4 accent-primary-emphasis"
           checked={query.needsAttention ?? false}
           disabled={busy}
           onChange={event => onQuery({ needsAttention: event.target.checked || undefined })}

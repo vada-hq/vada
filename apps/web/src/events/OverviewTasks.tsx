@@ -21,21 +21,19 @@ function TaskLine({ task, onOpen }: { task: TaskSummary; onOpen: () => void }) {
     <li className="flex items-start gap-3 py-2.5">
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
         <OverviewLink
-          className="max-w-full justify-start text-left font-medium whitespace-normal text-gray-900 wrap-anywhere"
+          className="max-w-full justify-start text-left font-medium whitespace-normal text-fg wrap-anywhere"
           onClick={onOpen}
         >
           {task.title}
         </OverviewLink>
-        <span
-          className={cn('text-xs', task.assignee === null ? 'text-yellow-700' : 'text-gray-500')}
-        >
+        <span className={cn('text-xs', task.assignee === null ? 'text-warning' : 'text-fg-muted')}>
           {assigneeLabel(task.assignee)}
         </span>
       </div>
       {task.overdue ? (
         <Badge tone="danger">{`지남 · ${dueLabel(task.dueDate)}`}</Badge>
       ) : (
-        <span className="shrink-0 text-xs text-gray-500">{dueLabel(task.dueDate)}</span>
+        <span className="shrink-0 text-xs text-fg-muted">{dueLabel(task.dueDate)}</span>
       )}
     </li>
   )
@@ -47,12 +45,12 @@ export function OverviewTasks({ tasks, failed, onOpenTask }: Props) {
   return (
     <section aria-labelledby="overview-tasks" className={cn(cardClass, 'flex flex-col px-4 py-3')}>
       <div className="flex items-center justify-between gap-2 pb-1">
-        <h3 id="overview-tasks" className="text-sm font-semibold text-gray-900">
+        <h3 id="overview-tasks" className="text-sm font-semibold text-fg">
           다음 업무
         </h3>
       </div>
       {tasks === null || tasks.length === 0 ? (
-        <p className="py-2.5 text-sm text-gray-500">{empty ?? '끝나지 않은 업무가 없어요'}</p>
+        <p className="py-2.5 text-sm text-fg-muted">{empty ?? '끝나지 않은 업무가 없어요'}</p>
       ) : (
         <ul className="divide-y">
           {nextTasks(tasks, SHOWN).map(task => (

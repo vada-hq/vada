@@ -73,11 +73,9 @@ function Loaded({
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 flex-col gap-1">
           {periodSelect ?? (
-            <h2 className="text-base font-medium wrap-anywhere text-gray-900">
-              {data.period.name}
-            </h2>
+            <h2 className="text-base font-medium wrap-anywhere text-fg">{data.period.name}</h2>
           )}
-          <p className="text-xs text-gray-500">{periodRange(data.period)}</p>
+          <p className="text-xs text-fg-muted">{periodRange(data.period)}</p>
         </div>
         {canManage && (
           <Button className="shrink-0" variant="outline" onClick={() => onOpen('item')}>

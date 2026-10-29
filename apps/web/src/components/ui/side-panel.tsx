@@ -54,7 +54,7 @@ export function SidePanelContent({
           <div className="flex min-w-0 flex-1 flex-col gap-1">
             <DialogPrimitive.Title
               className={cn(
-                'text-base font-semibold text-gray-900 wrap-anywhere',
+                'text-base font-semibold text-fg wrap-anywhere',
                 heading !== undefined && 'sr-only',
               )}
             >
@@ -70,7 +70,7 @@ export function SidePanelContent({
           {actions}
           <DialogPrimitive.Close
             aria-label="닫기"
-            className="cursor-pointer rounded-sm p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none max-sm:-m-2.5 max-sm:flex max-sm:size-11 max-sm:shrink-0 max-sm:items-center max-sm:justify-center"
+            className="cursor-pointer rounded-sm p-1 text-fg-subtle hover:bg-surface-muted hover:text-fg-tertiary focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none max-sm:-m-2.5 max-sm:flex max-sm:size-11 max-sm:shrink-0 max-sm:items-center max-sm:justify-center"
           >
             <X className="size-4" />
           </DialogPrimitive.Close>
@@ -118,8 +118,8 @@ export function SidePanelSection({
       className="flex flex-col gap-3 border-t pt-5 first:border-t-0 first:pt-0"
     >
       <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-        <h3 className="text-sm font-semibold text-gray-900">{title}</h3>
-        {hint !== undefined && <div className="text-xs text-blue-600">{hint}</div>}
+        <h3 className="text-sm font-semibold text-fg">{title}</h3>
+        {hint !== undefined && <div className="text-xs text-primary-emphasis">{hint}</div>}
       </div>
       {children}
     </section>

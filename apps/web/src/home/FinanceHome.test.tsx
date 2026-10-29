@@ -109,7 +109,7 @@ test('결재 대기는 서버 차례의 앞 셋, 필요한 때 3일 임박은 �
   expect(rows.map(row => row.textContent)).toEqual(
     expect.arrayContaining([expect.stringContaining('요청 r1')]),
   )
-  expect(within(rows[0]!).getByText('임박').className).toContain('yellow')
+  expect(within(rows[0]!).getByText('임박').className).toContain('warning')
   fireEvent.click(within(rows[0]!).getByRole('button', { name: '요청 r1' }))
   expect(path()).toBe('/purchases/01900000-0000-7000-8000-000000000001/r1')
   fireEvent.click(within(pending).getByRole('button', { name: '전체 4건 보기' }))
@@ -150,7 +150,7 @@ test('품목은 요청으로, 예산 미입력·음수 사용 가능은 받은 �
   expect(within(budgets).getByText('2개')).toBeTruthy()
   expect(within(budgets).getByText('사용 가능')).toBeTruthy()
   expect(within(budgets).getByText('예산 미입력')).toBeTruthy()
-  expect(within(budgets).getByText('-20원').className).toContain('red')
+  expect(within(budgets).getByText('-20원').className).toContain('danger')
   fireEvent.click(within(budgets).getByRole('button', { name: '가을 축제' }))
   expect(path()).toBe('/events/01900000-0000-7000-8000-000000000001/e1?tab=money')
 })
@@ -170,7 +170,7 @@ test('회장단 요약은 금액과 미입력 행사를 보이고 재정 첫 화
   const summary = await card('전체 재정 요약')
   expect(within(summary).queryByText('열람 전용')).toBeNull()
   expect(within(summary).getByText('체육대회 예산 미입력')).toBeTruthy()
-  expect(within(summary).getByText('-20원').className).toContain('red')
+  expect(within(summary).getByText('-20원').className).toContain('danger')
   fireEvent.click(within(summary).getByRole('button'))
   expect(path()).toBe('/finance/01900000-0000-7000-8000-000000000001')
 })

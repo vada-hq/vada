@@ -76,8 +76,8 @@ function CountChips({
           variant="outline"
           aria-pressed={scope.due === 'overdue'}
           className={cn(
-            'shrink-0 rounded-full text-red-600 max-sm:min-h-11',
-            scope.due === 'overdue' && 'border-red-300 bg-red-50',
+            'shrink-0 rounded-full text-danger-emphasis max-sm:min-h-11',
+            scope.due === 'overdue' && 'border-danger-border-strong bg-danger-surface',
           )}
           onClick={() => scope.toggleChip('overdue')}
         >

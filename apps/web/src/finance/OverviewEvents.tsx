@@ -18,9 +18,10 @@ type Props = {
   onOpen: (eventId: string) => void
 }
 
-const head = 'px-4 py-2 text-xs font-medium text-gray-500'
-const money = 'px-3 py-3 text-right text-sm whitespace-nowrap text-gray-700 tabular-nums'
-const availableTone = (available: number) => (available < 0 ? 'text-red-600' : 'text-blue-600')
+const head = 'px-4 py-2 text-xs font-medium text-fg-muted'
+const money = 'px-3 py-3 text-right text-sm whitespace-nowrap text-fg-secondary tabular-nums'
+const availableTone = (available: number) =>
+  available < 0 ? 'text-danger-emphasis' : 'text-primary-emphasis'
 
 // 행사 줄의 집행률: (실제 + 예정) ÷ 배정과 두 겹 막대(와이어프레임 FIN-00 행사별 표).
 function RowRate({ row }: { row: FinanceOverviewEvent }) {
@@ -35,7 +36,7 @@ function RowRate({ row }: { row: FinanceOverviewEvent }) {
         max={row.amount}
         labels={{ first: `${row.event.name} 실제 지출`, both: `${row.event.name} 지출 예정 포함` }}
       />
-      <span className="w-9 text-right text-xs text-gray-700 tabular-nums">{rate}%</span>
+      <span className="w-9 text-right text-xs text-fg-secondary tabular-nums">{rate}%</span>
     </div>
   )
 }
@@ -43,7 +44,7 @@ function RowRate({ row }: { row: FinanceOverviewEvent }) {
 function EventTable({ rows, onOpen }: Omit<Props, 'wide'>) {
   return (
     <table aria-label="행사별 예산" className="w-full border-collapse text-left">
-      <thead className="bg-gray-50">
+      <thead className="bg-surface-subtle">
         <tr>
           <th scope="col" className={cn(head, 'min-w-32')}>
             구분
@@ -62,7 +63,7 @@ function EventTable({ rows, onOpen }: Omit<Props, 'wide'>) {
         {rows.map(row => (
           <tr
             key={row.event.id}
-            className="cursor-pointer border-t transition-colors hover:bg-gray-50 has-[:focus-visible]:bg-gray-100"
+            className="cursor-pointer border-t transition-colors hover:bg-surface-subtle has-[:focus-visible]:bg-surface-muted"
             onClick={() => onOpen(row.event.id)}
           >
             <td className="px-4 py-3">
@@ -93,7 +94,7 @@ function EventList({ rows, onOpen }: Omit<Props, 'wide'>) {
       {rows.map(row => (
         <li
           key={row.event.id}
-          className={`${rowLinkBox} flex flex-col gap-1.5 px-4 py-3 transition-colors hover:bg-gray-50`}
+          className={`${rowLinkBox} flex flex-col gap-1.5 px-4 py-3 transition-colors hover:bg-surface-subtle`}
         >
           <div className="flex items-start gap-3">
             <Button
@@ -113,7 +114,7 @@ function EventList({ rows, onOpen }: Omit<Props, 'wide'>) {
               {signedWon(row.available)}
             </span>
           </div>
-          <p className="text-xs text-gray-500 tabular-nums">
+          <p className="text-xs text-fg-muted tabular-nums">
             {[
               `배정 ${wonLabel(row.amount)}`,
               `실제 ${wonLabel(row.actual)}`,
@@ -137,7 +138,7 @@ function EventList({ rows, onOpen }: Omit<Props, 'wide'>) {
 export function OverviewEvents({ rows, wide, onOpen }: Props) {
   return (
     <section aria-label="행사별" className={cn(cardClass, 'overflow-hidden')}>
-      <h3 className="border-b px-4 py-3 text-sm font-semibold text-gray-900">행사별</h3>
+      <h3 className="border-b px-4 py-3 text-sm font-semibold text-fg">행사별</h3>
       {rows.length === 0 ? (
         <div className="p-4">
           <StateMessage kind="empty">행사 예산 없음</StateMessage>

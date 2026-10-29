@@ -75,7 +75,7 @@ function Agenda({ meeting }: { meeting: Detail }) {
         <ol className="flex flex-col gap-4">
           {meeting.agenda.map((item, index) => (
             <li key={item.id} className="flex min-w-0 gap-3">
-              <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-gray-100 text-sm tabular-nums">
+              <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-surface-muted text-sm tabular-nums">
                 {index + 1}
               </span>
               <div className="min-w-0">
@@ -145,7 +145,7 @@ export function MeetingDetail({ meeting, onEdit, onCancel, onEvent, onMinutes }:
         }
       />
       {cancelled && (
-        <div className="flex min-w-0 gap-3 rounded-sm border border-gray-200 bg-gray-50 p-4">
+        <div className="flex min-w-0 gap-3 rounded-sm border border-border-default bg-surface-subtle p-4">
           <Badge>취소</Badge>
           <div className="min-w-0">
             <p className="text-sm font-medium">취소된 회의</p>

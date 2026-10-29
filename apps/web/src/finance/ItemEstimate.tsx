@@ -10,5 +10,5 @@ export function ItemEstimate({ item }: { item: PurchaseLineItem }) {
   else if (item.estimatedShippingFee != null)
     label = `예상 배송비 ${wonLabel(item.estimatedShippingFee)} · 단가 미확인`
   else return null
-  return <p className="text-xs break-keep text-gray-500 tabular-nums">{label}</p>
+  return <p className="text-xs break-keep text-fg-muted tabular-nums">{label}</p>
 }

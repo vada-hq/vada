@@ -31,10 +31,10 @@ function Periods({ periods }: { periods: FeePaymentPeriod[] }) {
       {periods.map(period => (
         <li key={`${period.paidFrom}~${period.paidUntil}`}>
           <Card className="flex flex-wrap items-center justify-between gap-2 p-3 text-sm">
-            <span className="text-gray-900">
+            <span className="text-fg">
               {period.paidFrom} ~ {period.paidUntil}
             </span>
-            <span className="text-gray-500">{period.count}명</span>
+            <span className="text-fg-muted">{period.count}명</span>
           </Card>
         </li>
       ))}
@@ -58,7 +58,7 @@ function Matches({
       {matches.map(match => (
         <li key={match.id}>
           <Card className="flex flex-wrap items-center justify-between gap-2 p-3 text-sm">
-            <span className="min-w-0 wrap-anywhere text-gray-900">
+            <span className="min-w-0 wrap-anywhere text-fg">
               {match.studentId} · {match.paidFrom} ~ {match.paidUntil}
             </span>
             {canManage && (

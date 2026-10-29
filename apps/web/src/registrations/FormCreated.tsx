@@ -18,10 +18,10 @@ export function FormCreated({
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-start gap-3">
-        <CheckCircle2 aria-hidden className="mt-0.5 size-6 shrink-0 text-green-600" />
+        <CheckCircle2 aria-hidden className="mt-0.5 size-6 shrink-0 text-success-emphasis" />
         <div className="flex flex-col gap-0.5">
-          <h2 className="text-lg font-semibold text-gray-900">신청 양식 생성 완료</h2>
-          <p className="text-sm text-gray-600 wrap-anywhere">{form.name}</p>
+          <h2 className="text-lg font-semibold text-fg">신청 양식 생성 완료</h2>
+          <p className="text-sm text-fg-tertiary wrap-anywhere">{form.name}</p>
           <Badge>{registrationStatusLabel(form.status, form.applicantCount)}</Badge>
         </div>
       </div>

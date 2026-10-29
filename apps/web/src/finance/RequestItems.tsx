@@ -14,7 +14,7 @@ export function ItemLink({ href }: { href: string }) {
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="text-blue-700 underline underline-offset-4 wrap-anywhere"
+      className="text-primary-strong underline underline-offset-4 wrap-anywhere"
     >
       {href}
     </a>
@@ -23,7 +23,7 @@ export function ItemLink({ href }: { href: string }) {
 
 function ItemFacts({ item }: { item: PurchaseLineItem }) {
   return (
-    <div className="flex flex-col gap-1 text-xs text-gray-500">
+    <div className="flex flex-col gap-1 text-xs text-fg-muted">
       {item.options && <span className="wrap-anywhere">{item.options}</span>}
       {item.link && <ItemLink href={item.link} />}
       {item.amount !== null && <span>{wonLabel(item.amount)}</span>}
@@ -46,12 +46,12 @@ export function RequestItems({
   if (items.length === 0) return null
   return (
     <section aria-label="품목" className="flex flex-col gap-2">
-      <h3 className="text-sm font-medium text-gray-700">품목</h3>
+      <h3 className="text-sm font-medium text-fg-secondary">품목</h3>
       <ul className="flex flex-col gap-2">
         {items.map(item => (
           <li key={item.id} className="flex flex-col gap-1 rounded-sm border p-3">
             <div className="flex items-start gap-2">
-              <span className="min-w-0 flex-1 text-sm font-medium wrap-anywhere text-gray-900">
+              <span className="min-w-0 flex-1 text-sm font-medium wrap-anywhere text-fg">
                 {item.name} × {item.quantity}
               </span>
               <ItemStatusBadge status={item.status} />

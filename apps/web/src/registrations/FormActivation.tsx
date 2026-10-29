@@ -25,7 +25,7 @@ export function FormActivation({
                 className={
                   absent
                     ? 'size-4 shrink-0 text-muted-foreground'
-                    : 'size-4 shrink-0 text-green-600'
+                    : 'size-4 shrink-0 text-success-emphasis'
                 }
               />
               <span className="min-w-0 flex-1 break-keep">{FORM_ACTIVATION_LABELS[condition]}</span>

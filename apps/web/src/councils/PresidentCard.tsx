@@ -25,9 +25,9 @@ export default function PresidentCard({ linkedName, memberName, error, onChange 
     >
       <h3
         id={titleId}
-        className="flex items-center gap-1.5 border-b px-3 py-2.5 text-sm font-semibold text-gray-900"
+        className="flex items-center gap-1.5 border-b px-3 py-2.5 text-sm font-semibold text-fg"
       >
-        <Star aria-hidden className="size-4 text-amber-500" />
+        <Star aria-hidden className="size-4 text-star" />
         회장단
       </h3>
       <div className="p-3">
@@ -36,7 +36,7 @@ export default function PresidentCard({ linkedName, memberName, error, onChange 
             <Input value={memberName} onChange={onChange} autoComplete="name" />
           </Field>
         ) : (
-          <p className="flex items-center gap-2 text-sm text-gray-800">
+          <p className="flex items-center gap-2 text-sm text-fg-body">
             <span className="min-w-0 wrap-anywhere">{linkedName}</span>
             <Badge>회장</Badge>
           </p>

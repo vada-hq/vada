@@ -38,7 +38,7 @@ export type CellProps = {
 const selectClass = 'h-8 w-auto py-1 sm:text-xs'
 // 행사 이름처럼 긴 값은 선택칸 안에서만 줄인다.
 const eventSelectClass = 'max-w-32'
-const muted = 'text-xs text-gray-500 wrap-anywhere'
+const muted = 'text-xs text-fg-muted wrap-anywhere'
 
 // 고칠 수 없는 칸의 글자
 function Plain({
@@ -50,7 +50,7 @@ function Plain({
   if (field === 'status') return <span className={muted}>{STATUS_LABEL[task.status]}</span>
   if (field === 'assignee')
     return (
-      <span className={cn(muted, task.assignee === null && 'text-yellow-700')}>
+      <span className={cn(muted, task.assignee === null && 'text-warning')}>
         <TaskAssigneeName assignee={task.assignee} direct={direct} tabIndex={-1} />
       </span>
     )

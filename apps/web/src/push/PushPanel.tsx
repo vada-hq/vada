@@ -25,7 +25,7 @@ export default function PushPanel({
   onRetry,
 }: Props) {
   return (
-    <div className="flex flex-col gap-3 text-sm text-gray-700">
+    <div className="flex flex-col gap-3 text-sm text-fg-secondary">
       <PushStateView
         state={state}
         device={device}

@@ -37,7 +37,7 @@ function CopyNotice({ copied, pageUrl }: { copied: 'done' | 'failed' | null; pag
         <StateMessage kind="error">
           주소를 복사하지 못했어요. 아래 주소를 길게 눌러 복사해 주세요.
         </StateMessage>
-        <p className="text-sm wrap-anywhere text-gray-900 select-all">{pageUrl}</p>
+        <p className="text-sm wrap-anywhere text-fg select-all">{pageUrl}</p>
       </>
     )
   return null
@@ -73,7 +73,7 @@ export default function KakaoBlock({
         주소 복사
       </Button>
       <CopyNotice copied={copied} pageUrl={pageUrl} />
-      <p className="text-xs text-gray-500">
+      <p className="text-xs text-fg-muted">
         안 되면 오른쪽 위나 아래의 메뉴(··· 또는 ⋮)에서 '다른 브라우저로 열기'를 눌러 주세요.
       </p>
     </div>

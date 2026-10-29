@@ -25,7 +25,7 @@ export function RequestProgress({
       {steps.map(step => (
         <li
           key={step.label}
-          className={`flex min-w-0 flex-col gap-2 border-t-4 pt-2 text-sm break-keep ${step.done ? 'border-blue-600 text-blue-700' : 'border-gray-200 text-gray-500'}`}
+          className={`flex min-w-0 flex-col gap-2 border-t-4 pt-2 text-sm break-keep ${step.done ? 'border-primary-emphasis text-primary-strong' : 'border-border-default text-fg-muted'}`}
         >
           <span>{step.label}</span>
           <span className="text-xs">

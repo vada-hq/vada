@@ -113,7 +113,7 @@ test('보낸 사람 없는 글은 가운데 회색 글이고 끼룩이 그림과
   expect(item.querySelector('img')).toBeNull()
   const text = screen.getByText(/일시가 바뀌었어요/)
   expect(text.className).toContain('text-center')
-  expect(text.className).toContain('text-gray-500')
+  expect(text.className).toContain('text-fg-muted')
   // 두 줄은 줄바꿈 그대로다.
   expect(text.className).toContain('whitespace-pre-wrap')
 })
@@ -133,7 +133,7 @@ test('내 메시지는 파란 말풍선이고 안의 링크는 같은 흰 글자
   expect(bubble.className).toContain('bg-primary')
   expect(bubble.className).toContain('text-primary-foreground')
   expect(link.className).toContain('underline')
-  expect(link.className).not.toContain('text-blue')
+  expect(link.className).not.toContain('text-primary-strong')
   expect(screen.queryByText('이재정')).toBeNull()
   expect(screen.queryByText('이')).toBeNull()
 })
@@ -144,7 +144,7 @@ test('남의 메시지는 이름 첫 글자 얼굴과 이름 아래 테두리 �
   const bubble = link.closest('p')!
   expect(bubble.className).toContain('border')
   expect(bubble.className).not.toContain('bg-primary')
-  expect(link.className).toContain('text-blue')
+  expect(link.className).toContain('text-primary-strong')
   expect(screen.getByText('이재정')).toBeTruthy()
   expect(screen.getByText('이').getAttribute('aria-hidden')).toBe('true')
 })

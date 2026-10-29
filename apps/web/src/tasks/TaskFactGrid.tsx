@@ -85,7 +85,7 @@ function DueValue({ task }: { task: TaskDetail }) {
   if (!task.dueDate) return '마감 없음'
   return (
     <span className="inline-flex flex-wrap items-center gap-2">
-      <span className={cn(task.overdue && 'font-semibold text-red-600')}>
+      <span className={cn(task.overdue && 'font-semibold text-danger-emphasis')}>
         {dayLabel(task.dueDate)}
       </span>
       {task.overdue && <Badge tone="danger">지남</Badge>}
@@ -238,7 +238,7 @@ export function TaskFactGrid({
   }
   return (
     <>
-      <div className="grid grid-cols-2 gap-px overflow-hidden rounded-md border bg-gray-200">
+      <div className="grid grid-cols-2 gap-px overflow-hidden rounded-md border bg-border-default">
         <AssigneeProperty
           task={task}
           direct={direct}

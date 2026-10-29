@@ -60,20 +60,20 @@ function EventTile({ id, name, overdue }: { id: string; name: string; overdue: n
     <li key={id} className="flex min-w-0 flex-col gap-1.5 rounded-lg border p-3">
       <div className="flex items-center gap-2">
         <EventStatusChip status={overdue > 0 ? 'ongoing' : 'upcoming'} />
-        <span className="min-w-0 flex-1 truncate text-sm font-bold text-gray-900">{name}</span>
-        <span className="shrink-0 text-xs text-gray-500">10월 30일 · D-4</span>
+        <span className="min-w-0 flex-1 truncate text-sm font-bold text-fg">{name}</span>
+        <span className="shrink-0 text-xs text-fg-muted">10월 30일 · D-4</span>
       </div>
       <HomeProgress label="업무" done={2} total={5} />
       <div className="flex min-h-6 flex-wrap items-center gap-1.5">
         {overdue > 0 ? (
           <HomeChip label="지남" count={overdue} />
         ) : (
-          <span className="text-xs text-gray-500">확인 필요 없음</span>
+          <span className="text-xs text-fg-muted">확인 필요 없음</span>
         )}
         {overdue > 0 && <HomeChip label="담당자 없음" count={1} />}
       </div>
-      <p className="mt-auto truncate border-t border-gray-100 pt-2 text-xs text-gray-500">
-        다음 마감 · <span className="text-gray-700">10월 28일 (수) 부스 배치안 확정</span>
+      <p className="mt-auto truncate border-t border-border-subtle pt-2 text-xs text-fg-muted">
+        다음 마감 · <span className="text-fg-secondary">10월 28일 (수) 부스 배치안 확정</span>
       </p>
     </li>
   )
@@ -103,7 +103,7 @@ const scheduleRow = (id: string, date: string, title: string, meta: string) => (
   <HomeRow
     key={id}
     card
-    lead={<span className="w-20 shrink-0 text-xs font-semibold text-gray-500">{date}</span>}
+    lead={<span className="w-20 shrink-0 text-xs font-semibold text-fg-muted">{date}</span>}
     title={title}
     meta={[meta]}
     onOpen={noop}
@@ -143,10 +143,10 @@ const participatingRow = (id: string, name: string, done: number) => (
   <li key={id} className="flex flex-col gap-1.5 px-5 py-2.5">
     <div className="flex items-center gap-2">
       <EventStatusChip status="upcoming" />
-      <span className="min-w-0 flex-1 text-sm font-bold break-keep text-gray-900 wrap-anywhere">
+      <span className="min-w-0 flex-1 text-sm font-bold break-keep text-fg wrap-anywhere">
         {name}
       </span>
-      <span className="shrink-0 text-xs text-gray-500">10월 30일 (금)</span>
+      <span className="shrink-0 text-xs text-fg-muted">10월 30일 (금)</span>
     </div>
     <HomeProgress label="부서 업무" done={done} total={PARTICIPATING_TOTAL} />
   </li>
@@ -161,7 +161,7 @@ export const participatingRows = [
 export const MORE_THAN_SHOWN = 5
 
 // 첫날 막 들어온 운영진: 행사를 만들 수 없는 사람의 빈 상태에는 누가 만드는지 한 줄을 둔다(DEC-78 규칙 9).
-export const whoCreates = <p className="text-xs text-gray-500">회장단과 부서장이 만들어요</p>
+export const whoCreates = <p className="text-xs text-fg-muted">회장단과 부서장이 만들어요</p>
 
 // 알림 꺼짐 띠 견본: PushOffBand의 보이는 부분 그대로다.
 export const pushBand = <PushOffAlert message={PUSH_OFF_CHAT} onTurnOn={noop} />
@@ -178,21 +178,21 @@ export const financeLine = (
     aria-label="전체 재정 요약"
     className={cn(cardClass, 'flex flex-wrap items-center gap-x-6 gap-y-1 px-5 py-3')}
   >
-    <h2 className="flex items-center gap-1.5 text-sm font-semibold text-gray-700">
-      <BarChart2 aria-hidden className="size-4 text-gray-400" />
+    <h2 className="flex items-center gap-1.5 text-sm font-semibold text-fg-secondary">
+      <BarChart2 aria-hidden className="size-4 text-fg-subtle" />
       전체 재정 요약
     </h2>
     {SUMMARY.map(([label, value]) => (
-      <span key={label} className="flex items-baseline gap-1.5 text-xs text-gray-500">
+      <span key={label} className="flex items-baseline gap-1.5 text-xs text-fg-muted">
         {label}
-        <strong className="text-sm font-bold text-gray-900">{value}</strong>
+        <strong className="text-sm font-bold text-fg">{value}</strong>
       </span>
     ))}
     <Button
       aria-label="전체 재정 요약"
       variant="link"
       size="sm"
-      className="ml-auto h-auto gap-0.5 p-0 text-xs text-gray-500"
+      className="ml-auto h-auto gap-0.5 p-0 text-xs text-fg-muted"
     >
       <ChevronRight aria-hidden />
     </Button>
@@ -211,7 +211,7 @@ export function Width({
 }) {
   return (
     <div className="flex max-w-full flex-col gap-1 overflow-x-auto">
-      <p className="text-xs text-gray-400">{label}</p>
+      <p className="text-xs text-fg-subtle">{label}</p>
       <div className={className}>{children}</div>
     </div>
   )

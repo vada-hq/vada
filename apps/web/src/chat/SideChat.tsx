@@ -64,7 +64,7 @@ export default function SideChat({
   return (
     <aside
       aria-label={DIRECT_LIST_TITLE}
-      className="h-full w-96 shrink-0 border-l-2 border-amber-300 bg-amber-50/60"
+      className="h-full w-96 shrink-0 border-l-2 border-personal-border-strong bg-personal-surface/60"
       onKeyDown={event => {
         if (event.key === 'Escape' && roomId) {
           event.stopPropagation()

@@ -2,7 +2,7 @@
 
 exports[`거절: 그 밖 1`] = `
 "<div>
-<div class="flex flex-col gap-3 text-sm text-gray-700">
+<div class="flex flex-col gap-3 text-sm text-fg-secondary">
 <p>알림이 꺼져 있어요. 브라우저의 사이트 설정에서 알림을 허용해 주세요.</p>
 </div>
 </div>"
@@ -10,7 +10,7 @@ exports[`거절: 그 밖 1`] = `
 
 exports[`거절: 아이폰 1`] = `
 "<div>
-<div class="flex flex-col gap-3 text-sm text-gray-700">
+<div class="flex flex-col gap-3 text-sm text-fg-secondary">
 <p>알림이 꺼져 있어요. 설정 → 알림 → VADA에서 켜 주세요.</p>
 </div>
 </div>"
@@ -18,7 +18,7 @@ exports[`거절: 아이폰 1`] = `
 
 exports[`거절: 안드로이드 1`] = `
 "<div>
-<div class="flex flex-col gap-3 text-sm text-gray-700">
+<div class="flex flex-col gap-3 text-sm text-fg-secondary">
 <p>알림이 꺼져 있어요. 브라우저 메뉴의 사이트 설정 → 알림에서 VADA를 허용해 주세요.</p>
 </div>
 </div>"
@@ -26,16 +26,16 @@ exports[`거절: 안드로이드 1`] = `
 
 exports[`불러오지 못함 1`] = `
 "<div>
-<div class="flex flex-col gap-3 text-sm text-gray-700">
+<div class="flex flex-col gap-3 text-sm text-fg-secondary">
 <p role="alert" class="text-sm wrap-anywhere text-destructive">알림 설정을 불러오지 못했어요.</p>
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11 self-start">다시 시도</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-fg-secondary hover:bg-surface-subtle px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11 self-start">다시 시도</button>
 </div>
 </div>"
 `;
 
 exports[`서버가 꺼짐 1`] = `
 "<div>
-<div class="flex flex-col gap-3 text-sm text-gray-700">
+<div class="flex flex-col gap-3 text-sm text-fg-secondary">
 <p>아직 알림을 쓸 수 없어요.</p>
 </div>
 </div>"
@@ -43,21 +43,21 @@ exports[`서버가 꺼짐 1`] = `
 
 exports[`아이폰은 홈 화면 추가 1`] = `
 "<div>
-<div class="flex flex-col gap-3 text-sm text-gray-700">
-<p class="text-gray-900">아이폰은 홈 화면에 추가해야 알림을 받아요.</p>
+<div class="flex flex-col gap-3 text-sm text-fg-secondary">
+<p class="text-fg">아이폰은 홈 화면에 추가해야 알림을 받아요.</p>
 <ol class="list-decimal space-y-1 pl-5">
 <li>아래쪽 공유 버튼을 눌러요.</li>
 <li>'홈 화면에 추가'를 눌러요.</li>
 <li>홈 화면의 VADA로 열어요.</li>
 </ol>
-<p class="text-xs text-gray-500">로그인한 채로 추가하면 다시 로그인하지 않아도 돼요.</p>
+<p class="text-xs text-fg-muted">로그인한 채로 추가하면 다시 로그인하지 않아도 돼요.</p>
 </div>
 </div>"
 `;
 
 exports[`지원 안 함: 아이폰 1`] = `
 "<div>
-<div class="flex flex-col gap-3 text-sm text-gray-700">
+<div class="flex flex-col gap-3 text-sm text-fg-secondary">
 <p>이 브라우저는 알림을 받을 수 없어요. iOS 16.4 이상에서 홈 화면의 VADA로 열어 주세요.</p>
 </div>
 </div>"
@@ -65,7 +65,7 @@ exports[`지원 안 함: 아이폰 1`] = `
 
 exports[`지원 안 함: 안드로이드 1`] = `
 "<div>
-<div class="flex flex-col gap-3 text-sm text-gray-700">
+<div class="flex flex-col gap-3 text-sm text-fg-secondary">
 <p>이 브라우저는 알림을 받을 수 없어요. Chrome이나 삼성 인터넷으로 열어 주세요.</p>
 </div>
 </div>"
@@ -73,16 +73,16 @@ exports[`지원 안 함: 안드로이드 1`] = `
 
 exports[`켜기 전 1`] = `
 "<div>
-<div class="flex flex-col gap-3 text-sm text-gray-700">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-primary text-primary-foreground hover:bg-blue-700 px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11 self-start">알림 켜기</button>
+<div class="flex flex-col gap-3 text-sm text-fg-secondary">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-primary text-primary-foreground hover:bg-primary-strong px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11 self-start">알림 켜기</button>
 </div>
 </div>"
 `;
 
 exports[`켜기 전: 켜지 못함 1`] = `
 "<div>
-<div class="flex flex-col gap-3 text-sm text-gray-700">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-primary text-primary-foreground hover:bg-blue-700 px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11 self-start">알림 켜기</button>
+<div class="flex flex-col gap-3 text-sm text-fg-secondary">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-primary text-primary-foreground hover:bg-primary-strong px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11 self-start">알림 켜기</button>
 <p role="alert" class="text-sm wrap-anywhere text-destructive">알림을 켜지 못했어요. 다시 눌러 주세요.</p>
 </div>
 </div>"
@@ -90,28 +90,28 @@ exports[`켜기 전: 켜지 못함 1`] = `
 
 exports[`켜짐 1`] = `
 "<div>
-<div class="flex flex-col gap-3 text-sm text-gray-700">
-<p class="text-gray-900">이 기기에서 알림을 받아요.</p>
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11 self-start">시험 알림 보내기</button>
+<div class="flex flex-col gap-3 text-sm text-fg-secondary">
+<p class="text-fg">이 기기에서 알림을 받아요.</p>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-fg-secondary hover:bg-surface-subtle px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11 self-start">시험 알림 보내기</button>
 </div>
 </div>"
 `;
 
 exports[`켜짐: 결과 모름 1`] = `
 "<div>
-<div class="flex flex-col gap-3 text-sm text-gray-700">
-<p class="text-gray-900">이 기기에서 알림을 받아요.</p>
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11 self-start">시험 알림 보내기</button>
-<p role="status" class="text-sm wrap-anywhere text-gray-500">결과를 받지 못했어요. 알림이 왔다면 잘 된 거예요.</p>
+<div class="flex flex-col gap-3 text-sm text-fg-secondary">
+<p class="text-fg">이 기기에서 알림을 받아요.</p>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-fg-secondary hover:bg-surface-subtle px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11 self-start">시험 알림 보내기</button>
+<p role="status" class="text-sm wrap-anywhere text-fg-muted">결과를 받지 못했어요. 알림이 왔다면 잘 된 거예요.</p>
 </div>
 </div>"
 `;
 
 exports[`켜짐: 등록 끝남 1`] = `
 "<div>
-<div class="flex flex-col gap-3 text-sm text-gray-700">
-<p class="text-gray-900">이 기기에서 알림을 받아요.</p>
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11 self-start">시험 알림 보내기</button>
+<div class="flex flex-col gap-3 text-sm text-fg-secondary">
+<p class="text-fg">이 기기에서 알림을 받아요.</p>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-fg-secondary hover:bg-surface-subtle px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11 self-start">시험 알림 보내기</button>
 <p role="alert" class="text-sm wrap-anywhere text-destructive">이 기기의 알림 등록이 끝났어요. 알림을 다시 켜 주세요.</p>
 </div>
 </div>"
@@ -119,9 +119,9 @@ exports[`켜짐: 등록 끝남 1`] = `
 
 exports[`켜짐: 모르는 알림 서버 1`] = `
 "<div>
-<div class="flex flex-col gap-3 text-sm text-gray-700">
-<p class="text-gray-900">이 기기에서 알림을 받아요.</p>
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11 self-start">시험 알림 보내기</button>
+<div class="flex flex-col gap-3 text-sm text-fg-secondary">
+<p class="text-fg">이 기기에서 알림을 받아요.</p>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-fg-secondary hover:bg-surface-subtle px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11 self-start">시험 알림 보내기</button>
 <p role="alert" class="text-sm wrap-anywhere text-destructive">이 브라우저의 알림 서버(push.example.test)는 아직 받지 않아요.</p>
 </div>
 </div>"
@@ -129,19 +129,19 @@ exports[`켜짐: 모르는 알림 서버 1`] = `
 
 exports[`켜짐: 보내는 중 1`] = `
 "<div>
-<div class="flex flex-col gap-3 text-sm text-gray-700">
-<p class="text-gray-900">이 기기에서 알림을 받아요.</p>
-<button data-slot="button" disabled="" aria-busy="true" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11 self-start">시험 알림 보내기</button>
-<p role="status" class="text-sm wrap-anywhere text-gray-500">5초 뒤에 알림이 와요. 화면을 끄거나 홈으로 나가 기다려 보세요.</p>
+<div class="flex flex-col gap-3 text-sm text-fg-secondary">
+<p class="text-fg">이 기기에서 알림을 받아요.</p>
+<button data-slot="button" disabled="" aria-busy="true" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-fg-secondary hover:bg-surface-subtle px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11 self-start">시험 알림 보내기</button>
+<p role="status" class="text-sm wrap-anywhere text-fg-muted">5초 뒤에 알림이 와요. 화면을 끄거나 홈으로 나가 기다려 보세요.</p>
 </div>
 </div>"
 `;
 
 exports[`켜짐: 보내지 못함 1`] = `
 "<div>
-<div class="flex flex-col gap-3 text-sm text-gray-700">
-<p class="text-gray-900">이 기기에서 알림을 받아요.</p>
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11 self-start">시험 알림 보내기</button>
+<div class="flex flex-col gap-3 text-sm text-fg-secondary">
+<p class="text-fg">이 기기에서 알림을 받아요.</p>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-fg-secondary hover:bg-surface-subtle px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11 self-start">시험 알림 보내기</button>
 <p role="alert" class="text-sm wrap-anywhere text-destructive">시험 알림을 보내지 못했어요. 연결을 확인해 주세요.</p>
 </div>
 </div>"
@@ -149,19 +149,19 @@ exports[`켜짐: 보내지 못함 1`] = `
 
 exports[`켜짐: 보냄 1`] = `
 "<div>
-<div class="flex flex-col gap-3 text-sm text-gray-700">
-<p class="text-gray-900">이 기기에서 알림을 받아요.</p>
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11 self-start">시험 알림 보내기</button>
-<p role="status" class="text-sm wrap-anywhere text-gray-500">보냈어요. 알림이 왔는지 확인해 주세요.</p>
+<div class="flex flex-col gap-3 text-sm text-fg-secondary">
+<p class="text-fg">이 기기에서 알림을 받아요.</p>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-fg-secondary hover:bg-surface-subtle px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11 self-start">시험 알림 보내기</button>
+<p role="status" class="text-sm wrap-anywhere text-fg-muted">보냈어요. 알림이 왔는지 확인해 주세요.</p>
 </div>
 </div>"
 `;
 
 exports[`켜짐: 서버가 받지 않음 1`] = `
 "<div>
-<div class="flex flex-col gap-3 text-sm text-gray-700">
-<p class="text-gray-900">이 기기에서 알림을 받아요.</p>
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11 self-start">시험 알림 보내기</button>
+<div class="flex flex-col gap-3 text-sm text-fg-secondary">
+<p class="text-fg">이 기기에서 알림을 받아요.</p>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-fg-secondary hover:bg-surface-subtle px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11 self-start">시험 알림 보내기</button>
 <p role="alert" class="text-sm wrap-anywhere text-destructive">알림 서버가 받지 않았어요.</p>
 </div>
 </div>"
@@ -169,8 +169,8 @@ exports[`켜짐: 서버가 받지 않음 1`] = `
 
 exports[`확인하는 중 1`] = `
 "<div>
-<div class="flex flex-col gap-3 text-sm text-gray-700">
-<p role="status" class="text-sm wrap-anywhere text-gray-500">알림 설정을 확인하는 중…</p>
+<div class="flex flex-col gap-3 text-sm text-fg-secondary">
+<p role="status" class="text-sm wrap-anywhere text-fg-muted">알림 설정을 확인하는 중…</p>
 </div>
 </div>"
 `;

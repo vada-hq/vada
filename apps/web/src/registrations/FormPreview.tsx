@@ -23,7 +23,7 @@ export function FormPreview({
       className="flex flex-col gap-2"
     >
       {showTitle && (
-        <h3 id={titleId} className="text-sm font-semibold text-gray-900">
+        <h3 id={titleId} className="text-sm font-semibold text-fg">
           미리보기
         </h3>
       )}

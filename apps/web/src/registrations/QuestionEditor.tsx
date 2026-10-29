@@ -50,7 +50,7 @@ function ChoiceFields({ draft, at, disabled, errors, onChange }: EditProps) {
     })
   return (
     <fieldset className="flex flex-col gap-2" disabled={disabled}>
-      <legend className="mb-2 text-xs font-medium text-gray-700">선택지</legend>
+      <legend className="mb-2 text-xs font-medium text-fg-secondary">선택지</legend>
       {draft.choices.map((choice, order) => (
         <div key={choice.key} className="flex items-start gap-2">
           <Field
@@ -127,7 +127,7 @@ function QuestionSettings(props: EditProps) {
       <Label className="flex items-center gap-2 font-normal max-sm:min-h-11">
         <input
           type="checkbox"
-          className="size-4 accent-blue-600"
+          className="size-4 accent-primary-emphasis"
           checked={draft.required}
           disabled={disabled}
           onChange={event => onChange({ ...draft, required: event.target.checked })}
@@ -158,7 +158,7 @@ function QuestionHead(props: {
         <Button
           type="button"
           variant="ghost"
-          className="min-w-0 shrink grow justify-start px-1 text-left text-gray-900"
+          className="min-w-0 shrink grow justify-start px-1 text-left text-fg"
           aria-expanded={open}
           busy={props.disabled}
           onClick={props.onToggle}
@@ -203,14 +203,14 @@ export function QuestionEditor({ questions, locked, disabled, errors, onChange }
   return (
     <div className="flex flex-col gap-2">
       {locked && questions.length > 0 && (
-        <p className="text-xs text-gray-500">신청이 있어 질문을 바꿀 수 없어요.</p>
+        <p className="text-xs text-fg-muted">신청이 있어 질문을 바꿀 수 없어요.</p>
       )}
       {questions.length > 0 && (
         <ol aria-label="질문 목록" className="flex flex-col gap-2">
           {questions.map((draft, at) => {
             const open = !locked && (openKey === draft.key || hasQuestionError(errors, at))
             return (
-              <li key={draft.key} className={cn(cardClass, open && 'border-blue-300')}>
+              <li key={draft.key} className={cn(cardClass, open && 'border-primary-border-strong')}>
                 <QuestionHead
                   draft={draft}
                   open={open}
@@ -235,7 +235,7 @@ export function QuestionEditor({ questions, locked, disabled, errors, onChange }
       )}
       {!locked && questions.length < FORM_QUESTION_MAX && (
         <div className="flex flex-wrap items-center gap-2 rounded-lg border border-dashed p-3">
-          <span className="text-xs text-gray-500">질문 추가</span>
+          <span className="text-xs text-fg-muted">질문 추가</span>
           {QUESTION_KINDS.map(kind => (
             <Button
               type="button"

@@ -51,7 +51,7 @@ export function PurchaseRequestSection() {
   const item = values.items[0]!
   return (
     <Section title="구매 요청 작성 페이지">
-      <nav className="text-xs text-gray-500">구매 / 구매 요청 / 새 요청</nav>
+      <nav className="text-xs text-fg-muted">구매 / 구매 요청 / 새 요청</nav>
       <PurchaseColumns
         summary={
           <>

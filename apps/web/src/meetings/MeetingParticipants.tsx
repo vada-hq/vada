@@ -48,7 +48,7 @@ export function MeetingParticipants({
           >
             <input
               type="checkbox"
-              className="size-4 shrink-0 accent-blue-600"
+              className="size-4 shrink-0 accent-primary-emphasis"
               checked={value.attendeeIds.includes(person.id)}
               disabled={person.id === creatorId}
               onChange={event => toggle(person.id, event.target.checked)}
@@ -59,7 +59,7 @@ export function MeetingParticipants({
         {members.length === 0 && <p className="text-sm text-muted-foreground">맞는 참가자 없음</p>}
       </div>
       {errors.attendeeIds && (
-        <p id={errorId} role="alert" className="text-sm text-red-600">
+        <p id={errorId} role="alert" className="text-sm text-danger-emphasis">
           {errors.attendeeIds}
         </p>
       )}

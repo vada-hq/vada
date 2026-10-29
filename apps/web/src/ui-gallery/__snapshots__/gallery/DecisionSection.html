@@ -7,114 +7,114 @@
 <div class="flex flex-wrap items-start gap-3">
 <div class="flex w-80 flex-col gap-2">
 <div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col" role="group" aria-label="결재 A2 포스터">
-<div class="flex flex-col gap-1 rounded-t-lg border-b bg-gray-50 px-4 py-3">
-<span class="text-sm font-semibold wrap-anywhere text-gray-900">A2 포스터 × 3</span>
-<p class="text-xs break-keep text-gray-500 tabular-nums">예상 배송비 2,500원 · 단가 미확인</p>
+<div class="flex flex-col gap-1 rounded-t-lg border-b bg-surface-subtle px-4 py-3">
+<span class="text-sm font-semibold wrap-anywhere text-fg">A2 포스터 × 3</span>
+<p class="text-xs break-keep text-fg-muted tabular-nums">예상 배송비 2,500원 · 단가 미확인</p>
 </div>
 <div class="@container flex flex-col gap-4 px-4 py-3">
 <div class="grid gap-3 @sm:grid-cols-3">
 <div class="flex flex-col gap-2">
 <div class="flex items-baseline gap-1">
-<label data-slot="label" class="text-xs font-medium text-gray-700" for="_id1_">금액(합계, 원)</label>
-<span aria-hidden="true" class="text-sm leading-4 text-red-600">*</span>
+<label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id1_">금액(합계, 원)</label>
+<span aria-hidden="true" class="text-sm leading-4 text-danger-emphasis">*</span>
 </div>
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-gray-50 text-right tabular-nums" inputmode="numeric" aria-label="A2 포스터 금액" id="_id1_" aria-required="true" value="15000">
+<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-surface-subtle text-right tabular-nums" inputmode="numeric" aria-label="A2 포스터 금액" id="_id1_" aria-required="true" value="15000">
 </div>
 <div class="flex flex-col gap-1.5 @sm:col-span-2">
 <div class="flex flex-col gap-2">
 <div class="flex items-baseline gap-1">
-<label data-slot="label" class="text-xs font-medium text-gray-700" for="_id2_">예산 항목</label>
-<span aria-hidden="true" class="text-sm leading-4 text-red-600">*</span>
+<label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id2_">예산 항목</label>
+<span aria-hidden="true" class="text-sm leading-4 text-danger-emphasis">*</span>
 </div>
-<select data-slot="native-select" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive max-sm:min-h-11 cursor-pointer" aria-label="A2 포스터 예산 항목" id="_id2_" aria-required="true">
+<select data-slot="native-select" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 cursor-pointer" aria-label="A2 포스터 예산 항목" id="_id2_" aria-required="true">
 <option value="">항목 고르기</option>
 <option value="0199d1a0-0000-7000-8000-0000000000b1">행사 홍보</option>
 <option value="0199d1a0-0000-7000-8000-0000000000b2">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</option>
 </select>
 </div>
-<p class="text-xs text-gray-500 tabular-nums">사용 가능 <span class="font-medium text-blue-700">300,000원</span>
+<p class="text-xs text-fg-muted tabular-nums">사용 가능 <span class="font-medium text-primary-strong">300,000원</span>
 </p>
 </div>
 </div>
 <div class="flex flex-col gap-2 border-t pt-3">
 <div class="flex flex-col gap-2">
 <div class="flex items-baseline gap-1">
-<label data-slot="label" class="text-xs font-medium text-gray-700" for="_id3_">검토 결과</label>
-<span aria-hidden="true" class="text-sm leading-4 text-red-600">*</span>
+<label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id3_">검토 결과</label>
+<span aria-hidden="true" class="text-sm leading-4 text-danger-emphasis">*</span>
 </div>
 <div role="radiogroup" aria-label="A2 포스터 검토 결과" tabindex="-1" class="flex gap-2 outline-none" id="_id3_" aria-required="true">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 max-sm:min-h-11 min-w-16 border-transparent bg-green-600 text-white hover:bg-green-700" role="radio" aria-checked="true" aria-label="A2 포스터 승인">승인</button>
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 max-sm:min-h-11 min-w-16" role="radio" aria-checked="false" aria-label="A2 포스터 반려">반려</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 max-sm:min-h-11 min-w-16 border-transparent bg-success-emphasis text-white hover:bg-success" role="radio" aria-checked="true" aria-label="A2 포스터 승인">승인</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-fg-secondary hover:bg-surface-subtle px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 max-sm:min-h-11 min-w-16" role="radio" aria-checked="false" aria-label="A2 포스터 반려">반려</button>
 </div>
 </div>
 </div>
 </div>
 </div>
 <div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col" role="group" aria-label="결재 테이프">
-<div class="flex flex-col gap-1 rounded-t-lg border-b bg-gray-50 px-4 py-3">
-<span class="text-sm font-semibold wrap-anywhere text-gray-900">테이프 × 3</span>
+<div class="flex flex-col gap-1 rounded-t-lg border-b bg-surface-subtle px-4 py-3">
+<span class="text-sm font-semibold wrap-anywhere text-fg">테이프 × 3</span>
 </div>
 <div class="@container flex flex-col gap-4 px-4 py-3">
 <div class="grid gap-3 @sm:grid-cols-3">
 <div class="flex flex-col gap-2">
 <div class="flex items-baseline gap-1">
-<label data-slot="label" class="text-xs font-medium text-gray-700" for="_id4_">금액(합계, 원)</label>
-<span aria-hidden="true" class="text-sm leading-4 text-red-600">*</span>
+<label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id4_">금액(합계, 원)</label>
+<span aria-hidden="true" class="text-sm leading-4 text-danger-emphasis">*</span>
 </div>
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-gray-50 text-right tabular-nums" inputmode="numeric" aria-label="테이프 금액" id="_id4_" aria-required="true" aria-invalid="true" aria-describedby="_id4_-error" value="">
-<p id="_id4_-error" class="text-xs text-red-600">금액을 입력해 주세요</p>
+<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-surface-subtle text-right tabular-nums" inputmode="numeric" aria-label="테이프 금액" id="_id4_" aria-required="true" aria-invalid="true" aria-describedby="_id4_-error" value="">
+<p id="_id4_-error" class="text-xs text-danger-emphasis">금액을 입력해 주세요</p>
 </div>
 <div class="flex flex-col gap-1.5 @sm:col-span-2">
 <div class="flex flex-col gap-2">
 <div class="flex items-baseline gap-1">
-<label data-slot="label" class="text-xs font-medium text-gray-700" for="_id5_">예산 항목</label>
-<span aria-hidden="true" class="text-sm leading-4 text-red-600">*</span>
+<label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id5_">예산 항목</label>
+<span aria-hidden="true" class="text-sm leading-4 text-danger-emphasis">*</span>
 </div>
-<select data-slot="native-select" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive max-sm:min-h-11 cursor-pointer" aria-label="테이프 예산 항목" id="_id5_" aria-required="true" aria-invalid="true" aria-describedby="_id5_-error">
+<select data-slot="native-select" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 cursor-pointer" aria-label="테이프 예산 항목" id="_id5_" aria-required="true" aria-invalid="true" aria-describedby="_id5_-error">
 <option value="">항목 고르기</option>
 <option value="0199d1a0-0000-7000-8000-0000000000b1">행사 홍보</option>
 <option value="0199d1a0-0000-7000-8000-0000000000b2">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</option>
 </select>
-<p id="_id5_-error" class="text-xs text-red-600">예산 항목을 골라 주세요</p>
+<p id="_id5_-error" class="text-xs text-danger-emphasis">예산 항목을 골라 주세요</p>
 </div>
 </div>
 </div>
 <div class="flex flex-col gap-2 border-t pt-3">
 <div class="flex flex-col gap-2">
 <div class="flex items-baseline gap-1">
-<label data-slot="label" class="text-xs font-medium text-gray-700" for="_id6_">검토 결과</label>
-<span aria-hidden="true" class="text-sm leading-4 text-red-600">*</span>
+<label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id6_">검토 결과</label>
+<span aria-hidden="true" class="text-sm leading-4 text-danger-emphasis">*</span>
 </div>
 <div role="radiogroup" aria-label="테이프 검토 결과" tabindex="-1" class="flex gap-2 outline-none" id="_id6_" aria-required="true">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 max-sm:min-h-11 min-w-16 border-transparent bg-green-600 text-white hover:bg-green-700" role="radio" aria-checked="true" aria-label="테이프 승인">승인</button>
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 max-sm:min-h-11 min-w-16" role="radio" aria-checked="false" aria-label="테이프 반려">반려</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 max-sm:min-h-11 min-w-16 border-transparent bg-success-emphasis text-white hover:bg-success" role="radio" aria-checked="true" aria-label="테이프 승인">승인</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-fg-secondary hover:bg-surface-subtle px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 max-sm:min-h-11 min-w-16" role="radio" aria-checked="false" aria-label="테이프 반려">반려</button>
 </div>
 </div>
 </div>
 </div>
 </div>
 <div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col" role="group" aria-label="결재 미검토">
-<div class="flex flex-col gap-1 rounded-t-lg border-b bg-gray-50 px-4 py-3">
-<span class="text-sm font-semibold wrap-anywhere text-gray-900">미검토 × 3</span>
-<p class="text-xs break-keep text-gray-500 tabular-nums">예상 상품 합계 300원 · 배송비 미확인</p>
+<div class="flex flex-col gap-1 rounded-t-lg border-b bg-surface-subtle px-4 py-3">
+<span class="text-sm font-semibold wrap-anywhere text-fg">미검토 × 3</span>
+<p class="text-xs break-keep text-fg-muted tabular-nums">예상 상품 합계 300원 · 배송비 미확인</p>
 </div>
 <div class="@container flex flex-col gap-4 px-4 py-3">
 <div class="grid gap-3 @sm:grid-cols-3">
 <div class="flex flex-col gap-2">
 <div class="flex items-baseline gap-1">
-<label data-slot="label" class="text-xs font-medium text-gray-700" for="_id7_">금액(합계, 원)</label>
-<span aria-hidden="true" class="text-sm leading-4 text-red-600">*</span>
+<label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id7_">금액(합계, 원)</label>
+<span aria-hidden="true" class="text-sm leading-4 text-danger-emphasis">*</span>
 </div>
-<p id="_id7_-hint" class="-mt-1 text-xs text-gray-500">배송비 미확인 · 상품 합계만 채웠어요. 승인 전 확인해 주세요.</p>
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-gray-50 text-right tabular-nums" inputmode="numeric" aria-label="미검토 금액" id="_id7_" aria-required="true" aria-describedby="_id7_-hint" value="300">
+<p id="_id7_-hint" class="-mt-1 text-xs text-fg-muted">배송비 미확인 · 상품 합계만 채웠어요. 승인 전 확인해 주세요.</p>
+<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-surface-subtle text-right tabular-nums" inputmode="numeric" aria-label="미검토 금액" id="_id7_" aria-required="true" aria-describedby="_id7_-hint" value="300">
 </div>
 <div class="flex flex-col gap-1.5 @sm:col-span-2">
 <div class="flex flex-col gap-2">
 <div class="flex items-baseline gap-1">
-<label data-slot="label" class="text-xs font-medium text-gray-700" for="_id8_">예산 항목</label>
-<span aria-hidden="true" class="text-sm leading-4 text-red-600">*</span>
+<label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id8_">예산 항목</label>
+<span aria-hidden="true" class="text-sm leading-4 text-danger-emphasis">*</span>
 </div>
-<select data-slot="native-select" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive max-sm:min-h-11 cursor-pointer" aria-label="미검토 예산 항목" id="_id8_" aria-required="true">
+<select data-slot="native-select" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 cursor-pointer" aria-label="미검토 예산 항목" id="_id8_" aria-required="true">
 <option value="">항목 고르기</option>
 <option value="0199d1a0-0000-7000-8000-0000000000b1">행사 홍보</option>
 <option value="0199d1a0-0000-7000-8000-0000000000b2">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</option>
@@ -125,82 +125,82 @@
 <div class="flex flex-col gap-2 border-t pt-3">
 <div class="flex flex-col gap-2">
 <div class="flex items-baseline gap-1">
-<label data-slot="label" class="text-xs font-medium text-gray-700" for="_id9_">검토 결과</label>
-<span aria-hidden="true" class="text-sm leading-4 text-red-600">*</span>
+<label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id9_">검토 결과</label>
+<span aria-hidden="true" class="text-sm leading-4 text-danger-emphasis">*</span>
 </div>
 <div role="radiogroup" aria-label="미검토 검토 결과" tabindex="-1" class="flex gap-2 outline-none" id="_id9_" aria-required="true" aria-invalid="true" aria-describedby="_id9_-error">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 max-sm:min-h-11 min-w-16" role="radio" aria-checked="false" aria-label="미검토 승인">승인</button>
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 max-sm:min-h-11 min-w-16" role="radio" aria-checked="false" aria-label="미검토 반려">반려</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-fg-secondary hover:bg-surface-subtle px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 max-sm:min-h-11 min-w-16" role="radio" aria-checked="false" aria-label="미검토 승인">승인</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-fg-secondary hover:bg-surface-subtle px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 max-sm:min-h-11 min-w-16" role="radio" aria-checked="false" aria-label="미검토 반려">반려</button>
 </div>
-<p id="_id9_-error" class="text-xs text-red-600">승인이나 반려를 골라 주세요</p>
+<p id="_id9_-error" class="text-xs text-danger-emphasis">승인이나 반려를 골라 주세요</p>
 </div>
 </div>
 </div>
 </div>
 <div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col" role="group" aria-label="결재 사유를 쓰는 중">
-<div class="flex flex-col gap-1 rounded-t-lg border-b bg-gray-50 px-4 py-3">
-<span class="text-sm font-semibold wrap-anywhere text-gray-900">사유를 쓰는 중 × 3</span>
+<div class="flex flex-col gap-1 rounded-t-lg border-b bg-surface-subtle px-4 py-3">
+<span class="text-sm font-semibold wrap-anywhere text-fg">사유를 쓰는 중 × 3</span>
 </div>
 <div class="@container flex flex-col gap-4 px-4 py-3">
 <div class="flex flex-col gap-2">
 <div class="flex flex-col gap-2">
 <div class="flex items-baseline gap-1">
-<label data-slot="label" class="text-xs font-medium text-gray-700" for="_id10_">검토 결과</label>
-<span aria-hidden="true" class="text-sm leading-4 text-red-600">*</span>
+<label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id10_">검토 결과</label>
+<span aria-hidden="true" class="text-sm leading-4 text-danger-emphasis">*</span>
 </div>
 <div role="radiogroup" aria-label="사유를 쓰는 중 검토 결과" tabindex="-1" class="flex gap-2 outline-none" id="_id10_" aria-required="true">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 max-sm:min-h-11 min-w-16" role="radio" aria-checked="false" aria-label="사유를 쓰는 중 승인">승인</button>
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 max-sm:min-h-11 min-w-16 border-transparent bg-destructive text-white hover:bg-red-700" role="radio" aria-checked="true" aria-label="사유를 쓰는 중 반려">반려</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-fg-secondary hover:bg-surface-subtle px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 max-sm:min-h-11 min-w-16" role="radio" aria-checked="false" aria-label="사유를 쓰는 중 승인">승인</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 max-sm:min-h-11 min-w-16 border-transparent bg-destructive text-white hover:bg-danger" role="radio" aria-checked="true" aria-label="사유를 쓰는 중 반려">반려</button>
 </div>
 </div>
 <div class="flex flex-col gap-2">
 <div class="flex items-baseline gap-1">
-<label data-slot="label" class="text-xs font-medium text-gray-700" for="_id11_">반려 사유</label>
-<span aria-hidden="true" class="text-sm leading-4 text-red-600">*</span>
+<label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id11_">반려 사유</label>
+<span aria-hidden="true" class="text-sm leading-4 text-danger-emphasis">*</span>
 </div>
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-gray-50" aria-label="사유를 쓰는 중 반려 사유" id="_id11_" aria-required="true" value="이미 있어요">
+<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-surface-subtle" aria-label="사유를 쓰는 중 반려 사유" id="_id11_" aria-required="true" value="이미 있어요">
 </div>
 </div>
 </div>
 </div>
 <div data-slot="card" class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col" role="group" aria-label="결재 2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름">
-<div class="flex flex-col gap-1 rounded-t-lg border-b bg-gray-50 px-4 py-3">
-<span class="text-sm font-semibold wrap-anywhere text-gray-900">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름 × 3</span>
+<div class="flex flex-col gap-1 rounded-t-lg border-b bg-surface-subtle px-4 py-3">
+<span class="text-sm font-semibold wrap-anywhere text-fg">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름 × 3</span>
 </div>
 <div class="@container flex flex-col gap-4 px-4 py-3">
 <div class="grid gap-3 @sm:grid-cols-3">
 <div class="flex flex-col gap-2">
 <div class="flex items-baseline gap-1">
-<label data-slot="label" class="text-xs font-medium text-gray-700" for="_id12_">금액(합계, 원)</label>
-<span aria-hidden="true" class="text-sm leading-4 text-red-600">*</span>
+<label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id12_">금액(합계, 원)</label>
+<span aria-hidden="true" class="text-sm leading-4 text-danger-emphasis">*</span>
 </div>
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-gray-50 text-right tabular-nums" inputmode="numeric" aria-label="2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름 금액" id="_id12_" aria-required="true" value="15000">
+<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-surface-subtle text-right tabular-nums" inputmode="numeric" aria-label="2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름 금액" id="_id12_" aria-required="true" value="15000">
 </div>
 <div class="flex flex-col gap-1.5 @sm:col-span-2">
 <div class="flex flex-col gap-2">
 <div class="flex items-baseline gap-1">
-<label data-slot="label" class="text-xs font-medium text-gray-700" for="_id13_">예산 항목</label>
-<span aria-hidden="true" class="text-sm leading-4 text-red-600">*</span>
+<label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id13_">예산 항목</label>
+<span aria-hidden="true" class="text-sm leading-4 text-danger-emphasis">*</span>
 </div>
-<select data-slot="native-select" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive max-sm:min-h-11 cursor-pointer" aria-label="2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름 예산 항목" id="_id13_" aria-required="true">
+<select data-slot="native-select" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 cursor-pointer" aria-label="2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름 예산 항목" id="_id13_" aria-required="true">
 <option value="">항목 고르기</option>
 <option value="0199d1a0-0000-7000-8000-0000000000b1">행사 홍보</option>
 <option value="0199d1a0-0000-7000-8000-0000000000b2">2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름</option>
 </select>
 </div>
-<p class="text-xs text-gray-500 tabular-nums">사용 가능 <span class="font-medium text-blue-700">50,000원</span>
+<p class="text-xs text-fg-muted tabular-nums">사용 가능 <span class="font-medium text-primary-strong">50,000원</span>
 </p>
 </div>
 </div>
 <div class="flex flex-col gap-2 border-t pt-3">
 <div class="flex flex-col gap-2">
 <div class="flex items-baseline gap-1">
-<label data-slot="label" class="text-xs font-medium text-gray-700" for="_id14_">검토 결과</label>
-<span aria-hidden="true" class="text-sm leading-4 text-red-600">*</span>
+<label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id14_">검토 결과</label>
+<span aria-hidden="true" class="text-sm leading-4 text-danger-emphasis">*</span>
 </div>
 <div role="radiogroup" aria-label="2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름 검토 결과" tabindex="-1" class="flex gap-2 outline-none" id="_id14_" aria-required="true">
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 max-sm:min-h-11 min-w-16 border-transparent bg-green-600 text-white hover:bg-green-700" role="radio" aria-checked="true" aria-label="2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름 승인">승인</button>
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 max-sm:min-h-11 min-w-16" role="radio" aria-checked="false" aria-label="2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름 반려">반려</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 max-sm:min-h-11 min-w-16 border-transparent bg-success-emphasis text-white hover:bg-success" role="radio" aria-checked="true" aria-label="2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름 승인">승인</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-fg-secondary hover:bg-surface-subtle px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 max-sm:min-h-11 min-w-16" role="radio" aria-checked="false" aria-label="2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름 반려">반려</button>
 </div>
 </div>
 </div>

@@ -71,7 +71,7 @@ function CameraView({
   return (
     <div
       className={cn(
-        'relative aspect-square w-full overflow-hidden rounded-md bg-gray-900',
+        'relative aspect-square w-full overflow-hidden rounded-md bg-surface-inverse',
         hidden && 'hidden',
       )}
     >
@@ -150,7 +150,7 @@ function Scanner({ onClose, saving, onSaving, ...options }: ScannerProps) {
           </Button>
         </div>
       )}
-      {flow.hint && <p className="text-sm text-yellow-700">참가 신청 QR이 아니에요.</p>}
+      {flow.hint && <p className="text-sm text-warning">참가 신청 QR이 아니에요.</p>}
     </>
   )
 }

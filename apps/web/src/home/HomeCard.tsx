@@ -55,14 +55,14 @@ function CardCount({
   seeAllTotal,
   seeAllLabel,
 }: Pick<Props, 'read' | 'onSeeAll' | 'aside' | 'seeAllTotal' | 'seeAllLabel'> & { unit: string }) {
-  if (read.kind !== 'ready') return <span className="shrink-0 text-xs text-gray-500">집계 전</span>
+  if (read.kind !== 'ready') return <span className="shrink-0 text-xs text-fg-muted">집계 전</span>
   const total = seeAllTotal ?? read.total
   const seeAll = showSeeAll(total, onSeeAll, seeAllLabel)
   return (
     <div className="flex min-w-0 flex-wrap items-center justify-end gap-x-3 gap-y-1 text-right">
-      {aside !== undefined && <span className="text-xs break-keep text-gray-500">{aside}</span>}
+      {aside !== undefined && <span className="text-xs break-keep text-fg-muted">{aside}</span>}
       {aside === undefined && (!seeAll || seeAllLabel !== undefined) && (
-        <span className="shrink-0 text-xs text-gray-500">{`${read.total}${unit}`}</span>
+        <span className="shrink-0 text-xs text-fg-muted">{`${read.total}${unit}`}</span>
       )}
       {seeAll && (
         // 휴대폰에서 누르는 영역을 44px로 키우되 머리 바 높이는 그대로 둔다(WCAG 2.5.8).
@@ -102,11 +102,11 @@ function CardBody({
   if (read.total === 0)
     return (
       <div className={centerClass}>
-        <p className="text-sm break-keep text-gray-500">{empty}</p>
+        <p className="text-sm break-keep text-fg-muted">{empty}</p>
         {emptyAction}
       </div>
     )
-  const listClass = tiles ? 'grid gap-3 p-4 @2xl:grid-cols-3' : 'divide-y divide-gray-100'
+  const listClass = tiles ? 'grid gap-3 p-4 @2xl:grid-cols-3' : 'divide-y divide-border-subtle'
   return (
     <ul className={listClass}>
       {leadingRows}
@@ -118,15 +118,15 @@ function CardBody({
 // 와이어프레임 HomePrototypeFootnote: 카드 아래 옅은 회색 줄. 어디를 눌러도 그 화면으로 간다.
 function Footnote({ label, text, onOpen }: CardFootnote) {
   return (
-    <div className="border-t border-gray-100 bg-gray-50">
+    <div className="border-t border-border-subtle bg-surface-subtle">
       <Button
         variant="ghost"
-        className="h-auto w-full justify-start gap-2 rounded-none px-5 py-2.5 text-left text-xs font-normal whitespace-normal text-gray-700 max-sm:min-h-11"
+        className="h-auto w-full justify-start gap-2 rounded-none px-5 py-2.5 text-left text-xs font-normal whitespace-normal text-fg-secondary max-sm:min-h-11"
         onClick={onOpen}
       >
-        <span className="shrink-0 text-gray-500">{label}</span>
+        <span className="shrink-0 text-fg-muted">{label}</span>
         <span className="min-w-0 flex-1 break-keep wrap-anywhere">{text}</span>
-        <ChevronRight aria-hidden className="text-gray-400" />
+        <ChevronRight aria-hidden className="text-fg-subtle" />
       </Button>
     </div>
   )
@@ -161,16 +161,16 @@ export default function HomeCard({
       {/* 머리 바는 한 줄이다. 좁으면 제목만 어절로 접혀 같은 줄 카드의 머리 아래선이 덜 어긋난다. */}
       <div
         className={cn(
-          'flex items-start justify-between gap-2 border-b border-gray-100 bg-gray-50 px-5 py-3',
+          'flex items-start justify-between gap-2 border-b border-border-subtle bg-surface-subtle px-5 py-3',
           tiles && '@max-2xl:flex-col @max-2xl:gap-1',
           headClassName,
         )}
       >
         <h2
           id={titleId}
-          className="flex min-w-0 items-center gap-1.5 text-sm font-semibold break-keep text-gray-700 wrap-anywhere"
+          className="flex min-w-0 items-center gap-1.5 text-sm font-semibold break-keep text-fg-secondary wrap-anywhere"
         >
-          <Icon aria-hidden className="size-4 shrink-0 text-gray-400" />
+          <Icon aria-hidden className="size-4 shrink-0 text-fg-subtle" />
           {title}
         </h2>
         <CardCount

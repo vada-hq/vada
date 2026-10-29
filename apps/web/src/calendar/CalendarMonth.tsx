@@ -50,7 +50,7 @@ function MonthItem({ item, onOpen }: Pick<Props, 'onOpen'> & { item: CalendarIte
       aria-label={calendarTitleOf(item)}
       className={cn(
         'pointer-events-auto hidden min-w-0 justify-start gap-1 rounded px-1 py-0.5 text-left text-xs sm:flex',
-        item.overdue ? 'text-red-700' : text,
+        item.overdue ? 'text-danger' : text,
       )}
       onClick={() => onOpen(item.target)}
     >
@@ -109,8 +109,8 @@ function MonthWeek({ week, ...props }: Props & { week: string[] }) {
             aria-pressed={selected === day}
             className={cn(
               'min-w-0 rounded-none border-0 border-l p-0 first:border-l-0',
-              monthOf(day) !== month && 'bg-gray-50/60',
-              selected === day && 'bg-blue-50 hover:bg-blue-50',
+              monthOf(day) !== month && 'bg-surface-subtle/60',
+              selected === day && 'bg-primary-surface hover:bg-primary-surface',
             )}
             onClick={() => onSelect(day)}
           />
@@ -132,8 +132,8 @@ function MonthWeek({ week, ...props }: Props & { week: string[] }) {
                 day === today
                   ? 'bg-primary font-semibold text-primary-foreground'
                   : monthOf(day) !== month
-                    ? 'text-gray-400'
-                    : 'text-gray-700',
+                    ? 'text-fg-subtle'
+                    : 'text-fg-secondary',
               )}
             >
               {Number(day.slice(DAY_START))}
@@ -197,7 +197,7 @@ function DayItems({
         {rows.map(item => {
           const { Icon, text } = KIND_STYLE[item.kind]
           return (
-            <Icon key={item.key} className={cn('size-3', item.overdue ? 'text-red-700' : text)} />
+            <Icon key={item.key} className={cn('size-3', item.overdue ? 'text-danger' : text)} />
           )
         })}
       </div>
@@ -208,7 +208,7 @@ function DayItems({
 export function CalendarMonth(props: Props) {
   return (
     <div className={cn(cardClass, 'min-w-0 overflow-hidden')}>
-      <div className="grid grid-cols-7 bg-gray-50 text-center text-xs font-medium text-gray-500">
+      <div className="grid grid-cols-7 bg-surface-subtle text-center text-xs font-medium text-fg-muted">
         {WEEKDAYS.map(name => (
           <span key={name} className="py-2">
             {name}

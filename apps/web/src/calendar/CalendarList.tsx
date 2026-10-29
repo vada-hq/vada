@@ -19,9 +19,9 @@ export function CalendarDay({ day, today, items, onOpen, onCreate }: DayProps) {
   return (
     <section aria-label={title} className="flex min-w-0 scroll-mt-4 flex-col gap-2">
       <div className="flex flex-wrap items-center gap-2">
-        <h3 className="text-sm font-semibold text-gray-900">{title}</h3>
+        <h3 className="text-sm font-semibold text-fg">{title}</h3>
         {day === today && <span className="text-xs font-normal text-primary">오늘</span>}
-        <span className="ml-auto text-right font-normal text-gray-500 tabular-nums">
+        <span className="ml-auto text-right font-normal text-fg-muted tabular-nums">
           {items.length}건
         </span>
         {onCreate && (

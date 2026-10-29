@@ -51,7 +51,10 @@ export function MinutesDecisions({ agendaId, decisions, writable, submit, onRemo
       )}
       {decisions.length === 0 && <p className="text-sm text-muted-foreground">{T.emptyDecision}</p>}
       {decisions.map(d => (
-        <Card key={d.id} className="flex min-w-0 flex-col gap-3 border-green-200 bg-green-50 p-4">
+        <Card
+          key={d.id}
+          className="flex min-w-0 flex-col gap-3 border-success-border bg-success-surface p-4"
+        >
           <p className="wrap-anywhere text-sm font-medium whitespace-pre-wrap">{d.content}</p>
           {d.rationale && (
             <p className="wrap-anywhere text-sm whitespace-pre-wrap text-muted-foreground">

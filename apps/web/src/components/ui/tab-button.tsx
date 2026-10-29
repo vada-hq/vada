@@ -9,7 +9,7 @@ export function TabButton({ className, ...props }: ComponentProps<'button'>) {
       type="button"
       role="tab"
       className={cn(
-        '-mb-px inline-flex cursor-pointer items-center border-b-2 border-transparent px-4 py-3 text-sm font-medium whitespace-nowrap text-gray-500 transition-colors hover:text-gray-700 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-selected:border-primary aria-selected:text-accent-foreground',
+        '-mb-px inline-flex cursor-pointer items-center border-b-2 border-transparent px-4 py-3 text-sm font-medium whitespace-nowrap text-fg-muted transition-colors hover:text-fg-secondary focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none aria-selected:border-primary aria-selected:text-accent-foreground',
         className,
       )}
       {...props}

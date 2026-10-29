@@ -16,7 +16,7 @@ function ProductImage({ url, name }: { url: string | null; name: string }) {
       onError={() => setFailed(true)}
     />
   ) : (
-    <div className="flex size-24 shrink-0 items-center justify-center rounded-sm border bg-gray-50 p-2 text-center text-xs text-gray-500">
+    <div className="flex size-24 shrink-0 items-center justify-center rounded-sm border bg-surface-subtle p-2 text-center text-xs text-fg-muted">
       사진 없음
     </div>
   )
@@ -27,13 +27,13 @@ export function ProductPreview({ product }: { product: ProductInfo }) {
   const unit = product.items.find(item => item.itemId === product.selectedItemId)
   const image = productImageUrlOf(product.imageUrl)
   return (
-    <div className="flex flex-wrap gap-3 rounded-sm bg-gray-50 p-3">
+    <div className="flex flex-wrap gap-3 rounded-sm bg-surface-subtle p-3">
       <ProductImage key={image} url={image} name={product.name} />
-      <div className="flex min-w-0 flex-1 flex-col gap-1 text-xs text-gray-600">
+      <div className="flex min-w-0 flex-1 flex-col gap-1 text-xs text-fg-tertiary">
         <Badge tone="info" className="self-start">
           불러온 정보
         </Badge>
-        <span className="font-medium wrap-anywhere text-gray-900">{product.name}</span>
+        <span className="font-medium wrap-anywhere text-fg">{product.name}</span>
         {unit && unit.name !== product.name && (
           <span className="wrap-anywhere">판매 단위 {unit.name}</span>
         )}

@@ -6,10 +6,10 @@ import { cn } from '@/lib/utils'
 const alertVariants = cva('rounded-md border p-3 text-xs wrap-anywhere', {
   variants: {
     tone: {
-      info: 'border-blue-200 bg-blue-50 text-blue-700',
-      success: 'border-green-200 bg-green-50 text-green-700',
-      warning: 'border-yellow-200 bg-yellow-50 text-yellow-700',
-      danger: 'border-red-200 bg-red-50 text-red-700',
+      info: 'border-primary-border bg-primary-surface text-primary-strong',
+      success: 'border-success-border bg-success-surface text-success',
+      warning: 'border-warning-border bg-warning-surface text-warning',
+      danger: 'border-danger-border bg-danger-surface text-danger',
     },
   },
   defaultVariants: { tone: 'info' },

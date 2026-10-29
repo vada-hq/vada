@@ -125,7 +125,7 @@ export function SidebarSection() {
     <Section title="옆 메뉴 · 틀과 수 배지">
       {SIDEBARS.map(sample => (
         <div key={sample.key} className={`flex flex-col gap-1 ${sample.width}`}>
-          <p className="text-xs text-gray-400">{sample.key}</p>
+          <p className="text-xs text-fg-subtle">{sample.key}</p>
           <div className="h-160 rounded-lg border bg-white">
             <SampleSidebar
               unread={sample.unread}
@@ -138,7 +138,7 @@ export function SidebarSection() {
       <div className="flex w-60 flex-col gap-3">
         {FOOTERS.map(sample => (
           <div key={sample.key} className="flex flex-col gap-1">
-            <p className="text-xs text-gray-400">발: {sample.key}</p>
+            <p className="text-xs text-fg-subtle">발: {sample.key}</p>
             <div className="rounded-lg border bg-white">
               <SidebarFooter
                 view={sample.view}
@@ -150,7 +150,7 @@ export function SidebarSection() {
             </div>
           </div>
         ))}
-        <p className="text-xs text-gray-400">수 배지 0 · 2 · 120 · 지남 2 · 지남 3+</p>
+        <p className="text-xs text-fg-subtle">수 배지 0 · 2 · 120 · 지남 2 · 지남 3+</p>
         <div className="flex items-center gap-2">
           <CountBadge count={0} label="안 읽은 메시지 0개" />
           <CountBadge count={2} label="안 읽은 메시지 2개" />

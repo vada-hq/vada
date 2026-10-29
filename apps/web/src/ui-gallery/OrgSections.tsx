@@ -158,7 +158,7 @@ function Width({
 }) {
   return (
     <div className="flex max-w-full flex-col gap-1 overflow-x-auto">
-      <p className="text-xs text-gray-400">{label}</p>
+      <p className="text-xs text-fg-subtle">{label}</p>
       <div className={className}>{children}</div>
     </div>
   )

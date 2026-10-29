@@ -25,7 +25,7 @@ export function ExpenseCopyButton({ expense }: { expense: ExpenseSummary }) {
         행 복사
       </Button>
       {copied && (
-        <span role="status" className="text-xs break-keep text-gray-500">
+        <span role="status" className="text-xs break-keep text-fg-muted">
           {copied}
         </span>
       )}

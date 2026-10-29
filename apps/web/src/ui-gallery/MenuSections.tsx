@@ -99,7 +99,7 @@ export function EmptyAvatarSection() {
       </Card>
       <div className="flex items-center gap-2">
         <Avatar />
-        <span className="text-xs font-medium text-gray-700">박해랑</span>
+        <span className="text-xs font-medium text-fg-secondary">박해랑</span>
       </div>
       <div className="flex items-center gap-2">
         <BrandMark />

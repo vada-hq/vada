@@ -43,7 +43,7 @@ export function ApplicantRow({ applicant, ...rest }: Props) {
   return (
     <li className="flex flex-col gap-2 rounded-md border bg-white p-3">
       <div className="flex flex-wrap items-center gap-2">
-        <p className="min-w-0 flex-1 text-sm font-semibold text-gray-900 wrap-anywhere">
+        <p className="min-w-0 flex-1 text-sm font-semibold text-fg wrap-anywhere">
           {applicant.name}
         </p>
         <DepositBadge applicant={applicant} />
@@ -56,7 +56,7 @@ export function ApplicantRow({ applicant, ...rest }: Props) {
         {applicant.duplicateStudentId && <Badge tone="danger">같은 학번</Badge>}
         {applicant.attended && <Badge tone="success">출석</Badge>}
       </div>
-      <p className="text-xs text-gray-500 wrap-anywhere">{details.filter(Boolean).join(' · ')}</p>
+      <p className="text-xs text-fg-muted wrap-anywhere">{details.filter(Boolean).join(' · ')}</p>
       <ApplicantActions applicant={applicant} {...rest} />
       <DepositActions applicant={applicant} touch {...rest} />
     </li>

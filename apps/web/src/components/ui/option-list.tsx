@@ -88,7 +88,7 @@ export function OptionList({ label, options, value, onPick, searchLabel }: Props
         tabIndex={searchLabel === undefined ? 0 : -1}
         className="flex max-h-72 flex-col overflow-y-auto outline-none"
       >
-        {shown.length === 0 && <li className="px-3 py-2 text-sm text-gray-500">찾는 이름 없음</li>}
+        {shown.length === 0 && <li className="px-3 py-2 text-sm text-fg-muted">찾는 이름 없음</li>}
         {shown.map((option, index) => (
           <OptionRow
             key={keyOf(option.id)}
@@ -120,7 +120,7 @@ function OptionRow({ id, option, groupStart, selected, active, onHover, onPick }
   return (
     <>
       {groupStart && (
-        <li role="presentation" className="px-3 pt-2 pb-1 text-xs text-gray-500">
+        <li role="presentation" className="px-3 pt-2 pb-1 text-xs text-fg-muted">
           {option.group}
         </li>
       )}
@@ -129,8 +129,8 @@ function OptionRow({ id, option, groupStart, selected, active, onHover, onPick }
         role="option"
         aria-selected={selected}
         className={cn(
-          'flex cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-sm text-gray-700 select-none',
-          active && 'bg-gray-100',
+          'flex cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-sm text-fg-secondary select-none',
+          active && 'bg-surface-muted',
         )}
         onMouseMove={onHover}
         onMouseDown={event => event.preventDefault()}
@@ -140,10 +140,10 @@ function OptionRow({ id, option, groupStart, selected, active, onHover, onPick }
           <span aria-hidden className={cn('size-2 shrink-0 rounded-full', option.dot)} />
         )}
         <span className="min-w-0 flex-1 truncate">{option.label}</span>
-        {option.hint && <span className="shrink-0 text-xs text-gray-400">{option.hint}</span>}
+        {option.hint && <span className="shrink-0 text-xs text-fg-subtle">{option.hint}</span>}
         <Check
           aria-hidden
-          className={cn('size-4 shrink-0 text-blue-600', !selected && 'invisible')}
+          className={cn('size-4 shrink-0 text-primary-emphasis', !selected && 'invisible')}
         />
       </li>
     </>

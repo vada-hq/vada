@@ -327,9 +327,9 @@ test('지출 항목은 배정·실제 지출·지출 예정을 흐린 한 줄로
   expect(dim.className).toContain('text-xs')
   const available = within(line('행사 홍보')).getByText('사용 가능 150,000원')
   expect(available.className).toContain('text-base')
-  expect(available.className).not.toContain('text-red')
+  expect(available.className).not.toContain('text-danger')
   const over = within(line('소모품')).getByText('사용 가능 -10,000원')
-  expect(over.className).toContain('text-red-600')
+  expect(over.className).toContain('text-danger-emphasis')
 })
 
 test('수입 항목은 예산과 들어온 돈만 있고 지출 예정과 사용 가능이 없다', async () => {

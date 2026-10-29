@@ -76,7 +76,7 @@ test('메뉴 칸은 와이어프레임 꼴이다: 아이콘과 글 gap-3, rounde
     expect(item.className).toContain('gap-3')
     expect(item.className).toContain('rounded')
     expect(item.className).toContain('mb-0.5')
-    expect(item.className).toContain('hover:bg-gray-50')
+    expect(item.className).toContain('hover:bg-surface-subtle')
   }
 })
 
@@ -90,7 +90,7 @@ test('안 읽은 메시지가 120개면 메시지 옆 빨간 99+, 0이면 배지
   open({ unread: 120 })
   const badge = await within(await nav()).findByLabelText('안 읽은 메시지 120개')
   expect(badge.textContent).toBe('99+')
-  expect(badge.className).toContain('bg-red-600')
+  expect(badge.className).toContain('bg-notify')
   cleanup()
   const api = open({ unread: 0 })
   await waitFor(() => expect(api.calls.some(call => call.path === `${base}/rooms`)).toBe(true))
@@ -199,12 +199,12 @@ test('옆 메뉴의 작은 글은 gray-400이 아니고, 작은 회색 글이 �
   open({ unread: 3 })
   await within(await nav()).findByLabelText('안 읽은 메시지 3개')
   const aside = screen.getByRole('complementary', { name: '학생회 작업 공간' })
-  expect(aside.innerHTML).not.toContain('text-gray-400')
+  expect(aside.innerHTML).not.toContain('text-fg-subtle')
   const head = within(aside).getByRole('button', { name: /학생회 메뉴$/ })
   const user = within(aside).getByRole('button', { name: /^내 이름/ })
   for (const item of [head, user]) {
-    expect(item.className).toContain('hover:bg-gray-50')
-    expect(item.className).not.toContain('hover:bg-gray-100')
+    expect(item.className).toContain('hover:bg-surface-subtle')
+    expect(item.className).not.toContain('hover:bg-surface-muted')
   }
 })
 

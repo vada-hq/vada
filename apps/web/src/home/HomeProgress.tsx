@@ -15,8 +15,8 @@ export default function HomeProgress({ label, done, total }: Props) {
     <div className="flex items-center gap-2">
       {/* 업무가 없으면 progress의 max가 0이 될 수 없어 빈 막대로 그린다. */}
       <Meter value={done} max={Math.max(total, 1)} label={text} className="w-24 shrink-0" />
-      <span className="text-xs text-gray-500">
-        {label} <strong className="font-semibold text-gray-700">{`${done}/${total}`}</strong>
+      <span className="text-xs text-fg-muted">
+        {label} <strong className="font-semibold text-fg-secondary">{`${done}/${total}`}</strong>
       </span>
     </div>
   )

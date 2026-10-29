@@ -15,7 +15,7 @@ export default function StateMessage({ kind, children, className }: Props) {
       role={role}
       className={cn(
         'text-sm wrap-anywhere',
-        kind === 'error' ? 'text-destructive' : 'text-gray-500',
+        kind === 'error' ? 'text-destructive' : 'text-fg-muted',
         className,
       )}
     >

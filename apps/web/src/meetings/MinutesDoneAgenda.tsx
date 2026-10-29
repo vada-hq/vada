@@ -45,9 +45,9 @@ function DoneDecision({
 }: Omit<Props, 'draft' | 'onAmended'> & { decision: MeetingDecision }) {
   const active = editing?.kind === 'decision' && editing.id === decision.id
   return (
-    <div className="flex min-w-0 flex-col gap-3 rounded-sm border border-green-200 bg-green-50 p-4">
+    <div className="flex min-w-0 flex-col gap-3 rounded-sm border border-success-border bg-success-surface p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h4 className="text-xs font-semibold text-green-700">{T.confirmedDecisions}</h4>
+        <h4 className="text-xs font-semibold text-success">{T.confirmedDecisions}</h4>
         {amendable && !editing && (
           <Button
             touch
@@ -77,7 +77,7 @@ function DoneDecision({
         />
       ) : (
         <>
-          <p className="wrap-anywhere text-sm whitespace-pre-wrap text-green-800">
+          <p className="wrap-anywhere text-sm whitespace-pre-wrap text-success-strong">
             {decision.content}
           </p>
           {decision.rationale && (
@@ -103,7 +103,7 @@ export function MinutesDoneAgenda({
   return (
     <Card className="flex min-w-0 flex-col gap-4 p-5 sm:p-6">
       <div className="flex min-w-0 items-start gap-3">
-        <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-gray-100 text-xs text-gray-600 tabular-nums">
+        <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-surface-muted text-xs text-fg-tertiary tabular-nums">
           {item.position}
         </span>
         <h3 className="min-w-0 flex-1 wrap-anywhere text-sm font-semibold">{item.title}</h3>

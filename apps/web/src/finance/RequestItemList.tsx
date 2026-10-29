@@ -59,7 +59,7 @@ export function RequestItemList({
           품목 더하기
         </Button>
         {atMax && pressedAtMax && (
-          <p role="alert" className="text-xs text-red-600">
+          <p role="alert" className="text-xs text-danger-emphasis">
             {`품목은 ${PURCHASE_ITEMS_MAX}개까지 더할 수 있어요`}
           </p>
         )}

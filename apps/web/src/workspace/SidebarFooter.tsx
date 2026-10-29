@@ -15,7 +15,7 @@ type Role = { departments: string; rank: string | null }
 // 둘째 줄: 좁으면 부서 칸만 말줄임하고 ' · {직급}'은 줄이지 않는다. 올리면 전체 글이 보인다.
 function RoleLine({ role, text }: { role: Role; text: string }) {
   return (
-    <span className="flex min-w-0 text-xs font-normal text-gray-500" title={text}>
+    <span className="flex min-w-0 text-xs font-normal text-fg-muted" title={text}>
       {role.departments && <span className="truncate">{role.departments}</span>}
       {role.rank && (
         <span className="shrink-0 whitespace-pre">
@@ -33,7 +33,7 @@ function Who({ name, role, text }: { name: string; role: Role | null; text: stri
     <>
       <Avatar />
       <span className="flex min-w-0 flex-1 flex-col">
-        <span className="truncate text-xs font-medium text-gray-700">{name}</span>
+        <span className="truncate text-xs font-medium text-fg-secondary">{name}</span>
         {role && text && <RoleLine role={role} text={text} />}
       </span>
     </>
@@ -63,7 +63,7 @@ export default function SidebarFooter({ view, user, logoutBusy, onLogout, onRena
   const role = view && sidebarRoleParts(view.me, view.council.titles)
   const position = view && sidebarRoleLine(view.me, view.council.titles)
   return (
-    <footer className="flex shrink-0 items-center gap-2 border-t border-gray-100 px-4 py-3">
+    <footer className="flex shrink-0 items-center gap-2 border-t border-border-subtle px-4 py-3">
       {view ? (
         <Button
           ref={userLine}
@@ -71,7 +71,7 @@ export default function SidebarFooter({ view, user, logoutBusy, onLogout, onRena
           // 버튼 안의 직급·부서 줄도 이름에 넣는다(aria-label이 안의 글을 덮는다).
           aria-label={[`내 이름: ${name}`, position].filter(Boolean).join(', ')}
           // 올렸을 때 바탕은 gray-50이다. gray-100 위의 작은 gray-500 글은 4.5:1에 못 미친다(WCAG 1.4.3).
-          className="-ml-1 min-w-0 flex-1 justify-start gap-2 px-1 py-1 text-left hover:bg-gray-50"
+          className="-ml-1 min-w-0 flex-1 justify-start gap-2 px-1 py-1 text-left hover:bg-surface-subtle"
           onClick={() => {
             rename.reset()
             setRenaming(true)

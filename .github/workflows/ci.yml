@@ -123,6 +123,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm format:check
       - run: pnpm lint --format github
+      - run: pnpm palette
       - run: pnpm typecheck
       - run: pnpm knip
       - run: pnpm --filter @vada/contracts test

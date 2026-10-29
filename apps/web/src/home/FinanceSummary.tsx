@@ -26,7 +26,7 @@ export default function FinanceSummary({
       >
         <span className="font-semibold">전체 재정 요약</span>
         {overview ? (
-          <span className="flex flex-1 flex-wrap justify-end gap-x-4 gap-y-2 text-xs text-gray-500">
+          <span className="flex flex-1 flex-wrap justify-end gap-x-4 gap-y-2 text-xs text-fg-muted">
             {(
               [
                 ['총예산', overview.total],
@@ -38,7 +38,7 @@ export default function FinanceSummary({
               <span key={label} className="text-right">
                 {label}{' '}
                 <strong
-                  className={`tabular-nums ${label === '사용 가능' && amount < 0 ? 'text-red-600' : 'text-gray-900'}`}
+                  className={`tabular-nums ${label === '사용 가능' && amount < 0 ? 'text-danger-emphasis' : 'text-fg'}`}
                 >
                   {wonLabel(amount)}
                 </strong>
@@ -46,12 +46,12 @@ export default function FinanceSummary({
             ))}
           </span>
         ) : (
-          <span className="text-xs text-gray-500">{summary ? '예산 미입력' : '집계 전'}</span>
+          <span className="text-xs text-fg-muted">{summary ? '예산 미입력' : '집계 전'}</span>
         )}
         {missingLabel && (
-          <span className="text-xs text-gray-500 wrap-anywhere">{missingLabel}</span>
+          <span className="text-xs text-fg-muted wrap-anywhere">{missingLabel}</span>
         )}
-        <ChevronRight aria-hidden className="size-4 shrink-0 text-gray-400" />
+        <ChevronRight aria-hidden className="size-4 shrink-0 text-fg-subtle" />
       </Button>
     </section>
   )

@@ -17,7 +17,7 @@ type Props = {
 // 색은 와이어프레임(gray-400, 마지막 gray-600)보다 한 단계 진하다(작은 글의 대비 4.5:1, WCAG 1.4.3).
 function Trail({ crumbs }: { crumbs: Crumb[] }) {
   return (
-    <ol aria-label="경로" className="flex min-w-0 items-center gap-1 text-xs text-gray-500">
+    <ol aria-label="경로" className="flex min-w-0 items-center gap-1 text-xs text-fg-muted">
       {crumbs.map((crumb, index) => (
         <li
           // 같은 이름의 칸이 둘일 수 있어(조직 > 조직) 차례를 키로 쓴다.
@@ -28,7 +28,7 @@ function Trail({ crumbs }: { crumbs: Crumb[] }) {
           <span
             className={cn(
               crumb.truncate && 'truncate',
-              index === crumbs.length - 1 && 'text-gray-700',
+              index === crumbs.length - 1 && 'text-fg-secondary',
             )}
             title={crumb.truncate ? crumb.label : undefined}
           >
@@ -52,7 +52,7 @@ export default function WorkspaceHeader({ width, crumbs, title, actionsRef }: Pr
         <div className="min-w-0 flex-1">
           <Trail crumbs={crumbs} />
           <h1
-            className="mt-0.5 line-clamp-2 text-xl font-semibold text-gray-900 wrap-anywhere md:line-clamp-1"
+            className="mt-0.5 line-clamp-2 text-xl font-semibold text-fg wrap-anywhere md:line-clamp-1"
             title={title}
           >
             {title}

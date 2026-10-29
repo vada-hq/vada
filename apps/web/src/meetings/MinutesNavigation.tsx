@@ -110,7 +110,7 @@ export function MinutesAgendaNavigation({
             variant="outline"
             touch
             aria-pressed={a.id === selectedId}
-            className={`h-auto min-w-0 flex-col items-start gap-2 p-3 whitespace-normal ${a.id === selectedId ? 'border-blue-500 bg-blue-50' : ''}`}
+            className={`h-auto min-w-0 flex-col items-start gap-2 p-3 whitespace-normal ${a.id === selectedId ? 'border-primary-border-selected bg-primary-surface' : ''}`}
             onClick={() => onSelect(a.id)}
           >
             <span className="text-xs text-muted-foreground tabular-nums">
@@ -118,11 +118,11 @@ export function MinutesAgendaNavigation({
             </span>
             <span className="wrap-anywhere text-left text-sm">{a.title}</span>
             <span
-              className={`text-right text-xs tabular-nums ${a.decisions.length ? 'text-muted-foreground' : 'text-gray-400'}`}
+              className={`text-right text-xs tabular-nums ${a.decisions.length ? 'text-muted-foreground' : 'text-fg-subtle'}`}
             >
               {decisionCount(a.decisions.length)}
               <span
-                className={`ml-2 ${a.followUps.length ? 'text-muted-foreground' : 'text-gray-400'}`}
+                className={`ml-2 ${a.followUps.length ? 'text-muted-foreground' : 'text-fg-subtle'}`}
               >
                 {followUpCount(a.followUps.length)}
               </span>

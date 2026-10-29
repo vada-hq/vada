@@ -27,7 +27,7 @@ export function CalendarFeedAddress({ url }: { url: string }) {
         </Button>
       </div>
       {copied !== 'idle' && (
-        <p role="status" className="text-sm text-gray-500">
+        <p role="status" className="text-sm text-fg-muted">
           {copied === 'copied' ? '복사했어요.' : '주소를 길게 눌러 복사해 주세요.'}
         </p>
       )}
@@ -44,7 +44,7 @@ export function CalendarFeedAddress({ url }: { url: string }) {
           Apple·Outlook에서 열기
         </a>
       </div>
-      <div className="space-y-1 text-sm text-gray-500">
+      <div className="space-y-1 text-sm text-fg-muted">
         <p>Google 캘린더는 컴퓨터에서 추가해요.</p>
         <p>주소는 이 창을 닫으면 다시 볼 수 없어요.</p>
       </div>

@@ -6,7 +6,8 @@
     "dev": "vite --host 127.0.0.1 --port 5180 --strictPort",
     "build": "tsc --noEmit && vite build",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "palette": "node scripts/check-palette.mjs"
   },
   "dependencies": {
     "@vada/contracts": "workspace:*",

@@ -13,7 +13,7 @@ export function NavItem({
       type="button"
       aria-current={active ? 'page' : undefined}
       className={cn(
-        'mb-0.5 flex w-full cursor-pointer items-center gap-3 rounded px-3 py-2 text-left text-sm wrap-anywhere text-gray-600 transition-colors hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none disabled:opacity-45 aria-[current=page]:bg-accent aria-[current=page]:font-medium aria-[current=page]:text-accent-foreground',
+        'mb-0.5 flex w-full cursor-pointer items-center gap-3 rounded px-3 py-2 text-left text-sm wrap-anywhere text-fg-tertiary transition-colors hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none disabled:opacity-45 aria-[current=page]:bg-accent aria-[current=page]:font-medium aria-[current=page]:text-accent-foreground',
         className,
       )}
       {...props}

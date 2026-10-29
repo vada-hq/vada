@@ -47,7 +47,7 @@ function Conditions({ board, councilId }: Pick<Props, 'board' | 'councilId'>) {
   ]
   if (rows.length === 0) return null
   return (
-    <div className={`${cardClass} divide-y bg-gray-50`}>
+    <div className={`${cardClass} divide-y bg-surface-subtle`}>
       {rows.map(row => (
         <Button
           key={row.id}
@@ -56,7 +56,7 @@ function Conditions({ board, councilId }: Pick<Props, 'board' | 'councilId'>) {
           onClick={row.onOpen}
         >
           <span className="min-w-0 flex-1 wrap-anywhere">{row.label}</span>
-          <ChevronRight aria-hidden className="shrink-0 text-gray-400" />
+          <ChevronRight aria-hidden className="shrink-0 text-fg-subtle" />
         </Button>
       ))}
     </div>

@@ -35,7 +35,7 @@ function Body({ message, mine }: { message: ChatMessage; mine: boolean }) {
         'rounded-2xl px-4 py-2 text-sm/6 wrap-anywhere whitespace-pre-wrap',
         mine
           ? 'bg-primary text-primary-foreground'
-          : 'border border-gray-200 bg-white text-gray-800',
+          : 'border border-border-default bg-white text-fg-body',
       )}
     >
       {bodyParts(message.body ?? '').map((part, index) =>
@@ -53,7 +53,7 @@ function Body({ message, mine }: { message: ChatMessage; mine: boolean }) {
             }}
             className={cn(
               'underline underline-offset-2',
-              mine ? 'text-primary-foreground' : 'text-blue-700',
+              mine ? 'text-primary-foreground' : 'text-primary-strong',
             )}
           >
             {part.text}
@@ -70,7 +70,7 @@ function Body({ message, mine }: { message: ChatMessage; mine: boolean }) {
 // 파란 내 말풍선처럼 강조되어 읽히지 않는다(카카오톡·Slack의 '삭제된 메시지' 자리).
 function Deleted() {
   return (
-    <p className="rounded-2xl border border-gray-200 bg-gray-50 px-4 py-2 text-sm/6 text-gray-500">
+    <p className="rounded-2xl border border-border-default bg-surface-subtle px-4 py-2 text-sm/6 text-fg-muted">
       {DELETED_MESSAGE}
     </p>
   )
@@ -88,7 +88,7 @@ function Sender({
   if (mine) return <span className="sr-only">나</span>
   if (continued) return null
   return (
-    <span className="text-xs wrap-anywhere text-gray-500">
+    <span className="text-xs wrap-anywhere text-fg-muted">
       <PersonName
         councilId={councilId}
         memberId={message.senderId ?? ''}
@@ -106,7 +106,7 @@ function Time({ message, continued }: Pick<Props, 'message' | 'continued'>) {
   const time = (
     <time
       dateTime={message.sentAt}
-      className={continued && !edited ? 'sr-only' : 'text-xs text-gray-500'}
+      className={continued && !edited ? 'sr-only' : 'text-xs text-fg-muted'}
     >
       {clockLabel(message.sentAt)}
     </time>
@@ -158,7 +158,7 @@ function EditBody({
         onChange={event => setBody(event.target.value)}
       />
       {error && (
-        <p id={errorId} className="text-xs text-red-600">
+        <p id={errorId} className="text-xs text-danger-emphasis">
           {error}
         </p>
       )}
@@ -194,7 +194,7 @@ function Face({ message, mine, continued }: Pick<Props, 'message' | 'mine' | 'co
   return (
     <span
       aria-hidden
-      className="flex size-8 shrink-0 items-center justify-center rounded-full border border-gray-200 bg-white text-xs font-bold text-gray-500"
+      className="flex size-8 shrink-0 items-center justify-center rounded-full border border-border-default bg-white text-xs font-bold text-fg-muted"
     >
       {Array.from(name)[0]}
     </span>
@@ -208,7 +208,7 @@ function Face({ message, mine, continued }: Pick<Props, 'message' | 'mine' | 'co
 function SystemItem({ message }: Pick<Props, 'message'>) {
   return (
     <li className="relative mt-2 px-2 py-1">
-      <p className="text-center text-xs/5 wrap-anywhere whitespace-pre-wrap text-gray-500">
+      <p className="text-center text-xs/5 wrap-anywhere whitespace-pre-wrap text-fg-muted">
         {message.body}
       </p>
       <time dateTime={message.sentAt} className="sr-only">

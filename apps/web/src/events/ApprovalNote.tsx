@@ -15,7 +15,7 @@ export function ApprovalNote({ approvals, now }: { approvals: SettlementApproval
     .filter(Boolean)
     .join(' · ')
   return (
-    <div role="group" aria-label="완료 사유" className="flex flex-col text-sm text-gray-500">
+    <div role="group" aria-label="완료 사유" className="flex flex-col text-sm text-fg-muted">
       <span className="wrap-anywhere">{head}</span>
       {last.reason && <span className="wrap-anywhere">{last.reason}</span>}
     </div>

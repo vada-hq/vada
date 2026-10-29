@@ -125,7 +125,7 @@ function ExpenseRows({
         <li key={expense.id}>
           <ExpenseCard expense={expense} onOpen={() => onOpen(expense.id)} />
           {expenseAmount(expense, allocations, filters) !== expense.amount && (
-            <p className="text-right text-xs text-gray-500 tabular-nums">
+            <p className="text-right text-xs text-fg-muted tabular-nums">
               선택 범위 {wonLabel(expenseAmount(expense, allocations, filters))}
             </p>
           )}

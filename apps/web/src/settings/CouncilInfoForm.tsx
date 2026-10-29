@@ -29,7 +29,7 @@ type TitleProps = {
 function TitleFields({ titles, canEdit, onEdit, errors }: TitleProps) {
   return (
     <fieldset className="flex flex-col gap-2">
-      <legend className="mb-2 text-xs font-medium text-gray-700">직급 표시 이름</legend>
+      <legend className="mb-2 text-xs font-medium text-fg-secondary">직급 표시 이름</legend>
       <div className="grid grid-cols-2 gap-3">
         {titleFields.map(([key, label]) => (
           <Field key={key} label={label} required={canEdit} error={errors[key]}>
@@ -110,7 +110,7 @@ export default function CouncilInfoForm(props: Props) {
           if (attempt()) onSubmit(event)
         }}
       >
-        <h2 className="text-base font-semibold text-gray-900">학생회 정보</h2>
+        <h2 className="text-base font-semibold text-fg">학생회 정보</h2>
         <BasicFields value={value} canEdit={canEdit} onEdit={onEdit} errors={fieldErrors} />
         <TitleFields
           titles={value.titles}

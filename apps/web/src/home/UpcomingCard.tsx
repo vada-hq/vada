@@ -50,7 +50,7 @@ export default function UpcomingCard({
           // 3열이 좁은 폭(1024px 창)에서는 날짜를 두 줄('10월 27일' / '(화)')로 접어 제목 자리를 남긴다.
           <span
             className={cn(
-              'w-24 shrink-0 text-xs font-semibold break-keep text-gray-500',
+              'w-24 shrink-0 text-xs font-semibold break-keep text-fg-muted',
               !wideDate && '@2xl:w-14 @4xl:w-24',
             )}
           >

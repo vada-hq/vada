@@ -52,7 +52,7 @@ export function AttentionCard({
       }
       footer={
         board.financeStaffed === false && (
-          <div className="flex items-center justify-between gap-2 border-t border-gray-100 bg-gray-50 px-5 text-xs break-keep text-gray-500">
+          <div className="flex items-center justify-between gap-2 border-t border-border-subtle bg-surface-subtle px-5 text-xs break-keep text-fg-muted">
             <span>재정 담당 · 없음</span>
             <Button variant="link" className="min-h-11 px-0 text-xs" onClick={onSeeFinance}>
               조직에서 정하기
@@ -83,7 +83,7 @@ export function FollowUpCard({
       title={row.event.name}
       meta={followUpParts(row)}
       sub={remainingTidyLabel(row.remaining)}
-      side={<ChevronRight aria-hidden className="size-4 text-gray-400" />}
+      side={<ChevronRight aria-hidden className="size-4 text-fg-subtle" />}
       onOpen={() =>
         row.remaining.settlement > 0
           ? onOpenEvent(row.event.id, 'money')

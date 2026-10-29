@@ -37,7 +37,7 @@ function People({
           <Button
             variant="ghost"
             touch
-            className="w-full justify-start font-normal wrap-anywhere whitespace-normal text-gray-800"
+            className="w-full justify-start font-normal wrap-anywhere whitespace-normal text-fg-body"
             busy={busy}
             onClick={() => onPick(member)}
           >

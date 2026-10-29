@@ -49,11 +49,11 @@ export function AuthSection() {
         <div className="flex flex-wrap items-center gap-2">
           <BrandMark />
           <p className="text-base font-semibold">VADA</p>
-          <p className="ml-auto text-xs text-gray-500">학생회를 위한 공간</p>
+          <p className="ml-auto text-xs text-fg-muted">학생회를 위한 공간</p>
         </div>
         <div className="flex flex-col gap-3">
           <Alert tone="info">학생회 초대 링크로 들어왔어요. 로그인하면 참여할 수 있어요.</Alert>
-          <p className="text-sm text-gray-500">Google 계정으로 로그인해 주세요.</p>
+          <p className="text-sm text-fg-muted">Google 계정으로 로그인해 주세요.</p>
           <Button>Google로 로그인</Button>
         </div>
       </AuthCard>
@@ -91,7 +91,7 @@ export function KakaoSection() {
         <div className="flex flex-wrap items-center gap-2">
           <BrandMark />
           <p className="text-base font-semibold">VADA</p>
-          <p className="ml-auto text-xs text-gray-500">학생회를 위한 공간</p>
+          <p className="ml-auto text-xs text-fg-muted">학생회를 위한 공간</p>
         </div>
         <KakaoBlock
           userAgent={kakaoUserAgent}
@@ -111,7 +111,7 @@ export function LongTextSection() {
       </div>
       <div className="flex w-60 flex-wrap items-baseline gap-x-2 rounded-lg border bg-white p-2">
         <strong className="min-w-0 text-sm font-semibold wrap-anywhere">{unbroken}</strong>
-        <time className="text-xs text-gray-500">오후 3:00</time>
+        <time className="text-xs text-fg-muted">오후 3:00</time>
       </div>
       <p className="w-full text-sm wrap-anywhere">{unbroken}</p>
     </Section>
@@ -124,7 +124,7 @@ export function HiddenSection() {
       <div hidden className="flex" data-check="hidden">
         이 문장이 보이면 hidden 속성이 깨진 것이다.
       </div>
-      <p className="text-xs text-gray-500">위에 아무 문장도 보이지 않아야 한다.</p>
+      <p className="text-xs text-fg-muted">위에 아무 문장도 보이지 않아야 한다.</p>
     </Section>
   )
 }

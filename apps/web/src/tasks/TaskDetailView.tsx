@@ -66,11 +66,11 @@ export function TaskDetailView(props: TaskDetailViewProps) {
           problem={errorIn(problem, 'body')}
           onSave={body => onEdit({ field: 'body', body })}
         />
-        {!task.body && !can('task.edit') && <p className="text-sm text-gray-400">설명 없음</p>}
+        {!task.body && !can('task.edit') && <p className="text-sm text-fg-subtle">설명 없음</p>}
       </SidePanelSection>
       <TaskResultList task={task} busy={busy} onMake={props.onMake} openerOf={props.openerOf} />
       {task.createdBy && (
-        <p className="text-xs text-gray-400">
+        <p className="text-xs text-fg-subtle">
           {task.createdBy.name} · {monthDayTime(task.createdAt)} 만듦
         </p>
       )}

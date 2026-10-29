@@ -14,7 +14,7 @@ export function RadioGroupItem({
   return (
     <RadioPrimitive.Item
       className={cn(
-        'size-5 shrink-0 rounded-full border border-gray-600 text-gray-900 outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:opacity-45',
+        'size-5 shrink-0 rounded-full border border-border-control text-fg outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:opacity-45',
         className,
       )}
       {...props}

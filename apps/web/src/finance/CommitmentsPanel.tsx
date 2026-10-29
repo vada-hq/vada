@@ -14,7 +14,7 @@ export function CommitmentsView({
 }: FinanceCommitmentsResponse & { onOpen: (id: string) => void }) {
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex justify-between gap-3 text-sm text-gray-500 tabular-nums" role="status">
+      <div className="flex justify-between gap-3 text-sm text-fg-muted tabular-nums" role="status">
         <span>{items.length}건</span>
         <span>합계 {wonLabel(items.reduce((sum, row) => sum + row.amount, 0))}</span>
       </div>
@@ -37,7 +37,7 @@ export function CommitmentsView({
                 </span>
               </div>
               <span className="wrap-anywhere">{row.requestTitle}</span>
-              <span className="text-xs text-gray-500 wrap-anywhere">
+              <span className="text-xs text-fg-muted wrap-anywhere">
                 {[row.event?.name, row.budgetItem.purpose].filter(Boolean).join(' · ')}
               </span>
             </Card>

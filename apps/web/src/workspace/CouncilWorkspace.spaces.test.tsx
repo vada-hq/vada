@@ -111,8 +111,8 @@ test('행사 줄을 누르면 그 행사가 열리고 그 줄이 켜진다', asy
   expect(screen.getByRole('tab', { name: '메시지', selected: true })).toBeTruthy()
   expect(current()).toEqual(['체2026 체육대회진행 중'])
   // 켜진 줄의 파란 바탕에서도 상태 글이 4.5:1을 넘게 한 단계 진하다.
-  expect(within(aside()).getByText('진행 중').className).toContain('text-gray-600')
-  expect(within(aside()).getByText('기획 중').className).toContain('text-gray-500')
+  expect(within(aside()).getByText('진행 중').className).toContain('text-fg-tertiary')
+  expect(within(aside()).getByText('기획 중').className).toContain('text-fg-muted')
 })
 
 test('묶음에 없는 행사(6번째, 완료)를 열거나 행사 목록이면 [전체 행사 보기]가 켜진다', async () => {

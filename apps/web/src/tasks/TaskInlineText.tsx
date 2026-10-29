@@ -31,8 +31,8 @@ function checkOf(field: Field, text: string) {
 }
 
 const SHOWN: Record<Field, string> = {
-  title: 'text-lg leading-snug font-semibold text-gray-900',
-  body: 'text-sm leading-relaxed text-gray-800 whitespace-pre-wrap',
+  title: 'text-lg leading-snug font-semibold text-fg',
+  body: 'text-sm leading-relaxed text-fg-body whitespace-pre-wrap',
 }
 
 function useInlineEdit({ field, value, onSave }: Pick<Props, 'field' | 'value' | 'onSave'>) {
@@ -119,9 +119,9 @@ function Shown({
         aria-label={value ? undefined : empty}
         className={cn(
           SHOWN[field],
-          '-mx-2 h-auto justify-start px-2 py-1 text-left whitespace-pre-wrap wrap-anywhere hover:bg-gray-100 hover:text-gray-900',
+          '-mx-2 h-auto justify-start px-2 py-1 text-left whitespace-pre-wrap wrap-anywhere hover:bg-surface-muted hover:text-fg',
           field === 'body' && 'font-normal',
-          !value && 'text-gray-400',
+          !value && 'text-fg-subtle',
         )}
         onClick={onStart}
       >

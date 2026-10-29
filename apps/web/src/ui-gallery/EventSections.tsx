@@ -72,16 +72,16 @@ export function EventSection() {
     <Section title="행사 목록 카드">
       {EMPTY_WIDTHS.map(width => (
         <div key={width.label} className={`${width.className} max-w-full`}>
-          <p className="mb-3 text-xs text-gray-500">{width.label}</p>
+          <p className="mb-3 text-xs text-fg-muted">{width.label}</p>
           <EventCardList events={CARDS} onOpen={noop} />
         </div>
       ))}
       <div className="flex max-w-full flex-col gap-4 overflow-x-auto">
         {EMPTY_WIDTHS.map(width => (
           <div key={width.label} className={width.className}>
-            <p className="text-xs text-gray-500">{width.label} · 만들 수 있음</p>
+            <p className="text-xs text-fg-muted">{width.label} · 만들 수 있음</p>
             <NoEvents canCreate onCreate={noop} />
-            <p className="text-xs text-gray-500">{width.label} · 만들 수 없음</p>
+            <p className="text-xs text-fg-muted">{width.label} · 만들 수 없음</p>
             <NoEvents canCreate={false} onCreate={noop} />
           </div>
         ))}
@@ -196,7 +196,7 @@ export function EventHeaderSection() {
       <div className="flex w-full max-w-5xl flex-col gap-8">
         {HEADERS.map(({ key, event: sample }) => (
           <div key={key} className="flex flex-col gap-1">
-            <p className="text-xs text-gray-500">{key}</p>
+            <p className="text-xs text-fg-muted">{key}</p>
             <EventHeader event={sample} tabs={tabs} tabLabel="개요" {...headerHandlers} />
           </div>
         ))}

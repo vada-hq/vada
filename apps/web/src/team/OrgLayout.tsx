@@ -62,12 +62,12 @@ export function OrgLayout({
         wide
         title="회장단"
         groupKey="council"
-        icon={<Star aria-hidden className="size-4 shrink-0 text-yellow-500" />}
+        icon={<Star aria-hidden className="size-4 shrink-0 text-star-bright" />}
         meta={headcount(groups.council)}
         people={groups.council}
         person={slots.person}
       />
-      {departments.length === 0 && <p className="text-sm text-gray-500">부서 없음</p>}
+      {departments.length === 0 && <p className="text-sm text-fg-muted">부서 없음</p>}
       <div className="grid items-start gap-4 @2xl:grid-cols-2 @4xl:grid-cols-3 @6xl:grid-cols-4">
         {groups.departments.map(group => (
           <OrgGroupCard

@@ -35,10 +35,10 @@ export default function HomeSection({
   return (
     <section id={id} aria-label={title} className="flex scroll-mt-4 flex-col gap-2 max-sm:gap-3">
       <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-        <h2 className="flex items-center gap-1.5 text-sm font-semibold text-gray-900 wrap-anywhere">
-          {Icon && <Icon aria-hidden className="size-4 text-gray-500" />}
+        <h2 className="flex items-center gap-1.5 text-sm font-semibold text-fg wrap-anywhere">
+          {Icon && <Icon aria-hidden className="size-4 text-fg-muted" />}
           {title}
-          {count !== undefined && <span className="font-normal text-gray-500">{count}</span>}
+          {count !== undefined && <span className="font-normal text-fg-muted">{count}</span>}
         </h2>
         <div className="flex flex-wrap items-baseline gap-x-3">
           {aside}
@@ -56,7 +56,7 @@ export default function HomeSection({
         </div>
       </div>
       <ul className={cn(cardClass, 'divide-y')}>{children}</ul>
-      {footer && <p className="px-1 text-xs text-gray-500">{footer}</p>}
+      {footer && <p className="px-1 text-xs text-fg-muted">{footer}</p>}
     </section>
   )
 }
@@ -66,7 +66,7 @@ export function HomeEmpty({ children, action }: { children: ReactNode; action?: 
   return (
     <li
       className={cn(
-        'px-4 py-3 text-sm text-gray-500',
+        'px-4 py-3 text-sm text-fg-muted',
         action !== undefined && 'flex flex-wrap items-center justify-between gap-x-3 gap-y-2',
       )}
     >

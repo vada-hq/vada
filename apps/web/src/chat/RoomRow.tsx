@@ -42,7 +42,7 @@ export default function RoomRow({
             {/* 긴 이름은 두 줄에서 말줄임(와이어프레임 truncate). 256px 목록 칸에서 접혀 줄이 길어지지 않게 한다. */}
             <span
               title={roomName(room)}
-              className="line-clamp-2 min-w-0 text-sm font-semibold wrap-anywhere text-gray-900"
+              className="line-clamp-2 min-w-0 text-sm font-semibold wrap-anywhere text-fg"
             >
               {roomName(room)}
             </span>
@@ -58,16 +58,16 @@ export default function RoomRow({
               </Badge>
             )}
           </span>
-          <span className="shrink-0 self-start text-xs text-gray-500">
+          <span className="shrink-0 self-start text-xs text-fg-muted">
             {timeLabel(room.lastMessageAt, now)}
           </span>
         </span>
         {room.lastMessage && (
-          <span className="truncate text-xs text-gray-500">{lastLine(room.lastMessage)}</span>
+          <span className="truncate text-xs text-fg-muted">{lastLine(room.lastMessage)}</span>
         )}
         {/* 1:1은 늘 두 사람이라 인원을 보이지 않는다. */}
         {room.type !== 'direct' && (
-          <span className="text-xs text-gray-500">참여 {room.memberCount}명</span>
+          <span className="text-xs text-fg-muted">참여 {room.memberCount}명</span>
         )}
       </Button>
     </li>

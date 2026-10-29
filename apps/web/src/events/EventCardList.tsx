@@ -29,7 +29,7 @@ export function EventCardList({
         <div className="relative w-full min-w-0 @xl:w-72">
           <Search
             aria-hidden
-            className="pointer-events-none absolute top-3 left-3 size-4 text-gray-400"
+            className="pointer-events-none absolute top-3 left-3 size-4 text-fg-subtle"
           />
           <Input
             type="search"
@@ -67,7 +67,7 @@ export function EventCardList({
         </NativeSelect>
       </div>
       {filters.events.length === 0 ? (
-        <p className="py-8 text-center text-sm text-gray-500">결과 없음</p>
+        <p className="py-8 text-center text-sm text-fg-muted">결과 없음</p>
       ) : (
         <ul aria-label="행사 목록" className="grid w-full min-w-0 max-w-220 grid-cols-1 gap-3">
           {shown.map(event => (

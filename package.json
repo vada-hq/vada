@@ -15,7 +15,8 @@
     "format:check": "prettier --check .",
     "lint": "oxlint --deny-warnings --report-unused-disable-directives",
     "knip": "knip",
-    "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm knip"
+    "palette": "pnpm --filter @vada/web palette",
+    "check": "pnpm format:check && pnpm lint && pnpm palette && pnpm typecheck && pnpm knip"
   },
   "devDependencies": {
     "@types/node": "22.20.4",

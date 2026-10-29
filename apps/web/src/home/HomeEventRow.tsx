@@ -17,7 +17,7 @@ export function whenParts(event: EventSummary, today: string) {
   return [
     whenLabel(event),
     event.status === 'upcoming' && event.startsAt && (
-      <span key="d-day" className="font-medium text-gray-700">
+      <span key="d-day" className="font-medium text-fg-secondary">
         {dDay(today, event.startsAt)}
       </span>
     ),
@@ -35,7 +35,7 @@ export default function HomeEventRow({ card, today, onOpen }: Props) {
         tasks.total > 0 && `업무 ${tasks.done}/${tasks.total}`,
         ...riskParts(tasks),
         settlement && (
-          <span key="settlement" className="font-medium text-gray-700">
+          <span key="settlement" className="font-medium text-fg-secondary">
             {settlementLabel(settlement)}
           </span>
         ),

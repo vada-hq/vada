@@ -71,7 +71,7 @@ function QuestionInput({
         <Label key={choice.id} className={choiceRow}>
           <input
             type="checkbox"
-            className="size-4 accent-blue-600"
+            className="size-4 accent-primary-emphasis"
             checked={picked.includes(choice.id)}
             disabled={busy}
             onChange={event =>

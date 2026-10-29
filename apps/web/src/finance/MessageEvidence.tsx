@@ -28,7 +28,7 @@ function PhotoItem({
         loading="lazy"
         className="size-16 shrink-0 rounded-sm border object-cover"
       />
-      <span className="flex min-w-0 flex-col gap-1 text-xs wrap-anywhere text-gray-600">
+      <span className="flex min-w-0 flex-col gap-1 text-xs wrap-anywhere text-fg-tertiary">
         {status?.state === 'attaching' && <span>붙이는 중…</span>}
         {status?.state === 'done' && (
           <span className="flex items-center gap-1">
@@ -47,7 +47,7 @@ export function MessageEvidence({ councilId, message }: { councilId: string; mes
   if (message.photoIds.length === 0) return null
   return (
     <section aria-label="이 메시지의 사진" className={cn(cardClass, 'flex flex-col gap-3 p-3')}>
-      <h3 className="text-sm font-medium text-gray-700">
+      <h3 className="text-sm font-medium text-fg-secondary">
         이 메시지의 사진 {message.photoIds.length}장
       </h3>
       <StateMessage kind="notice">증빙은 모든 운영진이 봐요.</StateMessage>

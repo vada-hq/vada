@@ -100,7 +100,7 @@ export function TaskDetailSection() {
   const open = tasks.find(task => task.id === openId)
   return (
     <Section title="업무 상세">
-      <ul className="grid w-full grid-cols-1 gap-3 rounded-xl bg-gray-100/50 p-3 sm:grid-cols-2 lg:grid-cols-4">
+      <ul className="grid w-full grid-cols-1 gap-3 rounded-xl bg-surface-muted/50 p-3 sm:grid-cols-2 lg:grid-cols-4">
         {tasks.map(task => (
           <TaskCard
             direct={direct}

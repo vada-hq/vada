@@ -52,14 +52,14 @@ export function TaskProperty({
   const shown = (
     <span
       id={valueId}
-      className={cn('min-w-0 flex-1 text-left break-keep wrap-anywhere', empty && 'text-gray-400')}
+      className={cn('min-w-0 flex-1 text-left break-keep wrap-anywhere', empty && 'text-fg-subtle')}
     >
       {value}
     </span>
   )
   return (
     <div className="flex min-w-0 flex-col gap-1 bg-white px-3 py-2.5">
-      <span id={labelId} className="text-xs text-gray-500">
+      <span id={labelId} className="text-xs text-fg-muted">
         {label}
       </span>
       <div className="flex min-w-0 items-center gap-1">
@@ -77,10 +77,10 @@ export function TaskProperty({
                 variant="ghost"
                 busy={busy}
                 aria-labelledby={`${labelId} ${valueId}`}
-                className="group -mx-2 h-auto min-w-0 flex-1 justify-start gap-1 px-2 py-1 text-sm font-normal whitespace-normal text-gray-900 hover:bg-gray-100 hover:text-gray-900"
+                className="group -mx-2 h-auto min-w-0 flex-1 justify-start gap-1 px-2 py-1 text-sm font-normal whitespace-normal text-fg hover:bg-surface-muted hover:text-fg"
               >
                 {shown}
-                <ChevronDown aria-hidden className="text-gray-300 group-hover:text-gray-500" />
+                <ChevronDown aria-hidden className="text-fg-faint group-hover:text-fg-muted" />
               </Button>
             </PopoverTrigger>
             <PopoverContent className={popoverClassName}>
@@ -91,7 +91,7 @@ export function TaskProperty({
             </PopoverContent>
           </Popover>
         ) : (
-          <span className="flex min-w-0 flex-1 py-1 text-sm text-gray-900">{shown}</span>
+          <span className="flex min-w-0 flex-1 py-1 text-sm text-fg">{shown}</span>
         )}
         {extra}
       </div>

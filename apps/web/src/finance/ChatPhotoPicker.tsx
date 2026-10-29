@@ -45,7 +45,7 @@ function PhotoRow({
           className="size-16 shrink-0 rounded-sm border object-cover"
         />
         <span className="flex min-w-0 flex-col gap-0.5 text-xs wrap-anywhere">
-          <span className="font-medium text-gray-700">{roomName(photo.room)}</span>
+          <span className="font-medium text-fg-secondary">{roomName(photo.room)}</span>
           <span>{senderOf(photo)}</span>
           <span>{timeLabel(photo.sentAt, now)}</span>
         </span>
@@ -65,7 +65,7 @@ function ChosenCard({ councilId, photo, chat }: { councilId: string; photo: Phot
       <img
         src={filePath(councilId, photo.id)}
         alt={`${roomName(photo.room)} ${senderOf(photo)}의 사진`}
-        className="max-h-40 w-full rounded-sm border bg-gray-50 object-contain"
+        className="max-h-40 w-full rounded-sm border bg-surface-subtle object-contain"
       />
       <Label className="flex flex-col gap-2">
         종류
@@ -141,7 +141,7 @@ export function ChatPhotoPicker({ councilId, chat }: { councilId: string; chat: 
   return (
     <div role="group" aria-label="대화에서 사진 고르기" className="flex flex-col gap-3">
       <div className="flex items-center justify-between gap-2">
-        <h4 className="text-sm font-medium text-gray-700">대화에서 고르기</h4>
+        <h4 className="text-sm font-medium text-fg-secondary">대화에서 고르기</h4>
         <Button type="button" variant="ghost" size="sm" busy={chat.attaching} onClick={chat.close}>
           <X aria-hidden />
           닫기

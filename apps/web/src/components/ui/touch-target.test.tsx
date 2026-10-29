@@ -15,7 +15,7 @@ import { Textarea } from './textarea'
 afterEach(cleanup)
 
 const desktopFieldClass =
-  'w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive'
+  'w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive'
 
 const desktopClasses = (className: string) =>
   className
@@ -37,7 +37,7 @@ test('입력칸·날짜·선택칸은 휴대폰에서 최소 44px이고 데스�
     const field = screen.getByLabelText(label)
     expect(field.classList.contains('max-sm:min-h-11')).toBe(true)
     const extra =
-      label === '계좌' ? 'cursor-pointer' : 'read-only:border-border read-only:bg-gray-50'
+      label === '계좌' ? 'cursor-pointer' : 'read-only:border-border read-only:bg-surface-subtle'
     expect(desktopClasses(field.className)).toBe(`${desktopFieldClass} ${extra}`)
   }
 })
@@ -49,7 +49,7 @@ test('여러 줄 입력은 휴대폰에서도 최소 80px이고 데스크톱 클
   expect(field.classList.contains('max-sm:min-h-20')).toBe(false)
   expect(field.classList.contains('max-sm:min-h-11')).toBe(false)
   expect(desktopClasses(field.className)).toBe(
-    `${desktopFieldClass} min-h-20 resize-y read-only:border-border read-only:bg-gray-50`,
+    `${desktopFieldClass} min-h-20 resize-y read-only:border-border read-only:bg-surface-subtle`,
   )
 })
 
@@ -118,7 +118,7 @@ test('신청 양식 체크칸은 16px 모양과 id를 유지하고 44px 라벨 �
   )
   for (const checkbox of screen.getAllByRole('checkbox')) {
     const label = checkbox.closest('label')
-    expect(checkbox.className).toBe('size-4 accent-blue-600')
+    expect(checkbox.className).toBe('size-4 accent-primary-emphasis')
     expect(label?.classList.contains('max-sm:min-h-11')).toBe(true)
     expect(label?.htmlFor).toBe(checkbox.id)
   }
@@ -142,10 +142,10 @@ test('지출 품목 체크칸은 16px 모양을 유지하고 휴대폰 라벨 �
   )
   const checkbox = screen.getByRole('checkbox')
   const label = checkbox.closest('label')
-  expect(checkbox.className).toBe('size-4 accent-blue-600')
+  expect(checkbox.className).toBe('size-4 accent-primary-emphasis')
   expect(label?.classList.contains('max-sm:min-h-11')).toBe(true)
   expect(desktopClasses(label?.className ?? '')).toBe(
-    'font-medium text-gray-700 flex items-center gap-2 text-sm',
+    'font-medium text-fg-secondary flex items-center gap-2 text-sm',
   )
   fireEvent.click(label!)
   expect(onChange).toHaveBeenCalledOnce()

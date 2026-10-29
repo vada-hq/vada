@@ -38,9 +38,9 @@ export function FormEventFacts({ event, onEdit }: Props) {
         <dl className="flex flex-col gap-2 text-sm">
           {rows.map(row => (
             <div key={row.label} className="flex items-baseline gap-3">
-              <dt className="w-10 shrink-0 text-gray-500">{row.label}</dt>
+              <dt className="w-10 shrink-0 text-fg-muted">{row.label}</dt>
               {row.value === null ? (
-                <dd className="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-3 text-yellow-700">
+                <dd className="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-3 text-warning">
                   {row.empty}
                   {canEdit && (
                     <Button
@@ -55,7 +55,7 @@ export function FormEventFacts({ event, onEdit }: Props) {
                   )}
                 </dd>
               ) : (
-                <dd className="min-w-0 flex-1 text-gray-900 wrap-anywhere">{row.value}</dd>
+                <dd className="min-w-0 flex-1 text-fg wrap-anywhere">{row.value}</dd>
               )}
             </div>
           ))}

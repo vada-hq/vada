@@ -47,7 +47,7 @@ export function SpaceListSection() {
     <div className={`flex flex-col gap-4 ${width}`}>
       {SAMPLES.map(sample => (
         <div key={sample.key} className="flex flex-col gap-1">
-          <p className="text-xs text-gray-400">{sample.key}</p>
+          <p className="text-xs text-fg-subtle">{sample.key}</p>
           <nav
             aria-label={`행사 예시 ${sample.key}`}
             className="rounded-lg border bg-white px-2 py-3"

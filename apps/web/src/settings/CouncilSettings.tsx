@@ -36,7 +36,7 @@ export default function CouncilSettings({ view, onSaved, onForbidden }: Props) {
         />
       ) : (
         <>
-          {!canCouncil && <p className="text-sm text-gray-500">회장단만 고칠 수 있어요.</p>}
+          {!canCouncil && <p className="text-sm text-fg-muted">회장단만 고칠 수 있어요.</p>}
           <CouncilInfoForm
             value={settings.council}
             canEdit={canCouncil}

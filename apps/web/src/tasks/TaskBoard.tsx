@@ -57,17 +57,17 @@ function BoardColumn({
       onDragLeave={drop.onDragLeave}
       onDrop={drop.onDrop}
       className={cn(
-        'flex min-h-28 min-w-0 flex-col gap-3 rounded-xl border border-gray-200/50 bg-gray-100/50 p-3',
+        'flex min-h-28 min-w-0 flex-col gap-3 rounded-xl border border-border-default/50 bg-surface-muted/50 p-3',
         drop.available && 'border-dashed border-primary',
         drop.active && 'bg-primary/5 ring-2 ring-primary',
       )}
     >
       <h2
         id={id}
-        className="mb-1 flex items-center justify-between gap-2 px-1 text-xs font-bold tracking-wider text-gray-500"
+        className="mb-1 flex items-center justify-between gap-2 px-1 text-xs font-bold tracking-wider text-fg-muted"
       >
         {STATUS_LABEL[column.status]}
-        <Badge className="rounded-full bg-gray-200 px-1.5 font-bold">{countText(column)}</Badge>
+        <Badge className="rounded-full bg-muted-strong px-1.5 font-bold">{countText(column)}</Badge>
       </h2>
       <ul className="flex flex-col gap-3">{column.tasks.map(card)}</ul>
       {drop.available && <p className="text-center text-xs text-primary">{drop.label}</p>}
@@ -79,9 +79,9 @@ function BoardColumn({
 // 업무가 하나도 없을 때 보드 위의 칸(와이어프레임 OPS-TASK-01 빈 상태). 설명 줄은 두지 않는다(DEC-94).
 export function BoardEmpty({ onAddFirst }: Pick<Props, 'onAddFirst'>) {
   return (
-    <div className="flex flex-col items-center rounded-xl border border-dashed border-gray-300 bg-white py-10 text-center">
-      <Clipboard aria-hidden className="size-8 text-gray-300" />
-      <p className="mt-3 text-base font-semibold text-gray-700">업무 없음</p>
+    <div className="flex flex-col items-center rounded-xl border border-dashed border-border-strong bg-white py-10 text-center">
+      <Clipboard aria-hidden className="size-8 text-fg-faint" />
+      <p className="mt-3 text-base font-semibold text-fg-secondary">업무 없음</p>
       {onAddFirst && (
         <Button size="sm" className="mt-4" onClick={onAddFirst}>
           <Plus aria-hidden />첫 업무 추가

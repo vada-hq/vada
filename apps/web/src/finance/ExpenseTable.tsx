@@ -16,7 +16,7 @@ type Props = {
   onOpen: (expenseId: string) => void
 }
 
-const head = 'px-3 py-2 text-xs font-medium break-keep text-gray-500'
+const head = 'px-3 py-2 text-xs font-medium break-keep text-fg-muted'
 const cell = 'px-3 py-3 align-top text-sm break-keep wrap-anywhere'
 
 function ExpenseRow({
@@ -31,34 +31,34 @@ function ExpenseRow({
   return (
     <tr
       className={cn(
-        'border-t hover:bg-gray-50 has-[:focus-visible]:bg-gray-100',
+        'border-t hover:bg-surface-subtle has-[:focus-visible]:bg-surface-muted',
         expense.cancelled && 'opacity-50',
       )}
     >
-      <td className={cn(cell, 'text-xs text-gray-500')}>
+      <td className={cn(cell, 'text-xs text-fg-muted')}>
         {dayLabel(`${expense.paidOn}T00:00:00+09:00`)}
       </td>
       <td className={cell}>
         <Button
           variant="link"
-          className="h-auto max-w-full justify-start p-0 text-left text-sm font-semibold break-keep whitespace-normal text-gray-900 wrap-anywhere"
+          className="h-auto max-w-full justify-start p-0 text-left text-sm font-semibold break-keep whitespace-normal text-fg wrap-anywhere"
           onClick={() => onOpen(expense.id)}
         >
           {expense.vendor}
         </Button>
-        <p className="mt-1 text-xs text-gray-500">{expense.description}</p>
+        <p className="mt-1 text-xs text-fg-muted">{expense.description}</p>
       </td>
-      <td className={cn(cell, 'text-gray-700')}>{expense.event?.name ?? '상시'}</td>
-      <td className={cn(cell, departments ? 'text-gray-700' : 'text-gray-500')}>
+      <td className={cn(cell, 'text-fg-secondary')}>{expense.event?.name ?? '상시'}</td>
+      <td className={cn(cell, departments ? 'text-fg-secondary' : 'text-fg-muted')}>
         {departments || '—'}
       </td>
-      <td className={cn(cell, purposes ? 'text-gray-700' : 'text-gray-500')}>{purposes || '—'}</td>
+      <td className={cn(cell, purposes ? 'text-fg-secondary' : 'text-fg-muted')}>
+        {purposes || '—'}
+      </td>
       <td className={cn(cell, 'text-right tabular-nums')}>
-        <span className="font-semibold whitespace-nowrap text-gray-900">
-          {wonLabel(expense.amount)}
-        </span>
+        <span className="font-semibold whitespace-nowrap text-fg">{wonLabel(expense.amount)}</span>
         {amount !== expense.amount && (
-          <p className="mt-1 text-xs text-gray-500">선택 범위 {wonLabel(amount)}</p>
+          <p className="mt-1 text-xs text-fg-muted">선택 범위 {wonLabel(amount)}</p>
         )}
       </td>
       <td className={cell}>
@@ -85,7 +85,7 @@ export function ExpenseTable({ expenses, ...props }: Props) {
         aria-label="지출 목록"
         className="w-full min-w-3xl table-fixed border-collapse text-left"
       >
-        <thead className="bg-gray-50">
+        <thead className="bg-surface-subtle">
           <tr>
             <th scope="col" className={cn(head, 'w-30')}>
               결제일

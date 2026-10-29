@@ -45,9 +45,9 @@ const CATEGORY: Record<DepartmentColorKey, DepartmentColor> = {
   },
 }
 const GRAY: DepartmentColor = {
-  line: 'border-l-gray-400',
-  chip: 'bg-gray-100 text-gray-600',
-  dot: 'bg-gray-400',
+  line: 'border-l-category-none',
+  chip: 'bg-surface-muted text-fg-tertiary',
+  dot: 'bg-category-none',
 }
 export function departmentColorOf(
   departmentId: string | null,

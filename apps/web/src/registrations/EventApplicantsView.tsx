@@ -72,7 +72,7 @@ function BulkBar(props: Props) {
   if (!props.data.canManage || count === 0)
     return <BulkResult data={props.data} result={props.result} names={props.resultNames} />
   return (
-    <div className="sticky bottom-0 flex flex-col gap-3 rounded-md border border-blue-200 bg-blue-50 p-3">
+    <div className="sticky bottom-0 flex flex-col gap-3 rounded-md border border-primary-border bg-primary-surface p-3">
       <div className="flex flex-wrap items-center gap-2">
         <p className="mr-auto text-sm font-medium tabular-nums">{eventApplicantSelected(count)}</p>
         <Button

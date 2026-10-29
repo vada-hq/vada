@@ -15,7 +15,7 @@ export function Meter({
   return (
     <progress
       className={cn(
-        'h-1.5 w-full appearance-none overflow-hidden rounded-full bg-gray-200 [&::-moz-progress-bar]:bg-blue-600 [&::-webkit-progress-bar]:bg-gray-200 [&::-webkit-progress-value]:bg-blue-600',
+        'h-1.5 w-full appearance-none overflow-hidden rounded-full bg-muted-strong [&::-moz-progress-bar]:bg-primary-emphasis [&::-webkit-progress-bar]:bg-muted-strong [&::-webkit-progress-value]:bg-primary-emphasis',
         className,
       )}
       value={value}

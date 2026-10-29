@@ -50,7 +50,7 @@ test('내 업무 중 지난 것이 있으면 업무 옆에 빨간 지남 N이다
   }))
   const el = await badge('지난 업무 2개')
   expect(el.textContent).toBe('지남 2')
-  expect(el.className).toContain('bg-red-600')
+  expect(el.className).toContain('bg-notify')
 })
 
 test('지난 것이 없으면 남은 업무가 있어도 배지가 없다', async () => {

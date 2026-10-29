@@ -30,7 +30,7 @@ export function OverviewItems({
       className={cn(cardClass, 'flex flex-col gap-3 p-4')}
     >
       <div className="flex items-center justify-between gap-3">
-        <h3 className="text-sm font-semibold break-keep text-gray-900">예산 항목별 현황</h3>
+        <h3 className="text-sm font-semibold break-keep text-fg">예산 항목별 현황</h3>
         {onOpen && (
           <Button variant="outline" className="shrink-0 max-sm:min-h-11" onClick={onOpen}>
             항목 보기
@@ -43,7 +43,7 @@ export function OverviewItems({
         <>
           <BudgetItemList items={items} label="지출 예산 항목" />
           {noItem > 0 && (
-            <p className="flex justify-between gap-3 text-sm text-gray-700">
+            <p className="flex justify-between gap-3 text-sm text-fg-secondary">
               <span>예산 항목 안 정한 지출</span>
               <span className="whitespace-nowrap tabular-nums">{wonLabel(noItem)}</span>
             </p>

@@ -37,7 +37,7 @@ function Department({
   const rows = blockedTasks(department, mineIds)
   // 머리의 수는 업무 화면 부서 묶음과 같은 기준이다(지남·담당자 없음은 0이면 뺀다).
   const aside = (
-    <span className="flex flex-wrap gap-x-2 text-xs text-gray-500">
+    <span className="flex flex-wrap gap-x-2 text-xs text-fg-muted">
       <span>진행 중 {counts.inProgress}</span>
       {riskParts(counts)}
     </span>

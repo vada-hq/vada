@@ -19,7 +19,7 @@ function Due({ task, today }: Pick<Props, 'task' | 'today'>) {
   if (task.overdue && task.dueDate)
     return <Badge tone="danger">{daysBetween(task.dueDate, today)}일 지남</Badge>
   if (task.dueDate === today) return <Badge tone="info">오늘</Badge>
-  return <span className="text-gray-500">{dueLabel(task.dueDate)}</span>
+  return <span className="text-fg-muted">{dueLabel(task.dueDate)}</span>
 }
 
 // 홈의 업무 줄: 제목, (부서·)행사(·담당자), 오른쪽에 마감. 업무 화면의 줄과 같은 자리에 같은 색을 쓴다.
@@ -37,7 +37,7 @@ export default function TaskRow({
         showDepartment && (task.department?.name ?? COUNCIL_TASK_LABEL),
         task.event?.name,
         showAssignee && (
-          <span key="assignee" className={cn(task.assignee === null && 'text-yellow-700')}>
+          <span key="assignee" className={cn(task.assignee === null && 'text-warning')}>
             {assigneeLabel(task.assignee)}
           </span>
         ),

@@ -19,7 +19,8 @@ type Props = {
 // 휴대폰에서는 누르는 크기를 44px 이상으로 둔다(WCAG 2.5.5).
 const chipClass =
   'h-auto max-w-full rounded-full px-2.5 py-1 text-left font-normal whitespace-normal wrap-anywhere max-sm:min-h-11'
-const PERSONAL_CHIP = 'border-amber-200 bg-amber-50 text-amber-900 hover:bg-amber-100'
+const PERSONAL_CHIP =
+  'border-personal-border bg-personal-surface text-personal-fg hover:bg-personal-surface-hover'
 
 // 1:1은 이름만으로는 방인지 사람인지 모르므로 '· 1:1'을 붙인다(색만으로 가르지 않는다, WCAG 1.4.1).
 // 대화 목록은 '1:1 대화' 묶음 머리가 대신한다. 상대 이름이 없으면 '1:1 대화'만 둔다.
@@ -34,7 +35,7 @@ export default function MessageInbox({ rooms, inCard = false, onOpenRoom, onSeeA
   return (
     <section aria-label="메시지함" className="flex flex-wrap items-center gap-2">
       {/* 와이어프레임 HomeMessageBox처럼 부분 제목보다 낮은 회색 작은 라벨이다(칩이 주인공). */}
-      <Heading className="flex items-center gap-1 text-xs font-normal text-gray-500">
+      <Heading className="flex items-center gap-1 text-xs font-normal text-fg-muted">
         <MessageSquare aria-hidden className="size-3.5" />
         메시지함
       </Heading>
@@ -47,8 +48,7 @@ export default function MessageInbox({ rooms, inCard = false, onOpenRoom, onSeeA
           aria-label={`${chipName(room)}, 안 읽은 메시지 ${room.unread}개`}
           onClick={() => onOpenRoom(room.id, room.eventId)}
         >
-          {chipName(room)}{' '}
-          <span className="font-bold text-red-600">{unreadLabel(room.unread)}</span>
+          {chipName(room)} <span className="font-bold text-notify">{unreadLabel(room.unread)}</span>
         </Button>
       ))}
       <Button

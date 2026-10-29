@@ -35,19 +35,19 @@ export function SettlementRemaining({
   const rows = settlement.remaining.filter(row => row.count > 0)
   return (
     <section aria-label="정산에 남은 것" className="flex flex-col gap-3">
-      <h3 className="text-sm font-medium text-gray-700">정산에 남은 것</h3>
+      <h3 className="text-sm font-medium text-fg-secondary">정산에 남은 것</h3>
       {settlement.settled && <Alert tone="success">정산이 끝났어요</Alert>}
       <ul className="flex flex-col gap-3">
         {rows.map(row => (
           <li key={row.kind} className="flex flex-col gap-1 rounded-sm border p-3">
-            <span className="text-sm font-medium text-gray-900">
+            <span className="text-sm font-medium text-fg">
               {REMAINING_LABEL[row.kind]} {row.count}개
             </span>
             {row.targets.map(target => (
               <TargetButton key={`${target.type}-${target.id}`} target={target} {...open} />
             ))}
             {row.targets.length > 0 && row.count > row.targets.length && (
-              <span className="text-xs text-gray-500">외 {row.count - row.targets.length}개</span>
+              <span className="text-xs text-fg-muted">외 {row.count - row.targets.length}개</span>
             )}
           </li>
         ))}

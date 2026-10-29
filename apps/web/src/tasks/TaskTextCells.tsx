@@ -56,7 +56,7 @@ export function TitleCell(props: TextCellProps) {
       <Button
         variant="link"
         tabIndex={-1}
-        className="h-auto min-w-0 justify-start p-0 text-left text-sm font-medium whitespace-normal text-gray-900 wrap-anywhere"
+        className="h-auto min-w-0 justify-start p-0 text-left text-sm font-medium whitespace-normal text-fg wrap-anywhere"
         onClick={props.onOpen}
       >
         {task.title}
@@ -89,7 +89,7 @@ export function DueCell(props: TextCellProps) {
     onInvalid: props.onInvalid,
   })
   const inputRef = useFocusOnEdit(edit.editing)
-  const text = cn('text-xs text-gray-500', task.overdue && 'font-medium text-red-600')
+  const text = cn('text-xs text-fg-muted', task.overdue && 'font-medium text-danger-emphasis')
   if (edit.editing)
     return (
       <Input
