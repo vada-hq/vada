@@ -132,15 +132,16 @@ test('탭을 바꾸면 주소의 쿼리만 바뀌고 기록은 쌓이지 않으�
   expect(push).not.toHaveBeenCalled()
 })
 
-test('행사 기록은 모든 탭에서 머리글과 본문이 같은 기본 폭이다', async () => {
+test('행사 기록은 메시지 탭만 끝까지 쓰고 다른 탭은 머리글과 본문이 같은 기본 폭이다', async () => {
   setup(EVENT_AT)
   onEventTasks()
   for (const tab of ['메시지', '개요', '업무', '인원 관리', '구매']) {
     fireEvent.click(await screen.findByRole('tab', { name: tab }))
     expect(await selected(tab)).toBe('true')
+    const width = tab === '메시지' ? 'max-w-none' : 'max-w-7xl'
     for (const region of [screen.getByRole('banner'), screen.getByRole('main')]) {
       expect(region.firstElementChild!.className.split(' ')).toEqual(
-        expect.arrayContaining(['mx-auto', 'w-full', 'max-w-7xl']),
+        expect.arrayContaining(['mx-auto', 'w-full', width]),
       )
     }
   }
