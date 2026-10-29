@@ -1,13 +1,12 @@
 import type { BuilderProps } from '../builder-props'
+import { CardScreen, EmptyScreen } from './card'
+import { EditorScreen } from './editor'
 
-// v1 자리(양식 만들기 화면 시안). 이 폴더(v1/) 안만 고친다. 공용 파일(../builder-data.ts, ../builder-forms.ts,
-// ../builder-props.ts, ../apply-preview.tsx, ../BuilderPreview.tsx, ../builder-main.tsx)은 읽기만 한다.
-// 기본 내보내기 하나가 세 화면(props.screen: card·editor·empty)을 모두 그린다. 행사 화면 탭 안 내용 영역만 그린다(셸은 껍데기).
-// 판 문서: notes/integration/events/form-builder-board.md
-export default function BuilderV1({ screen, data }: BuilderProps) {
-  return (
-    <section className="flex h-40 items-center justify-center rounded-lg border border-dashed border-default bg-surface-subtle text-sm text-fg-muted">
-      v1 자리 · {screen} · {data.name}
-    </section>
-  )
+// v1 '카드 더미 모양'(refs 2.1): 회색 쟁반 위에 흰 카드를 쌓는다.
+// 편집기 = 고친 카드 하나만 펼치는 카드 더미 + 오른쪽 고정 휴대폰 틀, 양식 카드 = 윗변 상태 띠 카드, 빈 상태 = 점선 카드 자리.
+// 이 폴더(v1/) 안만 고친다. 판 문서: notes/integration/events/form-builder-board.md
+export default function BuilderV1(props: BuilderProps) {
+  if (props.screen === 'editor' && props.data.editor) return <EditorScreen {...props} />
+  if (props.screen === 'empty') return <EmptyScreen {...props} />
+  return <CardScreen {...props} />
 }
