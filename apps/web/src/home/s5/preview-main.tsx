@@ -15,6 +15,8 @@ import C1rPreview, { C1R_VARIANTS, type C1rVariant } from '../c1r/C1rPreview'
 import { C1R_DATA_NAMES, type C1rDataName } from '../c1r/c1r-data'
 import C2Preview, { C2_VARIANTS, type C2Variant } from '../c2/C2Preview'
 import { C2_DATA_NAMES, type C2DataName } from '../c2/c2-data'
+import C35Preview, { C35_PARTS, type C35Part } from '../c35/C35Preview'
+import { C35_DATA_NAMES, type C35DataName } from '../c35/c35-data'
 import ThemeTile from '../c1r/themes/ThemeTile'
 import { applyTheme, themeOf } from '../c1r/themes/theme'
 import { councilHomeSample } from '../../ui-gallery/CouncilHomeSections'
@@ -26,10 +28,14 @@ import '../../index.css'
 const params = new URLSearchParams(window.location.search)
 // 실제 회장단 홈(시안 덮개 없이, 부품 갤러리 견본 데이터)을 작업 공간째 띄운다: ?component=home&theme=base|a|b|c
 const realHome = params.get('component') === 'home'
-const variant = (['A', 'B', 'C', 'B2'].includes(params.get('variant') ?? '') ? params.get('variant') : 'A') as S5Variant
+const variant = (
+  ['A', 'B', 'C', 'B2'].includes(params.get('variant') ?? '') ? params.get('variant') : 'A'
+) as S5Variant
 const dataName = (params.get('data') ?? 'main') as S5DataName
 const data = S5_DATA[dataName] ?? S5_DATA.main
-const greeting = (['line', 'date', 'merge'].includes(params.get('greeting') ?? '') ? params.get('greeting') : 'line') as S7Greeting
+const greeting = (
+  ['line', 'date', 'merge'].includes(params.get('greeting') ?? '') ? params.get('greeting') : 'line'
+) as S7Greeting
 const s7 = variant === 'B2' ? { data: S7_DATA[dataName] ?? S7_DATA.main, greeting } : undefined
 
 const COUNCIL_ID = '0199d1a0-0000-7000-8000-0000000000c1'
@@ -80,13 +86,22 @@ const room = (id: string, name: string | null, type: string, unread: number) => 
   memberCount: 3,
 })
 const rooms = data.rooms.map(item =>
-  room(item.id, item.name.replace(' · 1:1', ''), item.name.includes('1:1') ? 'direct' : 'all_members', item.unread),
+  room(
+    item.id,
+    item.name.replace(' · 1:1', ''),
+    item.name.includes('1:1') ? 'direct' : 'all_members',
+    item.unread,
+  ),
 )
 
 const sideEvents = [
   { id: 'ev-1', name: '가을 축제', status: 'ongoing' },
   { id: 'ev-2', name: '진로 특강', status: 'upcoming' },
-  { id: 'ev-3', name: '2026 소프트웨어융합대학 체육대회 및 학과 대항 e스포츠 리그', status: 'upcoming' },
+  {
+    id: 'ev-3',
+    name: '2026 소프트웨어융합대학 체육대회 및 학과 대항 e스포츠 리그',
+    status: 'upcoming',
+  },
   { id: 'ev-4', name: '겨울 MT', status: 'tbd' },
   { id: 'ev-5', name: '신입생 환영회', status: 'ended' },
 ]
@@ -101,9 +116,14 @@ const routes: Record<string, () => Response> = {
   [`GET ${base}`]: () => json(view),
   [`GET ${base}/members`]: () => json(teamResponse()),
   [`GET ${base}/rooms`]: () =>
-    json({ rooms, unreadTotal: rooms.reduce((sum, item) => sum + item.unread, 0), mentionTotal: 0 }),
+    json({
+      rooms,
+      unreadTotal: rooms.reduce((sum, item) => sum + item.unread, 0),
+      mentionTotal: 0,
+    }),
   [`GET ${base}/home`]: () => json(realHome ? councilHomeSample : home),
-  [`GET ${base}/events/open`]: () => json({ events: dataName === 'empty' ? [] : sideEvents, more: false }),
+  [`GET ${base}/events/open`]: () =>
+    json({ events: dataName === 'empty' ? [] : sideEvents, more: false }),
   [`GET ${base}/tasks?view=mine&status=open`]: () => json({ tasks: [], truncated: false }),
 }
 
@@ -147,20 +167,41 @@ function Workspace() {
 // C1: ① 컴포넌트 하나만 띄운다(작업 공간 없음). /home-s5.html?component=c1&variant=A|B&data=main|many|normal
 // C1R: ① 컴포넌트 시안 절차(P3~)의 판. /home-s5.html?component=c1r&variant=0|1|2|3|f1..f8&data=main|many|assign|normal|empty[&theme=base|a|b|c]
 // C2: ② 행사 구역 시안. /home-s5.html?component=c2&variant=e1..e6&data=main|quiet|one|empty|long(테마는 base 고정)
+// C35: ③·⑤·사용 가능 시안. /home-s5.html?component=c35&part=todo|week|available|stack&variant=a|b&data=main|normal|empty(테마는 base 고정)
 // 스타일 타일: 한 테마의 색·글자·부품 견본과 ① v3·v1. /home-s5.html?component=tile&theme=base|a|b|c
 const c1 = params.get('component') === 'c1'
 const c1r = params.get('component') === 'c1r'
 const c2 = params.get('component') === 'c2'
+const c35 = params.get('component') === 'c35'
 const tile = params.get('component') === 'tile'
 const theme = themeOf(params.get('theme'))
 if (c1r || tile || realHome) applyTheme(theme)
-if (c2) applyTheme('base')
-const c1rVariant = (Object.keys(C1R_VARIANTS).includes(params.get('variant') ?? '') ? params.get('variant') : '0') as C1rVariant
-const c1rData = (C1R_DATA_NAMES.includes(params.get('data') as C1rDataName) ? params.get('data') : 'main') as C1rDataName
-const c2Variant = (Object.keys(C2_VARIANTS).includes(params.get('variant') ?? '') ? params.get('variant') : 'e1') as C2Variant
-const c2Data = (C2_DATA_NAMES.includes(params.get('data') as C2DataName) ? params.get('data') : 'main') as C2DataName
+if (c2 || c35) applyTheme('base')
+const c1rVariant = (
+  Object.keys(C1R_VARIANTS).includes(params.get('variant') ?? '') ? params.get('variant') : '0'
+) as C1rVariant
+const c1rData = (
+  C1R_DATA_NAMES.includes(params.get('data') as C1rDataName) ? params.get('data') : 'main'
+) as C1rDataName
+const c2Variant = (
+  Object.keys(C2_VARIANTS).includes(params.get('variant') ?? '') ? params.get('variant') : 'e1'
+) as C2Variant
+const c2Data = (
+  C2_DATA_NAMES.includes(params.get('data') as C2DataName) ? params.get('data') : 'main'
+) as C2DataName
+const c35Part = (
+  C35_PARTS.includes(params.get('part') as C35Part) ? params.get('part') : 'todo'
+) as C35Part
+const c35Variant = params.get('variant') === 'b' ? 'b' : 'a'
+const c35Data = (
+  C35_DATA_NAMES.includes(params.get('data') as C35DataName) ? params.get('data') : 'main'
+) as C35DataName
 createRoot(document.getElementById('root')!).render(
-  tile ? (
+  c35 ? (
+    <StrictMode>
+      <C35Preview part={c35Part} variant={c35Variant} data={c35Data} />
+    </StrictMode>
+  ) : tile ? (
     <StrictMode>
       <ThemeTile theme={theme} />
     </StrictMode>
@@ -174,7 +215,10 @@ createRoot(document.getElementById('root')!).render(
     </StrictMode>
   ) : c1 ? (
     <StrictMode>
-      <C1Preview variant={params.get('variant') === 'B' ? 'B' : 'A'} data={(params.get('data') ?? 'main') as C1DataName} />
+      <C1Preview
+        variant={params.get('variant') === 'B' ? 'B' : 'A'}
+        data={(params.get('data') ?? 'main') as C1DataName}
+      />
     </StrictMode>
   ) : realHome ? (
     <StrictMode>
@@ -183,12 +227,12 @@ createRoot(document.getElementById('root')!).render(
       </div>
     </StrictMode>
   ) : (
-  <StrictMode>
-    <HomeS5Preview.Provider value={{ variant, data, s7 }}>
-      <div className="flex min-h-dvh flex-col">
-        <Workspace />
-      </div>
-    </HomeS5Preview.Provider>
-  </StrictMode>
+    <StrictMode>
+      <HomeS5Preview.Provider value={{ variant, data, s7 }}>
+        <div className="flex min-h-dvh flex-col">
+          <Workspace />
+        </div>
+      </HomeS5Preview.Provider>
+    </StrictMode>
   ),
 )
