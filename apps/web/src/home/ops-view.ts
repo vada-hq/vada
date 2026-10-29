@@ -11,6 +11,10 @@ import {
 // ① 확인이 필요한 운영 상황(f8)의 글. 갈래·차례·셈은 서버가 정했고 여기는 글만 만든다.
 export const OPS_TITLE = '확인이 필요한 운영 상황'
 
+// ①이 0건인 날 머리 인사 대신 쓰는 한 문장(배치 merge). ① 이름에 묶어, 같은 날 ③에 할 일이 있어도 헷갈리지 않게 한다.
+// 문구는 대표 확인 중이라 이 한 곳에서만 정한다.
+export const calmGreeting = (name: string) => `${name}님, ${OPS_TITLE} 없어요`
+
 export const OPS_ICON: Record<HomeOpsKind, LucideIcon> = {
   late: CalendarX2,
   today: AlarmClock,

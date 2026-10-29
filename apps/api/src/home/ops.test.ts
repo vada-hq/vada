@@ -91,8 +91,11 @@ test('일 줄은 지남(오래된 것부터) → 오늘 → 내일 → 결재 3�
     assert.deepEqual(assigned!.contact?.role, { kind: 'assignee' })
     assert.equal(assigned!.contact?.memberId, people.plain.memberId)
     assert.deepEqual(ops.rows.at(-1)!.target, { kind: 'request', id: soon.request })
-    // 재정부에 부장이 없으면 결재 줄의 연락할 사람이 없다.
+    // 재정부에 부장이 없으면 결재 줄의 연락할 사람이 없고, 부장 없는 부서로 재정부를 싣는다.
     assert.equal(ops.rows.at(-1)!.contact, null)
+    assert.deepEqual(ops.rows.at(-1)!.noHead, { id: t.council.departments.finance, name: '재정부' })
+    assert.equal(late!.noHead, null)
+    assert.equal(assigned!.noHead, null)
     assert.deepEqual(ops.counts, { late: 2, today: 1, tomorrow: 1, approval: 2 })
     // 묻기는 아직 없다.
     assert.ok(ops.rows.every(row => row.actions.length === 0))
@@ -221,5 +224,32 @@ test('①은 회장단 홈에만 있고 회장과 부회장은 같은 줄을 읽
     assert.deepEqual(titles(await h.ops('s-vicePresident')), titles(await h.ops()))
     for (const user of ['s-planningHead', 's-financeMember', 's-planningMember', 's-plain'])
       assert.equal((await h.read(user)).councilBoard, undefined, user)
+  })()
+})
+
+test('부장 없는 부서의 업무 줄은 연락할 사람 대신 그 부서를 싣는다', async () => {
+  await withSettlement(async t => {
+    const h = open(t)
+    await h.planningTask('기획 지남', '2026-10-22')
+    await t.pg.query(
+      `UPDATE department_membership SET department_rank = NULL WHERE member_id = $1`,
+      [h.people.planningHead.memberId],
+    )
+    const [row] = (await h.ops()).rows
+    assert.equal(row!.contact, null)
+    assert.deepEqual(row!.noHead, { id: t.council.departments.planning, name: '기획부' })
+  })()
+})
+
+test('학생회를 떠난 부장은 부장이 아니다', async () => {
+  await withSettlement(async t => {
+    const h = open(t)
+    await h.planningTask('기획 지남', '2026-10-22')
+    await t.pg.query(`UPDATE council_membership SET ends_at = now() WHERE member_id = $1`, [
+      h.people.planningHead.memberId,
+    ])
+    const [row] = (await h.ops()).rows
+    assert.equal(row!.contact, null)
+    assert.deepEqual(row!.noHead, { id: t.council.departments.planning, name: '기획부' })
   })()
 })

@@ -33,8 +33,10 @@ export interface HomeOpsRow {
   // late: 지난 날 수, today: 0, tomorrow: 1, approval: 필요한 때까지 남은 날 수(지났으면 음수)
   days: number
   event: { id: string; name: string } | null
-  // 연락할 사람. 없으면(부장 없음, 재정부장 없음) null이다.
+  // 연락할 사람. 없으면(부장 없음, 부서 없는 업무의 담당자 없음) null이다.
   contact: HomeOpsPerson | null
+  // 연락할 사람이 부장인데 그 부서에 지금 부장이 없으면 그 부서(부서 업무는 그 부서, 결재는 재정 역할 부서). 화면은 '부장 정하기'로 조직의 그 부서를 연다.
+  noHead: { id: string; name: string } | null
   // 보는 사람이 이 줄에서 할 수 있는 것. 묻기는 아직 없어 늘 비어 있다.
   actions: 'ask'[]
 }

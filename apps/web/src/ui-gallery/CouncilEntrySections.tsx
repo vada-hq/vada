@@ -86,6 +86,7 @@ export function CouncilEntrySection() {
             onAssignTasks={noop}
             onSeePeople={noop}
             onSeeFinance={noop}
+            onSetHead={noop}
           />
         </Width>
       ))}

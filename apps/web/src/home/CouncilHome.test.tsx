@@ -42,7 +42,7 @@ test('①이 0건이면 머리 한 문장으로 합치고 ② → ③ → ⑤ �
   const { api } = open(councilHome())
   await card('가까운 주요 일정')
   expect(headings()).toEqual([
-    '김회장님, 오늘은 확인할 일 없어요',
+    '김회장님, 확인이 필요한 운영 상황 없어요',
     '전체 행사 진행 현황',
     '후속 정리 중인 행사',
     '가까운 주요 일정',
@@ -215,6 +215,20 @@ test('배정할 일이 있으면 일 줄은 4줄이고 배정 줄이 맨 아래,
   fireEvent.click(seeAll)
   expect(within(ops).getAllByRole('listitem')).toHaveLength(7)
   expect(within(ops).queryByRole('button', { name: /전체 10건 보기/ })).toBeNull()
+})
+
+test('부장 없는 부서의 줄은 누구 칸에 부서 · 부장 없음과 부장 정하기를 두고 조직의 그 부서로 간다', async () => {
+  const rows = [opsRow('t1', 'late', { days: 2, noHead: { id: 'd2', name: '기획부' } })]
+  open(
+    councilHome({ ops: emptyOps({ rows, counts: { ...emptyOps().counts, late: 1 }, total: 1 }) }),
+  )
+  const ops = await card('확인이 필요한 운영 상황')
+  const [row] = within(ops).getAllByRole('listitem')
+  expect(within(row!).getByText('기획부 · 부장 없음')).toBeTruthy()
+  expect(within(row!).queryByText(/묻기/)).toBeNull()
+  fireEvent.click(within(row!).getByRole('button', { name: '부장 정하기' }))
+  expect(pathNow()).toBe('/people/c1')
+  expect(pageState()).toEqual({ department: 'd2' })
 })
 
 test.each(['president', 'vice_president'] as const)(

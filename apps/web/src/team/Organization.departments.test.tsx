@@ -97,6 +97,25 @@ test('홈에서 조직에서 정하기로 오면 재정 역할 부서가 로드�
     delete (HTMLElement.prototype as unknown as Record<string, unknown>).scrollIntoView
   }
 })
+test('홈에서 부장 정하기로 오면 그 부서로 스크롤하고 초점을 옮긴다', async () => {
+  serve()
+  navigate('/people/c1', { pageState: { department: 'd2' } })
+  const scrollIntoView = vi.fn()
+  Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', {
+    value: scrollIntoView,
+    configurable: true,
+  })
+  try {
+    render(<Harness permissions={LEADER_PERMISSIONS} />)
+    await loaded()
+    await waitFor(() => expect(scrollIntoView).toHaveBeenCalledTimes(1))
+    expect(scrollIntoView.mock.contexts[0]).toBe(group('기획부'))
+    expect(document.activeElement).toBe(group('기획부'))
+  } finally {
+    delete (HTMLElement.prototype as unknown as Record<string, unknown>).scrollIntoView
+  }
+})
+
 async function openAdd() {
   fireEvent.click(await screen.findByRole('button', { name: '부서 추가' }))
   return screen.findByRole('form', { name: '부서 추가' })

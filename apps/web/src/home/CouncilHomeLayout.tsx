@@ -1,6 +1,7 @@
 import { Fragment, type ReactNode } from 'react'
 import { cn } from '@/lib/utils'
 import { greetingDate } from './home-time'
+import { calmGreeting } from './ops-view'
 
 // 회장단 홈 배치 L3의 놓기 부품. 배치는 구역을 놓기만 하고 구역의 모양을 덮어쓰지 않는다.
 // 구역마다 @container를 따로 둬, 구역은 자기가 놓인 칸의 폭으로 넓은 꼴과 좁은 꼴을 가른다.
@@ -13,7 +14,7 @@ const Zone = ({ children }: { children: ReactNode }) => (
   <div className="@container min-w-0">{children}</div>
 )
 
-// 머리: 날짜 + 인사 한 줄. ①이 0건인 날(calm)은 인사 대신 '…님, 오늘은 확인할 일 없어요'로 ①을 합친다.
+// 머리: 날짜 + 인사 한 줄. ①이 0건인 날(calm)은 인사 대신 calmGreeting 한 문장으로 ①을 합친다.
 // 왼쪽 끝을 구역 머리 글(쟁반 머리 여백)에 맞춘다.
 export function CouncilHead({ today, name, calm }: { today: string; name: string; calm: boolean }) {
   return (
@@ -25,7 +26,7 @@ export function CouncilHead({ today, name, calm }: { today: string; name: string
           calm ? 'font-medium text-fg-secondary' : 'font-normal text-fg-tertiary',
         )}
       >
-        {calm ? `${name}님, 오늘은 확인할 일 없어요` : `${name}님, 안녕하세요`}
+        {calm ? calmGreeting(name) : `${name}님, 안녕하세요`}
       </h2>
     </div>
   )

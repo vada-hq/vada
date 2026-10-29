@@ -4,6 +4,7 @@ import type { CouncilView, TeamDepartment, TeamMember } from '@vada/contracts'
 import type { Reading } from '@/lib/use-lost'
 import { useReveal } from '@/lib/use-reveal'
 import { pageState } from '@/lib/app-location'
+import { focusedDepartmentOf } from '@/lib/org-focus'
 import PageActions from '@/components/PageActions'
 import PageColumn from '@/components/PageColumn'
 import StateMessage from '@/components/StateMessage'
@@ -65,6 +66,7 @@ export default function Organization({
         titles={titles}
         unassignedFirst={people.can('member.manage')}
         focusFinance={pageState() === 'finance'}
+        focusDepartment={focusedDepartmentOf(pageState())}
         person={(member, group) => (
           <PersonRow key={member.id} member={member} group={group} {...{ people, team, view }} />
         )}

@@ -15,6 +15,8 @@ export interface OpsPeople {
   tints: Map<string, number>
   // 지금 회장단(학생회 직급이 있는 사람)
   council: Set<string>
+  // 이 학생회의 부서(부장이 없을 때 그 부서를 알리려고)
+  departments: { id: string; name: string; finance: boolean }[]
   // 부서 → 그 부서의 지금 부장(먼저 맡은 사람 하나)
   heads: Map<string, { memberId: string; department: string; finance: boolean }>
   headTitle: string
@@ -67,12 +69,25 @@ export async function opsPeopleOf(db: Reader, actor: Actor): Promise<OpsPeople> 
   const tints = new Map(members.map((row, index) => [row.memberId, index % FACE_TINTS]))
   const presidents = new Set(members.filter(row => row.rank !== null).map(row => row.memberId))
   const heads = await headsOf(db, actor, tints)
+  const departments = (
+    await db
+      .select({ id: department.id, name: department.name, role: department.role })
+      .from(department)
+      .where(eq(department.councilId, actor.councilId))
+  ).map(row => ({ id: row.id, name: row.name, finance: row.role === 'finance' }))
   const [titles] = await db
     .select({ headTitle: council.headTitle })
     .from(council)
     .where(eq(council.id, actor.councilId))
   const names = await memberNamesOf(db, actor.councilId, [...tints.keys()])
-  return { tints, council: presidents, heads, headTitle: titles?.headTitle ?? '', names }
+  return {
+    tints,
+    council: presidents,
+    departments,
+    heads,
+    headTitle: titles?.headTitle ?? '',
+    names,
+  }
 }
 
 export function personOf(
@@ -107,3 +122,20 @@ export function financeHeadOf(people: OpsPeople) {
     title: people.headTitle,
   })
 }
+
+// 부장이 연락할 사람인데 그 부서에 지금 부장이 없으면 그 부서
+const headless = (people: OpsPeople, found: OpsPeople['departments'][number] | undefined) =>
+  !found || people.heads.has(found.id) ? null : { id: found.id, name: found.name }
+
+export const headlessOf = (people: OpsPeople, departmentId: string) =>
+  headless(
+    people,
+    people.departments.find(row => row.id === departmentId),
+  )
+
+// 결재는 재정 역할 부서를 본다. 그런 부서가 없으면 null이다('재정 담당 없음'이 맡는다).
+export const financeHeadlessOf = (people: OpsPeople) =>
+  headless(
+    people,
+    people.departments.find(row => row.finance),
+  )

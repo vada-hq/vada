@@ -14,6 +14,8 @@ type Props = {
   // 회장단(member.manage)에게는 미배정 묶음이 맨 위, 다른 운영진에게는 맨 아래다(DEC-91).
   unassignedFirst: boolean
   focusFinance?: boolean
+  // 홈 '부장 정하기'로 열면 그 부서로 스크롤하고 초점을 옮긴다.
+  focusDepartment?: string | undefined
   // 사람 한 줄(key를 단 li). groupKey는 그 줄이 든 묶음이다.
   person: (member: TeamMember, groupKey: string) => ReactNode
   // 부서 머리 오른쪽의 ⋯ 메뉴. 고칠 수 없으면 null.
@@ -41,10 +43,12 @@ export function OrgLayout({
   titles,
   unassignedFirst,
   focusFinance,
+  focusDepartment,
   ...slots
 }: Props) {
   const groups = orgGroups(members, departments)
   const financeId = focusFinance ? departments.find(item => item.role === 'finance')?.id : undefined
+  const revealId = focusDepartment ?? financeId
   const unassigned = groups.unassigned.length > 0 && (
     <OrgGroupCard
       wide
@@ -84,7 +88,7 @@ export function OrgLayout({
               />
             }
             groupKey={group.department.id}
-            reveal={group.department.id === financeId}
+            reveal={group.department.id === revealId}
             badge={group.department.role === 'finance' && <Badge tone="info">재정</Badge>}
             meta={departmentMeta(group, titles)}
             action={slots.departmentAction(group.department)}

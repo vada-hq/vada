@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { menuPath, type EventTab, type HomeCouncilBoard, type HomeResponse } from '@vada/contracts'
 import { openEventTasks, openMenu, openRecord } from '@/lib/go-to'
 import { navigate } from '@/lib/app-location'
+import { departmentFocus } from '@/lib/org-focus'
 import type { Page } from '../workspace/pages'
 import { FollowUpCard } from './CouncilColumns'
 import CouncilEventsCard from './CouncilEventsCard'
@@ -25,7 +26,7 @@ type Props = {
 }
 
 // 회장단 홈 배치 L3(notes layout-report.md '가'): 머리(날짜 + 인사) → ① 한 단 전체 → 아래 두 단(왼쪽 ② 행사, 오른쪽 ③⑤·사용 가능).
-// ①이 0건이면 ① 띠 대신 머리 한 문장 '…님, 오늘은 확인할 일 없어요'로 합친다(merge).
+// ①이 0건이면 ① 띠 대신 머리 한 문장(calmGreeting)으로 합친다(merge).
 // ②③⑤ 자리는 시연 조각 ㉯㉰에서 새 구역으로 바뀐다. 그때까지 지금 카드(행사 진행 현황, 후속 정리, 가까운 일정, 재정 요약)를 그 자리에 둔다.
 export default function CouncilHome({ home, board, councilId, name, pushBand, ...open }: Props) {
   const openTask = (taskId: string) => openRecord('tasks', councilId, taskId, { behind: 'home' })
@@ -52,6 +53,9 @@ export default function CouncilHome({ home, board, councilId, name, pushBand, ..
           }
           onSeePeople={() => openMenu('people', councilId)}
           onSeeFinance={() => navigate(menuPath('people', councilId), { pageState: 'finance' })}
+          onSetHead={departmentId =>
+            navigate(menuPath('people', councilId), { pageState: departmentFocus(departmentId) })
+          }
         />
       )}
       <CouncilSplit

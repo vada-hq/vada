@@ -126,6 +126,7 @@ export const opsRow = (
   days: 0,
   event: null,
   contact: null,
+  noHead: null,
   actions: [],
   ...extra,
 })

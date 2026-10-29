@@ -13,7 +13,15 @@ import type { Actor } from '../access/actor.js'
 import type { Db } from '../db/types.js'
 import { requestListOf } from '../purchases/list.js'
 import type { OpenTask } from '../tasks/open-tasks.js'
-import { financeHeadOf, headOf, opsPeopleOf, personOf, type OpsPeople } from './ops-contacts.js'
+import {
+  financeHeadOf,
+  financeHeadlessOf,
+  headlessOf,
+  headOf,
+  opsPeopleOf,
+  personOf,
+  type OpsPeople,
+} from './ops-contacts.js'
 
 type Reader = Pick<Db, 'select'>
 
@@ -59,6 +67,7 @@ function taskRowsOf(open: OpenTask[], people: OpsPeople, actor: Actor, today: st
       days: Math.abs(lateDays),
       event: row.summary.event,
       contact,
+      noHead: row.summary.department ? headlessOf(people, row.summary.department.id) : null,
       actions: [],
     })
   }
@@ -71,6 +80,7 @@ async function approvalRowsOf(db: Reader, actor: Actor, people: OpsPeople, now: 
   const until = koreanDateOf(new Date(now.getTime() + PURCHASE_NEEDED_SOON_DAYS * DAY_MS))
   const contact = financeHeadOf(people)
   if (contact?.memberId === actor.memberId) return []
+  const noHead = financeHeadlessOf(people)
   const { requests } = await requestListOf(db, actor, { view: 'pending' })
   return requests
     .filter(request => request.neededBy !== null && request.neededBy <= until)
@@ -81,6 +91,7 @@ async function approvalRowsOf(db: Reader, actor: Actor, people: OpsPeople, now: 
       days: daysBetween(today, request.neededBy!),
       event: request.event,
       contact,
+      noHead,
       actions: [],
     }))
 }

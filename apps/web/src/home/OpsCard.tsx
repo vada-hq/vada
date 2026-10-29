@@ -1,7 +1,8 @@
 import { useId, useState } from 'react'
-import { UserPlus } from 'lucide-react'
+import { ChevronRight, UserPlus } from 'lucide-react'
 import { HOME_OPS_SHOWN, type HomeOps, type HomeOpsRow } from '@vada/contracts'
-import AssignRow, { type AssignLink } from '@/components/AssignRow'
+import AssignRow, { TEXT_LINK, type AssignLink } from '@/components/AssignRow'
+import { Button } from '@/components/ui/button'
 import PersonFace from '@/components/PersonFace'
 import QuietBand from '@/components/QuietBand'
 import SeeAllButton from '@/components/SeeAllButton'
@@ -24,10 +25,25 @@ type Props = {
   onAssignTasks: () => void
   onSeePeople: () => void
   onSeeFinance: () => void
+  // 부장 없는 부서의 '부장 정하기': 조직 화면의 그 부서
+  onSetHead: (departmentId: string) => void
 }
 
 // 누구: 얼굴 + '…에게 묻기'. 묻기는 아직 없어(시연 뒤) 같은 모양의 글로 두고 누르는 곳이 아니다.
-function Contact({ row }: { row: HomeOpsRow }) {
+// 연락할 부장이 없으면 '기획부 · 부장 없음'과 [부장 정하기](조직의 그 부서, 재정 담당 없음과 같은 꼴)를 둔다.
+function Contact({ row, onSetHead }: { row: HomeOpsRow; onSetHead: Props['onSetHead'] }) {
+  if (row.noHead) {
+    const { id, name } = row.noHead
+    return (
+      <span className="flex min-h-9 flex-wrap items-center gap-x-3 text-row-sub">
+        <span className="text-fg-tertiary">{`${name} · 부장 없음`}</span>
+        <Button variant="link" className={TEXT_LINK} onClick={() => onSetHead(id)}>
+          부장 정하기
+          <ChevronRight aria-hidden />
+        </Button>
+      </span>
+    )
+  }
   if (!row.contact) return null
   return (
     <span className="-mx-1.5 inline-flex min-h-9 max-w-full items-center gap-2 px-1.5 pr-2.5 text-row-sub font-medium text-primary-strong">
@@ -71,7 +87,7 @@ export default function OpsCard(props: Props) {
             fact={factText(row)}
             danger={isDanger(row)}
             detail={row.event?.name}
-            who={<Contact row={row} />}
+            who={<Contact row={row} onSetHead={props.onSetHead} />}
             onOpen={() => onOpen(row.target)}
           />
         ))}
