@@ -171,7 +171,8 @@ test('부회장이 둘이면 회장단에 둘 다, 두 부서에 든 사람은 �
     within(screen.getByRole('list', { name: `${name} 구성원` }))
       .getAllByRole('listitem')
       .map(item => item.textContent?.slice(0, 3))
-  expect(names('회장단')).toEqual(['김회장', '최부회', '정부회'])
+  // 묶음 안은 직급 순, 같은 직급은 이름 가나다순이다(최부회가 먼저 들어왔어도 정부회가 앞).
+  expect(names('회장단')).toEqual(['김회장', '정부회', '최부회'])
   expect(names('재정부')).toEqual(['이재정', '한겸직'])
   expect(names('기획부')).toEqual(['최부회', '한겸직'])
   expect(within(group('재정부')).getByText('2명')).toBeTruthy()

@@ -57,7 +57,7 @@ const person = (
   actions: [],
 })
 
-test('조직 묶음: 회장단은 회장과 부회장 모두, 부서마다 그 부서 사람, 겸직자는 든 묶음마다, 차례는 받은 차례다', () => {
+test('조직 묶음: 회장단은 회장과 부회장 모두, 부서마다 그 부서 사람, 겸직자는 든 묶음마다, 묶음 안은 직급 순이다', () => {
   const departments = [
     { id: 'f', name: '재정부', role: 'finance' as const, memberCount: 2 },
     { id: 'p', name: '기획부', role: null, memberCount: 2 },
@@ -70,19 +70,21 @@ test('조직 묶음: 회장단은 회장과 부회장 모두, 부서마다 그 �
       { id: 'p', rank: 'head' },
     ]),
     person('vice2', 'vice_president'),
+    person('zed', null),
     person('new', null),
     person('fin', null, [{ id: 'f', rank: null }]),
   ]
   const groups = orgGroups(members, departments)
   const ids = (list: TeamMember[]) => list.map(member => member.id)
-  expect(ids(groups.council)).toEqual(['vice1', 'pres', 'vice2'])
+  // 받은 차례(들어온 순서)가 아니라 회장, 부회장(이름순), 부장, 직급 없음 순이다. 차례는 contracts sortByRank 하나가 정한다.
+  expect(ids(groups.council)).toEqual(['pres', 'vice1', 'vice2'])
   expect(
     groups.departments.map(group => [group.department.id, ids(group.members), ids(group.heads)]),
   ).toEqual([
     ['f', ['both', 'fin'], ['both']],
     ['p', ['vice1', 'both'], ['both']],
   ])
-  expect(ids(groups.unassigned)).toEqual(['new'])
+  expect(ids(groups.unassigned)).toEqual(['new', 'zed'])
 })
 
 test('목록에 없는 부서에만 든 사람은 미배정으로 보여 화면에서 사라지지 않는다', () => {

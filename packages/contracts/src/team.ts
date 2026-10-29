@@ -2,6 +2,7 @@ import { z } from 'zod'
 import { isUuid, text, token, UUID_LENGTH } from './input.js'
 import type { DepartmentColorKey } from './department-colors.js'
 import {
+  COUNCIL_RANKS,
   DEPARTMENT_RANKS,
   DEPARTMENT_ROLES,
   type CouncilRank,
@@ -50,6 +51,32 @@ export interface TeamDepartment {
   // 이전 응답/견본에 없으면 식별자의 기본색을 쓴다. 서버는 표시색을 항상 준다.
   color?: DepartmentColorKey | null
 }
+// 조직 화면 묶음 안의 차례에 쓰는 직급 높낮이: 회장, 부회장, 그 부서의 부장, 부부장, 직급 없음(맨 뒤).
+// 차례는 COUNCIL_RANKS·DEPARTMENT_RANKS에 적힌 차례 그대로이고 학생회 직급을 부서 직급보다 앞에 둔다.
+// 부서 묶음에서도 회장단이 그 부서 부장보다 앞이다(사용자 요청 2026-10-29). 보이는 차례일 뿐 권한과는 상관없다(DEC-38).
+const rankOrderOf = (member: TeamMember, departmentId: string | null) => {
+  if (member.councilRank !== null) return COUNCIL_RANKS.indexOf(member.councilRank)
+  const rank = member.departments.find(item => item.id === departmentId)?.rank ?? null
+  return COUNCIL_RANKS.length + (rank === null ? DEPARTMENT_RANKS.length : DEPARTMENT_RANKS.indexOf(rank))
+}
+const nameOrder = new Intl.Collator('ko')
+const idOrder = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0)
+
+// 묶음 하나의 사람을 직급 순으로 놓은 새 목록. departmentId는 부서 묶음이면 그 부서, 회장단·미배정이면 null이다.
+// 같은 직급은 이름 가나다순(한국어 비교), 이름도 같으면 번호순이라 받은 차례와 상관없이 늘 같다.
+// 서버 목록은 상한이 없어 화면이 받은 전체를 정렬해도 빠지는 사람이 없고, 부서마다 직급이 달라 묶음별로 정한다.
+export function sortByRank(members: readonly TeamMember[], departmentId: string | null) {
+  return members
+    .map(member => ({ member, rank: rankOrderOf(member, departmentId) }))
+    .sort(
+      (a, b) =>
+        a.rank - b.rank ||
+        nameOrder.compare(a.member.name, b.member.name) ||
+        idOrder(a.member.id, b.member.id),
+    )
+    .map(item => item.member)
+}
+
 // 운영진 > 사람과 부서 화면이 같이 쓴다. 회장단의 변경도 이 응답을 돌려주고, 화면은 받은 값으로 목록을 통째로 바꾼다.
 export interface TeamResponse {
   members: TeamMember[]

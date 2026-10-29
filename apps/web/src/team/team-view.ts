@@ -1,4 +1,5 @@
 import {
+  sortByRank,
   type CouncilRank,
   type CouncilTitles,
   type CouncilView,
@@ -69,19 +70,28 @@ const headOf = (member: TeamMember, departmentId: string) =>
   member.departments.some(item => item.id === departmentId && item.rank === 'head')
 
 // 조직 화면의 묶음(DEC-91, 기능 023 정한 것 2): 회장단(회장과 부회장 모두), 부서마다 그 부서 사람과 부장들, 미배정.
-// 겸직자는 든 묶음마다 나오고, 묶음 안 차례는 서버가 준 차례(들어온 순서, DEC-47)다.
+// 겸직자는 든 묶음마다 나오고, 묶음 안 차례는 직급 순(contracts sortByRank)이다. 들어온 순서와 시각은 상세에서 본다(DEC-47).
 // 목록에 없는 부서에만 든 사람도 미배정에 넣어, 어느 묶음에도 없어 화면에서 사라지지 않게 한다.
 export function orgGroups(members: TeamMember[], departments: TeamDepartment[]) {
   const listed = new Set(departments.map(department => department.id))
   return {
-    council: members.filter(member => member.councilRank !== null),
+    council: sortByRank(
+      members.filter(member => member.councilRank !== null),
+      null,
+    ),
     departments: departments.map((department): DepartmentGroup => {
-      const people = members.filter(member => placedIn(member, department.id))
+      const people = sortByRank(
+        members.filter(member => placedIn(member, department.id)),
+        department.id,
+      )
       return { department, members: people, heads: people.filter(m => headOf(m, department.id)) }
     }),
-    unassigned: members.filter(
-      member =>
-        member.councilRank === null && !member.departments.some(item => listed.has(item.id)),
+    unassigned: sortByRank(
+      members.filter(
+        member =>
+          member.councilRank === null && !member.departments.some(item => listed.has(item.id)),
+      ),
+      null,
     ),
   }
 }
