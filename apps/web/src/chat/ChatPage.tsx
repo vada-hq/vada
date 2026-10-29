@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button'
 import { PERMISSION_CHANGED, ROOMS_LOAD_FAILED } from '@/lib/messages'
 import type { Team } from '../team/useTeam'
 import DirectDialog from './DirectDialog'
-import MessageHome from './MessageHome'
+import MessageHome, { directUnreadOf, type DirectPanelToggle } from './MessageHome'
 import RoomGate from './RoomGate'
 import RoomList from './RoomList'
 import RoomView from './RoomView'
@@ -147,12 +147,14 @@ function ChatBody({
   onScreen,
   onBack,
   onDirect,
+  panel,
   ...props
 }: RoomPage & {
   screen: Screen
   onScreen: (screen: Screen) => void
   onBack: () => void
   onDirect: (roomId: string) => void
+  panel?: DirectPanelToggle | undefined
 }) {
   useHideBottomNavigation(screen.kind === 'room')
   if (screen.kind === 'room')
@@ -182,6 +184,7 @@ function ChatBody({
         onAll={() => onScreen({ kind: 'list' })}
         onDirect={onDirect}
         onDirectTab={() => onScreen({ kind: 'home' })}
+        panel={panel}
       />
     )
   return (
@@ -199,18 +202,48 @@ function ChatBody({
   )
 }
 
-export default function ChatPage(props: Omit<ComponentProps<typeof ChatBody>, 'onDirect'>) {
+export default function ChatPage(
+  props: Omit<ComponentProps<typeof ChatBody>, 'onDirect' | 'panel'>,
+) {
   const product = useProductPanel()
   const split = useSplit()
   const side = useSideChatPanel({ ...props, meId: props.view.me.memberId, split })
+  // 상품 정보가 같은 자리를 차지하고 있으면 1:1을 열 때 닫는다(이름·/이름·[1:1] 모두).
+  const openDirect = (roomId: string) => {
+    product.close()
+    side.open(roomId)
+  }
   return (
     <ProductOpenContext value={product.open}>
       <div className="flex h-full min-h-0 min-w-0">
         <div className="min-w-0 flex-1">
-          <ChatBody {...props} onDirect={side.open} />
+          <ChatBody
+            {...props}
+            onDirect={openDirect}
+            panel={
+              split
+                ? {
+                    // 상품 정보가 자리를 차지하면 1:1 칸은 닫힌 것이다. 누르면 상품 정보를 닫고 1:1 목록을 연다.
+                    open: side.isOpen && !product.target,
+                    unread: directUnreadOf(props.rooms),
+                    onToggle: () => {
+                      if (!product.target) return side.toggle()
+                      product.close()
+                      side.showList()
+                    },
+                  }
+                : undefined
+            }
+          />
         </div>
-        {split && props.screen.kind === 'home' && !product.target && (
-          <SideChat page={props} roomId={side.roomId} onOpen={side.open} onClose={side.close} />
+        {split && props.screen.kind === 'home' && !product.target && side.isOpen && (
+          <SideChat
+            page={props}
+            roomId={side.roomId}
+            onOpen={openDirect}
+            onBack={side.showList}
+            onClose={side.close}
+          />
         )}
         {product.target && (
           <ProductPanel page={props} target={product.target} onClose={product.close} />
