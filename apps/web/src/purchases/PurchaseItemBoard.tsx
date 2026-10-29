@@ -97,7 +97,7 @@ function BoardLane({
       aria-label={text.label}
       className="flex w-68 shrink-0 scroll-ml-1 flex-col gap-2"
     >
-      <header className="flex items-start justify-between gap-2 px-1">
+      <div className="flex items-start justify-between gap-2 px-1">
         <div className="flex flex-col">
           <h2 className={cn('text-sm font-semibold', alert ? 'text-danger' : 'text-fg')}>
             {text.label}
@@ -114,7 +114,7 @@ function BoardLane({
         >
           {cards.length}
         </span>
-      </header>
+      </div>
       <div
         className={cn(
           'flex min-h-96 flex-1 flex-col gap-4 rounded-lg border border-dashed p-2',

@@ -67,7 +67,7 @@ test('재정부가 요청을 내도 옆 메뉴는 결재 대기를 읽지 않는
   window.history.replaceState(null, '', `/purchases/${COUNCIL_ID}?view=mine`)
   const api = open({ finance: true, pending: pending(2), startPage: 'purchases' })
   api.on('POST', `${base}/purchase-requests`, () => json({ request: purchaseDetail() }, 201))
-  fireEvent.click(await screen.findByRole('button', { name: '구매 요청 내기' }))
+  fireEvent.click(await screen.findByRole('button', { name: '새 구매 요청' }))
   fireEvent.change(await screen.findByLabelText('제목'), { target: { value: '테이프' } })
   fireEvent.change(screen.getByLabelText('품목 1 이름'), { target: { value: '테이프' } })
   fireEvent.click(screen.getByRole('button', { name: '내기' }))
