@@ -22,20 +22,25 @@ type Props = {
   onRemove: () => void
 }
 
-// 직급 배지: 부서 묶음에서는 그 부서의 직급(회색), 그 밖에서는 학생회 직급(회장은 와이어프레임 ORG-03A처럼 노랑, 부회장은 파랑).
+// 직급 배지: 학생회 직급(회장은 와이어프레임 ORG-03A처럼 노랑, 부회장은 파랑)과, 부서 묶음이면 그 부서의 직급(회색).
+// 부서 묶음도 회장단을 맨 앞에 놓으므로(contracts sortByRank) 왜 앞인지 보이게 학생회 직급을 함께 붙인다.
 function RankBadge({
   member,
   titles,
   inDepartment,
 }: Pick<Props, 'member' | 'titles' | 'inDepartment'>) {
-  if (inDepartment) {
-    const rank = member.departments.find(item => item.id === inDepartment)?.rank ?? null
-    const label = departmentRankLabel(rank, titles)
-    return label && <Badge>{label}</Badge>
-  }
-  const label = councilRankLabel(member.councilRank, titles)
+  const council = councilRankLabel(member.councilRank, titles)
+  const rank = inDepartment
+    ? (member.departments.find(item => item.id === inDepartment)?.rank ?? null)
+    : null
+  const department = departmentRankLabel(rank, titles)
   return (
-    label && <Badge tone={member.councilRank === 'president' ? 'warning' : 'info'}>{label}</Badge>
+    <>
+      {council && (
+        <Badge tone={member.councilRank === 'president' ? 'warning' : 'info'}>{council}</Badge>
+      )}
+      {department && <Badge>{department}</Badge>}
+    </>
   )
 }
 

@@ -182,7 +182,8 @@ test('부회장이 둘이면 회장단에 둘 다, 두 부서에 든 사람은 �
       .getAllByRole('listitem')
       .map(item => item.textContent?.replace(/\d+월.*$/, ''))
   expect(rowText('재정부')).toEqual(['이재정부장', '한겸직부장기획부'])
-  expect(rowText('기획부')).toEqual(['최부회부장', '한겸직재정부 부장'])
+  // 부서 묶음에서도 학생회 직급 배지를 붙여 회장단이 부장보다 앞인 까닭이 보인다.
+  expect(rowText('기획부')).toEqual(['최부회부회장부장', '한겸직재정부 부장'])
 })
 
 test('부서가 없으면 부서 없음이고, 회장단에게만 [부서 추가]가 있다', async () => {

@@ -57,7 +57,10 @@ export interface TeamDepartment {
 const rankOrderOf = (member: TeamMember, departmentId: string | null) => {
   if (member.councilRank !== null) return COUNCIL_RANKS.indexOf(member.councilRank)
   const rank = member.departments.find(item => item.id === departmentId)?.rank ?? null
-  return COUNCIL_RANKS.length + (rank === null ? DEPARTMENT_RANKS.length : DEPARTMENT_RANKS.indexOf(rank))
+  return (
+    COUNCIL_RANKS.length +
+    (rank === null ? DEPARTMENT_RANKS.length : DEPARTMENT_RANKS.indexOf(rank))
+  )
 }
 const nameOrder = new Intl.Collator('ko')
 const idOrder = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0)

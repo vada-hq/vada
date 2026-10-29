@@ -119,32 +119,7 @@ export {
   type UpdateCohortRequest,
 } from './councils.js'
 export * from './invites.js'
-export {
-  recordIdInput,
-  AssignDepartmentSchema,
-  MoveDepartmentSchema,
-  ChangeRankSchema,
-  TransferPresidentSchema,
-  MEMBER_ACTIONS,
-  PLACEMENT_ACTIONS,
-  type MemberAction,
-  type PlacementAction,
-  type TeamMember,
-  type TeamDepartment,
-  type TeamResponse,
-  type AssignDepartmentRequest,
-  type MoveDepartmentRequest,
-  type ChangeRankRequest,
-  type TransferPresidentRequest,
-  DEPARTMENT_NAME_MAX,
-  LEFT_MEMBER_NAME_PREFIX,
-  isLeftMemberName,
-  sortByRank,
-  CreateDepartmentSchema,
-  UpdateDepartmentSchema,
-  type CreateDepartmentRequest,
-  type UpdateDepartmentRequest,
-} from './team.js'
+export * from './team.js'
 export interface HealthResponse {
   status: 'ok'
 }

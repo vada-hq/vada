@@ -116,7 +116,13 @@ test('묶음 안 차례: 회장, 부회장, 그 부서의 부장, 부부장, 직
     member('m4', '정수빈', null, [{ id: 'f', rank: null }]),
     member('m5', '오현우', null, [{ id: 'f', rank: null }]),
   ]
-  assert.deepEqual(namesOf(sortByRank(finance, 'f')), ['김바다', '황성욱', '김민준', '오현우', '정수빈'])
+  assert.deepEqual(namesOf(sortByRank(finance, 'f')), [
+    '김바다',
+    '황성욱',
+    '김민준',
+    '오현우',
+    '정수빈',
+  ])
   const planning = [
     member('p1', '이지우', null, [{ id: 'p', rank: null }]),
     member('p2', '강도윤', null, [{ id: 'p', rank: null }]),
