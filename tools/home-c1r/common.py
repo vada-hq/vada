@@ -4,9 +4,12 @@ from pathlib import Path
 
 BASE = "http://127.0.0.1:5291/home-s5.html?component=c1r"
 SCREENS = Path("C:/Users/82108/vada-hq/notes/integration/review/screens/home/c1r")
+# f 변형(생김새 회차 c1f)은 따로 모은다: screens/home/c1f/f{N}/c1f-f{N}-...png
+SCREENS_F = Path("C:/Users/82108/vada-hq/notes/integration/review/screens/home/c1f")
 # 컴포넌트 폭 -> 창 폭(바깥 여백 p-6 / 휴대폰 p-4)
 VIEW = {977: 1025, 716: 764, 358: 390}
 VARIANTS = ["0", "1", "2", "3"]
+F_VARIANTS = [f"f{n}" for n in range(1, 9)]  # 생김새 회차(c1f)
 DATAS = ["main", "many", "assign", "normal", "empty"]
 # 기본 묶음: 3폭 x (main, normal, empty) + many 977 (명세·절차 8.4)
 DEFAULT_DATA = ["main", "normal", "empty"]
@@ -17,14 +20,16 @@ THEMES = ["base", "a", "b", "c"]
 
 def parse_args(desc, extra=None):
     ap = argparse.ArgumentParser(description=desc)
-    ap.add_argument("--variant", "-v", default=",".join(VARIANTS), help="쉼표로: 0,1,2,3")
+    ap.add_argument("--variant", "-v", default=",".join(VARIANTS), help="쉼표로: 0,1,2,3 또는 f1..f8 (예: -v f3)")
     ap.add_argument("--data", "-d", default=None, help=f"쉼표로: {','.join(DATAS)} (없으면 기본 묶음)")
     ap.add_argument("--width", "-w", default="977,716,358", help="쉼표로: 977,716,358")
     ap.add_argument("--theme", "-t", default="base", choices=THEMES, help="테마(기본 base)")
     if extra:
         extra(ap)
     a = ap.parse_args()
-    a.variants = [v for v in a.variant.split(",") if v in VARIANTS]
+    a.variants = [v for v in a.variant.split(",") if v in VARIANTS + F_VARIANTS]
+    if not a.variants:
+        ap.error(f"모르는 variant: {a.variant}")
     a.widths = [int(w) for w in a.width.split(",") if int(w) in VIEW]
     if a.data:
         datas = [d for d in a.data.split(",") if d in DATAS]
@@ -68,3 +73,26 @@ def root_box(page):
 
 def launch(p):
     return p.chromium.launch(args=["--disable-lcd-text", "--force-color-profile=srgb"])
+
+
+def is_f(v):
+    return v in F_VARIANTS
+
+
+def label(v):
+    """표·이름에 쓰는 안 이름: 0 -> v0, f3 -> f3."""
+    return v if is_f(v) else f"v{v}"
+
+
+def shot_dir(v):
+    return SCREENS_F / v if is_f(v) else SCREENS / f"v{v}"
+
+
+def shot_name(v, w, d, hover=False, theme="base"):
+    """찍기 파일 이름. v: c1r-v1-977-main.png, f: c1f-f3-977-main.png (테마 base는 이름에 붙이지 않는다)."""
+    kind = "c1f" if is_f(v) else "c1r"
+    return f"{kind}-{label(v)}-{w}-{d}{'-hover' if hover else ''}{'' if theme == 'base' else f'-t{theme}'}.png"
+
+
+def shot_path(v, w, d, hover=False, theme="base"):
+    return shot_dir(v) / shot_name(v, w, d, hover, theme)

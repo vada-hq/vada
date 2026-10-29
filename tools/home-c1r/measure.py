@@ -1,5 +1,5 @@
 """c1r 성공 기준 K1~K7(명세 c1-spec.md 8절)을 DOM·픽셀로 재서 md 표로 낸다.
-사용: python -X utf8 -W ignore tools/home-c1r/measure.py [-v 0,1] [-d ...] [-w ...] [-t a] [--out 파일.md]
+사용: python -X utf8 -W ignore tools/home-c1r/measure.py [-v 0,1 | -v f3] [-d ...] [-w ...] [-t a] [--out 파일.md]
 --theme(-t): 그 테마(apps/web/src/home/c1r/themes)로 열어 잰다. K3 대비를 테마마다 다시 잴 때 쓴다(기본 base).
 기본 묶음은 shoot.py와 같다(3폭 x main·normal·empty + many 977). K마다 필요한 폭·데이터가 묶음에 없으면 '-'.
 K5 위험 색 픽셀: 빨강 색상(345~360도, 0~12도), 채도 0.15 이상, 명도 0.3 이상인 픽셀 가운데
@@ -13,7 +13,7 @@ from PIL import Image
 from playwright.sync_api import sync_playwright
 
 sys.dont_write_bytecode = True  # 작업 폴더에 __pycache__를 남기지 않는다
-from common import SCALE, launch, open_page, parse_args, root_box
+from common import SCALE, label, launch, open_page, parse_args, root_box
 
 JS = Path(__file__).with_name("measure.js").read_text(encoding="utf8")
 DATA_JS = "async d => (await import('/src/home/c1r/c1r-data.ts')).C1R_DATA[d]"
@@ -120,10 +120,10 @@ def main():
         for v in a.variants:
             res = {(w, d): measure(b, v, w, d, a.theme) for w, d in a.cases}
             cell, notes = judge(res)
-            name = f"v{v}" if a.theme == "base" else f"v{v} (테마 {a.theme})"
+            name = label(v) if a.theme == "base" else f"{label(v)} (테마 {a.theme})"
             lines.append(f"| {name} | " + " | ".join(cell[k] for k in ["K1", "K2", "K3", "K4", "K5", "K6", "K7"]) + " |")
-            details += [f"- v{v} {n}" for n in notes]
-            heights.append(f"- v{v} 높이: " + ", ".join(f"{w}·{d} {m['height']:.0f} (줄 {m['shown']})" for (w, d), m in res.items()))
+            details += [f"- {label(v)} {n}" for n in notes]
+            heights.append(f"- {label(v)} 높이: " + ", ".join(f"{w}·{d} {m['height']:.0f} (줄 {m['shown']})" for (w, d), m in res.items()))
         b.close()
     text = "\n".join(lines + [""] + heights + ([""] + details if details else []))
     print(text)

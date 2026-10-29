@@ -140,7 +140,7 @@ function Workspace() {
 // 실제 앱은 작업 공간을 h-dvh 열(SignedInView) 안에 둔다. 미리보기에 그 열이 없어 짧은 페이지에서 옆 메뉴 바탕이
 // 내용 높이에서 끊겼다(S6 검토). 미리보기는 페이지 전체를 찍어야 해서 h-dvh 대신 min-h-dvh로 같은 높이를 채운다.
 // C1: ① 컴포넌트 하나만 띄운다(작업 공간 없음). /home-s5.html?component=c1&variant=A|B&data=main|many|normal
-// C1R: ① 컴포넌트 시안 절차(P3~)의 판. /home-s5.html?component=c1r&variant=0|1|2|3&data=main|many|assign|normal|empty[&theme=base|a|b|c]
+// C1R: ① 컴포넌트 시안 절차(P3~)의 판. /home-s5.html?component=c1r&variant=0|1|2|3|f1..f8&data=main|many|assign|normal|empty[&theme=base|a|b|c]
 // 스타일 타일: 한 테마의 색·글자·부품 견본과 ① v3·v1. /home-s5.html?component=tile&theme=base|a|b|c
 const c1 = params.get('component') === 'c1'
 const c1r = params.get('component') === 'c1r'
