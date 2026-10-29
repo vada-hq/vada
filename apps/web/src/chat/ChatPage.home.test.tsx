@@ -152,6 +152,27 @@ test('전체 보기에는 행사·1:1·부서 간 방까지 남고 1:1을 열 �
   expect(screen.queryByRole('navigation', { name: '휴대폰 메뉴' })).toBeNull()
 })
 
+// 옆 메뉴 배지(unreadTotal)에 든 방은 첫 화면 어딘가의 숫자에 보인다. 탭 줄에 없는 행사·부서 간 방은 [전체 보기]에 단다.
+test('탭·1:1·전체 보기의 숫자를 더하면 옆 메뉴 합계와 같다', () => {
+  navigationWidth(390)
+  const rooms = [
+    notice,
+    lead,
+    dept,
+    { ...event, unread: 4 },
+    { ...direct, unread: 5, lastMessageAt: '2026-10-28T01:00:00Z' },
+    { ...between, unread: 6 },
+  ]
+  const total = rooms.reduce((sum, item) => sum + item.unread, 0)
+  render(<Harness rooms={rooms} />)
+  const badges = screen
+    .getAllByLabelText(/^안 읽은 메시지 \d+개$/)
+    .map(badge => Number(badge.textContent))
+  expect(badges).toEqual([10, 2, 1, 3, 5])
+  expect(badges.reduce((sum, count) => sum + count, 0)).toBe(total)
+  expect(screen.getByRole('button', { name: /전체 보기/ }).textContent).toBe('전체 보기10')
+})
+
 // 공지 주소(업무 결과물·알림)로 연 방이 기억이 된다. 그 뒤 메뉴로 첫 화면에 오면 옛 기억이 아니라 그 방이다.
 test('주소로 연 학생회 방을 기억해 메뉴로 다시 오면 그 탭을 연다', () => {
   localStorage.setItem('vada.chat.room.c1', 'dept')

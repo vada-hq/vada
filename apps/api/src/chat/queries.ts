@@ -46,6 +46,14 @@ async function myRooms(db: Reader, actor: Actor) {
     .where(and(eq(roomMembership.memberId, actor.memberId), eq(record.councilId, actor.councilId)))
 }
 
+// 안 읽음으로 세는 메시지: 지우지 않았고 내가 마지막으로 읽은 뒤에 온 것. 지운 메시지는 그 자리에 '삭제된 메시지'뿐이라
+// 읽을 것이 없으므로 세지 않는다(DEC-54). 안 읽은 수와 부름 수가 이 조건 하나를 써서 둘이 갈라지지 않게 한다.
+// 내 참여 줄(room_membership)을 합친 조회에서 쓴다.
+const unreadForMe = and(
+  isNull(message.deletedAt),
+  or(isNull(roomMembership.lastReadAt), gt(message.sentAt, roomMembership.lastReadAt)),
+)
+
 // 방마다 안 읽은 수(내가 읽은 뒤 남이 보낸 것)와 마지막 메시지 시각. 내가 볼 수 있는 메시지만 센다(visibleMessage):
 // 들어온 뒤의 것과 공지방의 같은 기수 메시지라, 늦게 들어온 사람에게는 공지방이 안 읽은 방으로 나온다(DEC-90).
 async function messageStats(db: Reader, actor: Actor) {
@@ -54,9 +62,7 @@ async function messageStats(db: Reader, actor: Actor) {
       roomId: message.roomId,
       unread:
         sql<number>`count(*) filter (where ${record.createdBy} is distinct from ${actor.memberId}::uuid
-        and (${roomMembership.lastReadAt} is null or ${message.sentAt} > ${roomMembership.lastReadAt}))`.mapWith(
-          Number,
-        ),
+        and ${unreadForMe})`.mapWith(Number),
       lastAt: max(message.sentAt),
     })
     .from(message)
@@ -121,10 +127,8 @@ async function mentionCounts(db: Reader, actor: Actor) {
       and(
         eq(notification.recipientId, actor.memberId),
         eq(notification.type, 'mention'),
-        // 지운 메시지의 부름은 세지 않는다(DEC-54, 그 자리에는 '삭제된 메시지'뿐이다).
-        isNull(message.deletedAt),
         gte(message.sentAt, roomMembership.joinedAt),
-        or(isNull(roomMembership.lastReadAt), gt(message.sentAt, roomMembership.lastReadAt)),
+        unreadForMe,
       ),
     )
     .groupBy(message.roomId)

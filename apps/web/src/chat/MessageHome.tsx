@@ -4,11 +4,12 @@ import PageActions from '@/components/PageActions'
 import PageHeading from '@/components/PageHeading'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
+import { CountBadge } from '@/components/ui/count-badge'
 import { Room, type RoomPage } from './ChatPage'
 import { roomToShow, saveRoom, savedRoom, savedDirectTab, saveDirectTab } from './last-room'
 import { councilRoomScope } from './message-text'
 import RoomSwitch from './RoomSwitch'
-import { councilRooms, directRooms, unreadSum } from './space-rooms'
+import { councilRooms, directRooms, elsewhereRooms, unreadSum } from './space-rooms'
 import { useSplit } from '@/lib/use-split'
 import { SideChatList } from './SideChat'
 
@@ -18,12 +19,15 @@ export function MessageHomeHeader({
   active,
   onPick,
   onAll,
+  elsewhereUnread = 0,
   direct,
 }: {
   rooms: RoomSummary[]
   active: RoomSummary | undefined
   onPick: (roomId: string) => void
   onAll: () => void
+  // 탭 줄에 없는 방(행사·부서 간)의 안 읽은 수. [전체 보기]에 단다.
+  elsewhereUnread?: number
   direct?: ComponentProps<typeof RoomSwitch>['direct']
 }) {
   return (
@@ -35,6 +39,7 @@ export function MessageHomeHeader({
         <PageActions>
           <Button variant="outline" size="sm" touch onClick={onAll}>
             전체 보기
+            <CountBadge count={elsewhereUnread} label={`안 읽은 메시지 ${elsewhereUnread}개`} />
           </Button>
         </PageActions>
       </div>
@@ -59,6 +64,8 @@ export function MessageHomeHeader({
 // 첫 화면은 서버가 준 학생회 방의 흐름이다. 전체 목록에 있는 행사·1:1은 자동으로 고르지 않는다.
 const directUnreadOf = ({ state }: RoomPage['rooms']) =>
   state.kind === 'ready' ? unreadSum(directRooms(state.data.rooms)) : 0
+const elsewhereUnreadOf = ({ state }: RoomPage['rooms']) =>
+  state.kind === 'ready' ? unreadSum(elsewhereRooms(state.data.rooms)) : 0
 
 export default function MessageHome({
   page,
@@ -95,6 +102,7 @@ export default function MessageHome({
         rooms={rooms}
         active={showDirect ? undefined : room}
         onAll={onAll}
+        elsewhereUnread={elsewhereUnreadOf(page.rooms)}
         onPick={roomId => {
           saveRoom(page.councilId, roomId)
           saveDirectTab(page.councilId, page.view.me.memberId, false)

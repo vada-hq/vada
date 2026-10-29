@@ -31,6 +31,7 @@ function MessageHomeSample() {
         active={active}
         onPick={setActiveId}
         onAll={noop}
+        elsewhereUnread={3}
         direct={!split ? { active: false, unread: 2, onPick: noop } : undefined}
       />
       <div className="flex h-96 flex-col bg-gray-50">

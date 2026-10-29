@@ -124,6 +124,7 @@ const GONE = {
   placements: 0,
   named_versions: 0,
   seats: 0,
+  kept_reads: 0,
   departed: 1,
 }
 

@@ -45,6 +45,7 @@ export async function traceOf(pg: TestPg, userId: string, memberId: string) {
       (SELECT count(*)::int FROM record_version WHERE record_id = $2
          AND (data ->> 'name' IS NOT NULL OR data ->> 'email' IS NOT NULL)) AS named_versions,
       (SELECT count(*)::int FROM room_membership WHERE member_id = $2) AS seats,
+      (SELECT count(*)::int FROM left_room_read WHERE member_id = $2) AS kept_reads,
       (SELECT count(*)::int FROM member WHERE id = $2 AND left_at IS NOT NULL) AS departed`,
     [userId, memberId],
   )
