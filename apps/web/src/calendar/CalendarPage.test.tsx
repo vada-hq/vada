@@ -3,7 +3,7 @@ import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { CALENDAR_ITEM_LIMIT, calendarTitleOf } from '@vada/contracts'
 import { councilView } from '@/test-support/council-fixtures'
-import { calendarItem, calendarItems } from '@/test-support/calendar-fixtures'
+import { calendarItem, calendarItems, calendarMeetingItem } from '@/test-support/calendar-fixtures'
 import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
 import { COUNCIL_ID } from '@/test-support/workspace-at'
 import CalendarPage from './CalendarPage'
@@ -100,6 +100,31 @@ test('전체·행사·마감 칩은 날짜를 보존하고 주소와 월 칸·�
   fireEvent.click(within(chips).getByRole('button', { name: '전체' }))
   expect(window.location.search).toBe('')
   expect(api.calls).toHaveLength(1)
+})
+
+test('회의 칩은 행사 뒤에 있고 회의 줄만 거르며 회의 줄은 그 회의로 간다', async () => {
+  api.on('GET', october, () =>
+    json({ items: [...calendarItems, calendarMeetingItem], truncated: false }),
+  )
+  window.history.replaceState(null, '', `/calendar/${COUNCIL_ID}?view=list`)
+  render(page())
+  await screen.findByRole('button', { name: '운영 회의' })
+  const chips = screen.getByRole('group', { name: '일정 유형' })
+  expect(
+    within(chips)
+      .getAllByRole('button')
+      .map(button => button.textContent),
+  ).toEqual(['전체', '행사', '회의', '마감', '시험·학사', '외부', '기타'])
+  fireEvent.click(within(chips).getByRole('button', { name: '회의' }))
+  expect(window.location.search).toBe('?view=list&kind=meeting')
+  expect(screen.queryByRole('button', { name: '가을 축제' })).toBeNull()
+  fireEvent.click(screen.getByRole('button', { name: '운영 회의' }))
+  await waitFor(() =>
+    expect(window.location.pathname).toBe(
+      `/meetings/${COUNCIL_ID}/${calendarMeetingItem.target.id}`,
+    ),
+  )
+  expect(api.calls.every(call => call.method === 'GET')).toBe(true)
 })
 
 test('목록 보기는 달 안의 날짜만 묶고 여러 날 일정을 걸친 날마다 보인다', async () => {

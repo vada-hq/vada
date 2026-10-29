@@ -84,7 +84,7 @@ test('고른 날로 만들고 성공 뒤 그날 줄을 다시 읽는다', async 
   expect(await within(day).findByRole('button', { name: '학교 답사' })).toBeTruthy()
 })
 
-test('빈 목록과 머리에 추가가 있고 시험·학사·외부·기타 칩이 마감 뒤에 있다', async () => {
+test('빈 목록과 머리에 추가가 있고 회의 칩이 행사 뒤, 시험·학사·외부·기타 칩이 마감 뒤에 있다', async () => {
   mount()
   await screen.findByText('일정 없음')
   const chips = screen.getByRole('group', { name: '일정 유형' })
@@ -92,7 +92,7 @@ test('빈 목록과 머리에 추가가 있고 시험·학사·외부·기타 �
     within(chips)
       .getAllByRole('button')
       .map(button => button.textContent),
-  ).toEqual(['전체', '행사', '마감', '시험·학사', '외부', '기타'])
+  ).toEqual(['전체', '행사', '회의', '마감', '시험·학사', '외부', '기타'])
   fireEvent.click(screen.getByRole('button', { name: '목록' }))
   expect(screen.getAllByRole('button', { name: '일정 추가' })).toHaveLength(2)
 })

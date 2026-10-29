@@ -13,15 +13,17 @@ import { calendarRangeOf } from './range.js'
 // 실제 Postgres 없이 drizzle의 postgres-js 경로가 드라이버에 넘기는 매개변수만 붙잡아 Date가 없는지 본다.
 function capturingDb() {
   const params: unknown[] = []
+  const queries: string[] = []
   const result = Object.assign(Promise.resolve([]), { values: () => Promise.resolve([]) })
   const client = {
     options: { parsers: {}, serializers: {} },
-    unsafe: (_query: string, values: unknown[] = []) => {
+    unsafe: (query: string, values: unknown[] = []) => {
+      queries.push(query)
       params.push(...values)
       return result
     },
   } as unknown as postgres.Sql
-  return { db: drizzle(client) as unknown as Db, params }
+  return { db: drizzle(client) as unknown as Db, params, queries }
 }
 
 const actor: Actor = {
@@ -36,7 +38,7 @@ const actor: Actor = {
 const now = new Date('2026-10-28T13:00:00Z')
 
 test('캘린더 집계와 홈 가까운 일정은 운영 드라이버에 Date를 그대로 넘기지 않는다', async () => {
-  const { db, params } = capturingDb()
+  const { db, params, queries } = capturingDb()
   const range = calendarRangeOf({ from: '2026-09-27', to: '2026-11-08' })
   for (const feed of [false, true]) await calendarOf(db, actor, range, { now, feed })
   await upcomingOf(db, actor, now, {
@@ -47,6 +49,8 @@ test('캘린더 집계와 홈 가까운 일정은 운영 드라이버에 Date를
     participating: { events: [], total: 0 },
   })
   assert.ok(params.length > 0)
+  // 원본마다 범위 조건이 있다. 회의 원본이 빠지면 그 조건이 검사되지 않는다.
+  assert.ok(queries.some(query => query.includes('from "meeting"')))
   const unsafe = params.filter(value => value !== null && typeof value === 'object')
   assert.deepEqual(unsafe, [])
 })

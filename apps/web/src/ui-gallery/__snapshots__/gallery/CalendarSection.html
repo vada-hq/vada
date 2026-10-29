@@ -12,6 +12,7 @@
 <div role="group" aria-label="일정 유형" class="flex flex-wrap gap-2">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-secondary text-secondary-foreground hover:bg-gray-200 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 max-sm:min-h-11 rounded-full" aria-pressed="true">전체</button>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 max-sm:min-h-11 rounded-full" aria-pressed="false">행사</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 max-sm:min-h-11 rounded-full" aria-pressed="false">회의</button>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 max-sm:min-h-11 rounded-full" aria-pressed="false">마감</button>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 max-sm:min-h-11 rounded-full" aria-pressed="false">시험·학사</button>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 max-sm:min-h-11 rounded-full" aria-pressed="false">외부</button>
@@ -481,7 +482,7 @@
 </button>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent text-gray-500 hover:text-gray-700 text-sm [&amp;_svg]:size-4 max-sm:min-h-11 min-w-0 rounded-none border-0 border-l p-0 first:border-l-0 bg-blue-50 hover:bg-blue-50" aria-label="10월 28일 (수) 일정 4건" aria-pressed="true">
 </button>
-<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 text-sm [&amp;_svg]:size-4 max-sm:min-h-11 min-w-0 rounded-none border-0 border-l p-0 first:border-l-0" aria-label="10월 29일 (목) 일정 1건" aria-pressed="false">
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 text-sm [&amp;_svg]:size-4 max-sm:min-h-11 min-w-0 rounded-none border-0 border-l p-0 first:border-l-0" aria-label="10월 29일 (목) 일정 2건" aria-pressed="false">
 </button>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 text-sm [&amp;_svg]:size-4 max-sm:min-h-11 min-w-0 rounded-none border-0 border-l p-0 first:border-l-0" aria-label="10월 30일 (금) 일정 1건" aria-pressed="false">
 </button>
@@ -612,8 +613,31 @@
 </div>
 <div class="min-w-0 px-1 col-start-5 row-start-3">
 <div class="hidden min-w-0 flex-col gap-px sm:flex">
+<button data-slot="button" class="shrink-0 cursor-pointer items-center border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent hover:bg-gray-100 hover:text-gray-700 [&amp;_svg]:size-3.5 max-sm:min-h-11 pointer-events-auto hidden min-w-0 justify-start gap-1 rounded px-1 py-0.5 text-left text-xs sm:flex text-violet-700" aria-label="운영 회의">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-users" aria-hidden="true">
+<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2">
+</path>
+<path d="M16 3.128a4 4 0 0 1 0 7.744">
+</path>
+<path d="M22 21v-2a4 4 0 0 0-3-3.87">
+</path>
+<circle cx="9" cy="7" r="4">
+</circle>
+</svg>
+<span class="truncate">운영 회의</span>
+</button>
 </div>
 <div aria-hidden="true" class="flex justify-center gap-0.5 sm:hidden">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-users size-3 text-violet-700" aria-hidden="true">
+<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2">
+</path>
+<path d="M16 3.128a4 4 0 0 1 0 7.744">
+</path>
+<path d="M22 21v-2a4 4 0 0 0-3-3.87">
+</path>
+<circle cx="9" cy="7" r="4">
+</circle>
+</svg>
 </div>
 </div>
 <div class="min-w-0 px-1 col-start-6 row-start-3">
@@ -721,6 +745,7 @@
 <div role="group" aria-label="일정 유형" class="flex flex-wrap gap-2">
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-secondary text-secondary-foreground hover:bg-gray-200 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 max-sm:min-h-11 rounded-full" aria-pressed="true">전체</button>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 max-sm:min-h-11 rounded-full" aria-pressed="false">행사</button>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 max-sm:min-h-11 rounded-full" aria-pressed="false">회의</button>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 max-sm:min-h-11 rounded-full" aria-pressed="false">마감</button>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 max-sm:min-h-11 rounded-full" aria-pressed="false">시험·학사</button>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 max-sm:min-h-11 rounded-full" aria-pressed="false">외부</button>
@@ -907,7 +932,7 @@
 <section aria-label="10월 29일 (목)" class="flex min-w-0 scroll-mt-4 flex-col gap-2">
 <div class="flex flex-wrap items-center gap-2">
 <h3 class="text-sm font-semibold text-gray-900">10월 29일 (목)</h3>
-<span class="ml-auto text-right font-normal text-gray-500 tabular-nums">1건</span>
+<span class="ml-auto text-right font-normal text-gray-500 tabular-nums">2건</span>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-input bg-white text-gray-700 hover:bg-gray-50 px-3 py-1.5 text-xs [&amp;_svg]:size-3.5 max-sm:min-h-11">일정 추가</button>
 </div>
 <ul class="rounded-lg border bg-card text-card-foreground shadow-sm min-w-0 divide-y overflow-hidden">
@@ -940,6 +965,25 @@
 <span class="text-xs font-normal text-gray-500 wrap-anywhere">
 <span class="text-emerald-700">행사</span> · <span class="tabular-nums">14:00</span>
 </span>
+</span>
+</button>
+</li>
+<li>
+<button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center rounded-sm border font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-transparent text-gray-500 hover:text-gray-700 text-sm [&amp;_svg]:size-4 max-sm:min-h-11 h-auto w-full min-w-0 justify-start gap-3 px-4 py-3 text-left break-keep whitespace-normal hover:bg-gray-50" aria-label="운영 회의">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-users self-start text-violet-700" aria-hidden="true">
+<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2">
+</path>
+<path d="M16 3.128a4 4 0 0 1 0 7.744">
+</path>
+<path d="M22 21v-2a4 4 0 0 0-3-3.87">
+</path>
+<circle cx="9" cy="7" r="4">
+</circle>
+</svg>
+<span class="flex min-w-0 flex-1 flex-col gap-1">
+<span class="line-clamp-2 text-sm font-medium text-gray-900 wrap-anywhere sm:line-clamp-none">운영 회의</span>
+<span class="text-xs font-normal text-gray-500 wrap-anywhere">
+<span class="text-violet-700">회의</span> · <span class="tabular-nums">19:00</span> · 기획부</span>
 </span>
 </button>
 </li>

@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { CalendarView } from '@/calendar/CalendarView'
 import type { CalendarLayout } from '@/calendar/CalendarHeader'
 import { useCalendarNavigation } from '@/calendar/use-calendar-navigation'
-import { calendarItems } from '@/test-support/calendar-fixtures'
+import { calendarItems, calendarMeetingItem } from '@/test-support/calendar-fixtures'
 import { DEPARTMENT_ID, EVENT_ID, scheduleDetail } from '@/test-support/schedule-fixtures'
 import { Section } from './GallerySection'
 
@@ -27,7 +27,7 @@ function CalendarExample({
       {...navigation}
       onMonth={navigation.go}
       onSelect={navigation.setSelected}
-      items={calendarItems}
+      items={[...calendarItems, calendarMeetingItem]}
       layout={layout}
       kind={kind}
       onLayout={setLayout}

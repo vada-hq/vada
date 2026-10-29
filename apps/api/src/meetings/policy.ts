@@ -15,7 +15,9 @@ export type MeetingFacts = {
   confirmedAt: Date | null
   hasTasks: boolean
 }
-const contextOf = (facts: MeetingFacts): Context => ({
+// 내 관계를 정하는 사실만이다. 캘린더도 회의 화면과 같은 관계를 쓴다.
+type RelationFacts = Pick<MeetingFacts, 'hostDepartmentId' | 'createdBy' | 'isAttendee'>
+const contextOf = (facts: RelationFacts): Context => ({
   ...(facts.hostDepartmentId ? { departmentId: facts.hostDepartmentId } : {}),
   ...(facts.createdBy ? { createdBy: facts.createdBy } : {}),
   isMeetingAttendee: facts.isAttendee,
@@ -32,7 +34,7 @@ export function decide(actor: Actor, facts: MeetingFacts, action: MeetingAction)
 export const actionsOf = (actor: Actor, facts: MeetingFacts): MeetingAction[] =>
   MEETING_ACTIONS.filter(action => decide(actor, facts, action) === null)
 
-export function relationOf(actor: Actor, facts: MeetingFacts): MeetingRelation {
+export function relationOf(actor: Actor, facts: RelationFacts): MeetingRelation {
   if (can(actor, 'meeting.manage', contextOf(facts))) return 'manager'
   return facts.isAttendee ? 'attendee' : 'none'
 }

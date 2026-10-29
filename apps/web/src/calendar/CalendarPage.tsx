@@ -23,8 +23,7 @@ type Props = { view: CouncilView; onForbidden: () => void }
 function openTarget(councilId: string, target: CalendarTarget) {
   if (target.record === 'events')
     return openRecord('events', councilId, target.id, { tab: target.tab })
-  if (target.record === 'tasks' || target.record === 'purchases')
-    return openRecord(target.record, councilId, target.id)
+  if (target.record !== 'schedule') return openRecord(target.record, councilId, target.id)
   navigate(`/${target.record}/${councilId}/${target.id}`)
 }
 

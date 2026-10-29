@@ -67,3 +67,17 @@ export const calendarItems: CalendarItem[] = [
     target: { record: 'events', id: '0199d1a0-0000-7000-8000-0000000000e2', tab: 'overview' },
   }),
 ]
+
+const MEETING_ID = '0199d1a0-0000-7000-8000-0000000000c1'
+export const calendarMeetingItem = calendarItem({
+  key: `meeting:${MEETING_ID}`,
+  source: 'meeting',
+  kind: 'meeting',
+  title: '운영 회의',
+  allDay: false,
+  start: '2026-10-29T19:00',
+  end: '2026-10-29T20:00',
+  place: '학생회실',
+  mine: true,
+  target: { record: 'meetings', id: MEETING_ID },
+})

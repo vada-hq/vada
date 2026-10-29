@@ -9,6 +9,7 @@ import type { Actor } from '../access/actor.js'
 import type { Db } from '../db/types.js'
 import type { CalendarRange } from './range.js'
 import { eventItems } from './sources/events.js'
+import { meetingItems } from './sources/meetings.js'
 import { purchaseNeededItems } from './sources/purchases.js'
 import { registrationCloseItems } from './sources/registrations.js'
 import { taskDueItems } from './sources/tasks.js'
@@ -33,6 +34,7 @@ export async function calendarOf(
   // 같은 읽기 거래에서 차례로 읽어 원본의 시점이 어긋나지 않는다.
   const items = [
     ...(await eventItems(db, actor, range)),
+    ...(await meetingItems(db, actor, range)),
     ...(await taskDueItems(db, actor, range, now)),
     ...(await registrationCloseItems(db, actor, range)),
     ...(await purchaseNeededItems(db, actor, range, now)),

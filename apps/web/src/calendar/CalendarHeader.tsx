@@ -13,6 +13,7 @@ const VIEWS = [
 const KINDS = [
   { value: null, label: '전체' },
   { value: 'event', label: CALENDAR_KIND_LABELS.event },
+  { value: 'meeting', label: CALENDAR_KIND_LABELS.meeting },
   { value: 'deadline', label: CALENDAR_KIND_LABELS.deadline },
   { value: 'academic', label: CALENDAR_KIND_LABELS.academic },
   { value: 'external', label: CALENDAR_KIND_LABELS.external },
