@@ -13,6 +13,8 @@ import C1Preview from '../c1/C1Preview'
 import type { C1DataName } from '../c1/c1-view'
 import C1rPreview, { C1R_VARIANTS, type C1rVariant } from '../c1r/C1rPreview'
 import { C1R_DATA_NAMES, type C1rDataName } from '../c1r/c1r-data'
+import ThemeTile from '../c1r/themes/ThemeTile'
+import { applyTheme, themeOf } from '../c1r/themes/theme'
 import '../../index.css'
 
 // S5 흑백 시안 미리보기: /home-s5.html?variant=A|B|C|B2&data=main|normal|empty[&greeting=line|date|merge]
@@ -138,15 +140,23 @@ function Workspace() {
 // 실제 앱은 작업 공간을 h-dvh 열(SignedInView) 안에 둔다. 미리보기에 그 열이 없어 짧은 페이지에서 옆 메뉴 바탕이
 // 내용 높이에서 끊겼다(S6 검토). 미리보기는 페이지 전체를 찍어야 해서 h-dvh 대신 min-h-dvh로 같은 높이를 채운다.
 // C1: ① 컴포넌트 하나만 띄운다(작업 공간 없음). /home-s5.html?component=c1&variant=A|B&data=main|many|normal
-// C1R: ① 컴포넌트 시안 절차(P3~)의 판. /home-s5.html?component=c1r&variant=0|1|2|3&data=main|many|assign|normal|empty
+// C1R: ① 컴포넌트 시안 절차(P3~)의 판. /home-s5.html?component=c1r&variant=0|1|2|3&data=main|many|assign|normal|empty[&theme=base|a|b|c]
+// 스타일 타일: 한 테마의 색·글자·부품 견본과 ① v3·v1. /home-s5.html?component=tile&theme=base|a|b|c
 const c1 = params.get('component') === 'c1'
 const c1r = params.get('component') === 'c1r'
+const tile = params.get('component') === 'tile'
+const theme = themeOf(params.get('theme'))
+if (c1r || tile) applyTheme(theme)
 const c1rVariant = (Object.keys(C1R_VARIANTS).includes(params.get('variant') ?? '') ? params.get('variant') : '0') as C1rVariant
 const c1rData = (C1R_DATA_NAMES.includes(params.get('data') as C1rDataName) ? params.get('data') : 'main') as C1rDataName
 createRoot(document.getElementById('root')!).render(
-  c1r ? (
+  tile ? (
     <StrictMode>
-      <C1rPreview variant={c1rVariant} data={c1rData} />
+      <ThemeTile theme={theme} />
+    </StrictMode>
+  ) : c1r ? (
+    <StrictMode>
+      <C1rPreview variant={c1rVariant} data={c1rData} theme={theme} />
     </StrictMode>
   ) : c1 ? (
     <StrictMode>

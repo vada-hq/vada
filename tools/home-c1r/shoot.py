@@ -1,7 +1,8 @@
 """c1r 찍기. 컴포넌트([data-c1r-root])만 잘라 저장한다.
-사용: python -X utf8 -W ignore tools/home-c1r/shoot.py [-v 0,1] [-d main,many] [-w 977,358] [--hover]
+사용: python -X utf8 -W ignore tools/home-c1r/shoot.py [-v 0,1] [-d main,many] [-w 977,358] [--hover] [-t a]
 기본: 고른 variant마다 3폭 x (main, normal, empty) + many 977.
-저장: notes/integration/review/screens/home/c1r/v{N}/c1r-v{N}-{977|716|358}-{data}[-hover].png"""
+저장: notes/integration/review/screens/home/c1r/v{N}/c1r-v{N}-{977|716|358}-{data}[-hover][-t{테마}].png
+(테마 base는 이름에 붙이지 않는다)"""
 import sys
 from playwright.sync_api import sync_playwright
 
@@ -11,8 +12,8 @@ from common import SCREENS, launch, open_page, parse_args, root_box
 PAD = 8  # 그림자가 잘리지 않게 둘레 여백(CSS px)
 
 
-def shoot(browser, v, w, d, hover=False):
-    page, logs = open_page(browser, v, w, d)
+def shoot(browser, v, w, d, hover=False, theme="base"):
+    page, logs = open_page(browser, v, w, d, theme)
     if hover:
         # 첫 줄(li), 없으면 첫 단추, 그것도 없으면 컴포넌트 가운데에 마우스를 올린다
         for sel in ("[data-c1r-root] li", "[data-c1r-root] button", "[data-c1r-root] > *"):
@@ -23,7 +24,7 @@ def shoot(browser, v, w, d, hover=False):
     box = root_box(page)
     out = SCREENS / f"v{v}"
     out.mkdir(parents=True, exist_ok=True)
-    name = f"c1r-v{v}-{w}-{d}{'-hover' if hover else ''}.png"
+    name = f"c1r-v{v}-{w}-{d}{'-hover' if hover else ''}{'' if theme == 'base' else f'-t{theme}'}.png"
     clip = {"x": max(0, box["x"] - PAD), "y": max(0, box["y"] - PAD), "width": box["w"] + 2 * PAD, "height": box["h"] + 2 * PAD}
     page.screenshot(path=str(out / name), clip=clip, full_page=True)
     print(f"{name}  높이 {box['h']:.0f}px" + (f"  로그 {logs[:3]}" if logs else ""))
@@ -36,9 +37,9 @@ def main():
         b = launch(p)
         for v in a.variants:
             for w, d in a.cases:
-                shoot(b, v, w, d)
+                shoot(b, v, w, d, theme=a.theme)
             if a.hover:
-                shoot(b, v, 977, "main", hover=True)
+                shoot(b, v, 977, "main", hover=True, theme=a.theme)
         b.close()
 
 

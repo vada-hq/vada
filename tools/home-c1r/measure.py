@@ -1,5 +1,6 @@
 """c1r 성공 기준 K1~K7(명세 c1-spec.md 8절)을 DOM·픽셀로 재서 md 표로 낸다.
-사용: python -X utf8 -W ignore tools/home-c1r/measure.py [-v 0,1] [-d ...] [-w ...] [--out 파일.md]
+사용: python -X utf8 -W ignore tools/home-c1r/measure.py [-v 0,1] [-d ...] [-w ...] [-t a] [--out 파일.md]
+--theme(-t): 그 테마(apps/web/src/home/c1r/themes)로 열어 잰다. K3 대비를 테마마다 다시 잴 때 쓴다(기본 base).
 기본 묶음은 shoot.py와 같다(3폭 x main·normal·empty + many 977). K마다 필요한 폭·데이터가 묶음에 없으면 '-'.
 K5 위험 색 픽셀: 빨강 색상(345~360도, 0~12도), 채도 0.15 이상, 명도 0.3 이상인 픽셀 가운데
 지남·오늘 줄의 사실 글 상자(+2px) 밖에 있는 것의 수."""
@@ -40,8 +41,8 @@ def red_pixels(png, allowed):
     return out, inside
 
 
-def measure(browser, v, w, d):
-    page, logs = open_page(browser, v, w, d)
+def measure(browser, v, w, d, theme="base"):
+    page, logs = open_page(browser, v, w, d, theme)
     data = page.evaluate(DATA_JS, d)
     m = page.evaluate(JS, {"rows": data["rows"], "total": data["total"]})
     box = root_box(page)
@@ -117,9 +118,10 @@ def main():
     with sync_playwright() as p:
         b = launch(p)
         for v in a.variants:
-            res = {(w, d): measure(b, v, w, d) for w, d in a.cases}
+            res = {(w, d): measure(b, v, w, d, a.theme) for w, d in a.cases}
             cell, notes = judge(res)
-            lines.append(f"| v{v} | " + " | ".join(cell[k] for k in ["K1", "K2", "K3", "K4", "K5", "K6", "K7"]) + " |")
+            name = f"v{v}" if a.theme == "base" else f"v{v} (테마 {a.theme})"
+            lines.append(f"| {name} | " + " | ".join(cell[k] for k in ["K1", "K2", "K3", "K4", "K5", "K6", "K7"]) + " |")
             details += [f"- v{v} {n}" for n in notes]
             heights.append(f"- v{v} 높이: " + ", ".join(f"{w}·{d} {m['height']:.0f} (줄 {m['shown']})" for (w, d), m in res.items()))
         b.close()

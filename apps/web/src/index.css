@@ -37,12 +37,58 @@
   --border: #e5e7eb;
   --input: #d1d5dc;
   --ring: #155dfc;
+  /* 시각 언어 시맨틱 이름(notes/visual-language/theme-frame.md). 값은 지금 쓰는 Tailwind 팔레트 단계의 원값(oklch)이라
+     text-gray-900을 text-fg로 바꿔도 픽셀이 같다(hex는 반올림이라 1~2 어긋난다).
+     회장단 홈 시안 미리보기가 [data-theme] 범위에서 덮어써 테마를 바꿔 본다(home/c1r/themes/themes.css). */
+  --fg: oklch(21% 0.034 264.665); /* gray-900 #101828 */
+  --fg-secondary: oklch(37.3% 0.034 259.733); /* gray-700 #364153 */
+  --fg-tertiary: oklch(44.6% 0.03 256.802); /* gray-600 #4a5565 */
+  --fg-muted: oklch(55.1% 0.027 264.364); /* gray-500 #6a7282, muted-foreground와 같은 단계 */
+  --surface-subtle: oklch(98.5% 0.002 247.839); /* gray-50 #f9fafb */
+  --border-subtle: oklch(96.7% 0.003 264.542); /* gray-100 #f3f4f6 */
+  --primary-strong: oklch(48.8% 0.243 264.376); /* blue-700 #1447e6 */
+  --primary-surface: oklch(97% 0.014 254.604); /* blue-50 #eff6ff */
+  --danger: oklch(50.5% 0.213 27.518); /* red-700 #c10007 */
+  --danger-surface: oklch(97.1% 0.013 17.38); /* red-50 #fef2f2 */
+  --danger-border: oklch(88.5% 0.062 18.334); /* red-200 #ffc9c9 */
+  --warning: oklch(55.4% 0.135 66.442); /* yellow-700 #a65f00 */
+  --warning-surface: oklch(98.7% 0.026 102.212); /* yellow-50 #fefce8 */
+  --warning-border: oklch(94.5% 0.129 101.54); /* yellow-200 #fff085 */
+  --success: oklch(52.7% 0.154 150.069); /* green-700 #008236 */
+  --success-surface: oklch(98.2% 0.018 155.826); /* green-50 #f0fdf4 */
+  --success-border: oklch(92.5% 0.084 155.995); /* green-200 #b9f8cf */
 }
 
-@theme inline {
+/* 글꼴과 반경은 inline이 아닌 @theme에 둔다. inline이면 유틸리티가 값을 그대로 박아(rounded-lg → 0.625rem)
+   범위 안에서 변수를 덮어써도 바뀌지 않는다. 값은 그대로라 화면은 같다. */
+@theme {
   --font-sans:
     'Pretendard Variable', Pretendard, ui-sans-serif, system-ui, -apple-system, 'Segoe UI',
     sans-serif;
+  /* 반경 세 단계(기준 14px일 때): 작은 값 3.5px 버튼·입력칸·칩, 중간 값 5.25px 배너, 큰 값 8.75px 카드·대화상자. */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.375rem;
+  --radius-lg: 0.625rem;
+}
+
+@theme inline {
+  --color-fg: var(--fg);
+  --color-fg-secondary: var(--fg-secondary);
+  --color-fg-tertiary: var(--fg-tertiary);
+  --color-fg-muted: var(--fg-muted);
+  --color-surface-subtle: var(--surface-subtle);
+  --color-border-subtle: var(--border-subtle);
+  --color-primary-strong: var(--primary-strong);
+  --color-primary-surface: var(--primary-surface);
+  --color-danger: var(--danger);
+  --color-danger-surface: var(--danger-surface);
+  --color-danger-border: var(--danger-border);
+  --color-warning: var(--warning);
+  --color-warning-surface: var(--warning-surface);
+  --color-warning-border: var(--warning-border);
+  --color-success: var(--success);
+  --color-success-surface: var(--success-surface);
+  --color-success-border: var(--success-border);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -87,10 +133,6 @@
   --color-category-8: var(--color-lime-600);
   --color-category-8-soft: var(--color-lime-100);
   --color-category-8-strong: var(--color-lime-800);
-  /* 반경 세 단계(기준 14px일 때): 작은 값 3.5px 버튼·입력칸·칩, 중간 값 5.25px 배너, 큰 값 8.75px 카드·대화상자. */
-  --radius-sm: 0.25rem;
-  --radius-md: 0.375rem;
-  --radius-lg: 0.625rem;
 }
 
 /* 기준 글자는 브라우저 기본값 16px이다. 와이어프레임 축척(0.875)을 따른 PC 14px 기준은 본문 12.25px, 보조 글 10.5px로

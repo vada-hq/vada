@@ -23,10 +23,10 @@ const isAssign = (row: C1rRow) => row.person === null
 function Head({ total }: { total: number }) {
   return (
     <div className="flex items-baseline gap-2 px-4 py-3">
-      <h2 id={HEAD_ID} className={cn('min-w-0 text-sm font-semibold text-gray-900', WRAP)}>
+      <h2 id={HEAD_ID} className={cn('min-w-0 text-sm font-semibold text-fg', WRAP)}>
         {C1R_TITLE}
       </h2>
-      <span className="shrink-0 text-sm text-gray-500">{total === 0 ? '없음' : `${total}건`}</span>
+      <span className="shrink-0 text-sm text-fg-muted">{total === 0 ? '없음' : `${total}건`}</span>
     </div>
   )
 }
@@ -39,7 +39,7 @@ function Fact({ row }: { row: C1rRow }) {
       {row.danger ? (
         <Badge tone="danger">{row.fact}</Badge>
       ) : (
-        <span className="border border-transparent px-2 py-0.5 text-xs font-medium whitespace-nowrap text-gray-700">
+        <span className="border border-transparent px-2 py-0.5 text-xs font-medium whitespace-nowrap text-fg-secondary">
           {row.fact}
         </span>
       )}
@@ -96,7 +96,7 @@ function Extra({ row, onOpenAsked }: { row: C1rRow } & Pick<C1rProps, 'onOpenAsk
   if (!row.event) return <span aria-hidden className="hidden @2xl:order-2 @2xl:block @2xl:flex-1" />
   return (
     // 점 앞뒤 간격을 같게: 358은 둘째 줄 간격(6px), 977·716은 줄 간격(12px)에 맞춘다.
-    <span className="flex min-w-0 flex-1 gap-1.5 text-xs text-gray-500 @2xl:order-2 @2xl:gap-3">
+    <span className="flex min-w-0 flex-1 gap-1.5 text-xs text-fg-muted @2xl:order-2 @2xl:gap-3">
       <span aria-hidden>·</span>
       <span className="truncate">{row.event}</span>
     </span>
@@ -113,7 +113,7 @@ function Row({
   return (
     <li
       className={cn(
-        'flex flex-wrap items-start gap-x-3 gap-y-1 px-4 py-3 hover:bg-gray-50 @2xl:flex-nowrap @2xl:items-center',
+        'flex flex-wrap items-start gap-x-3 gap-y-1 px-4 py-3 hover:bg-surface-subtle @2xl:flex-nowrap @2xl:items-center',
         rowLinkBox,
       )}
     >
@@ -121,7 +121,7 @@ function Row({
         variant="link"
         touch={false}
         className={cn(
-          'order-1 h-auto min-w-0 flex-1 justify-start p-0 text-left text-sm font-semibold whitespace-normal text-gray-900 hover:no-underline @2xl:flex-initial',
+          'order-1 h-auto min-w-0 flex-1 justify-start p-0 text-left text-sm font-semibold whitespace-normal text-fg hover:no-underline @2xl:flex-initial',
           rowLinkTarget,
         )}
         onClick={() => (isAssign(row) ? onAssign(row) : onOpen(row))}
@@ -141,10 +141,10 @@ function Row({
 export default function C1rV1({ data, onOpen, onAsk, onOpenAsked, onAssign, onSeeAll }: C1rProps) {
   const rows = data.rows.slice(0, C1R_SHOWN)
   return (
-    <section aria-labelledby={HEAD_ID} className={cn(cardClass, 'overflow-hidden bg-white')}>
+    <section aria-labelledby={HEAD_ID} className={cn(cardClass, 'overflow-hidden bg-card')}>
       <Head total={data.total} />
       {rows.length > 0 && (
-        <ul className="divide-y divide-gray-100 border-t border-gray-200">
+        <ul className="divide-y divide-border-subtle border-t border-border">
           {rows.map(row => (
             <Row
               key={row.id}
@@ -158,7 +158,7 @@ export default function C1rV1({ data, onOpen, onAsk, onOpenAsked, onAssign, onSe
         </ul>
       )}
       {data.total > C1R_SHOWN && (
-        <div className="border-t border-gray-100">
+        <div className="border-t border-border-subtle">
           <Button
             variant="link"
             className="h-auto w-full justify-start gap-0.5 rounded-none px-4 py-3 text-sm max-sm:min-h-11"
