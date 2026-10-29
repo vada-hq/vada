@@ -92,23 +92,8 @@ type ViewProps = Pick<Props, 'meeting' | 'selectedId' | 'onSelect' | 'onEdit' | 
 }
 const agendaHasNoLinks = (item: MeetingAgendaItem) =>
   item.decisions.length === 0 && item.followUps.length === 0
-export function MeetingMinutesView({
-  councilId,
-  followUpCreate: createTask,
-  followUpDialog,
-  meeting,
-  selectedId,
-  onSelect,
-  draft,
-  submit,
-  onEdit,
-  onCancel,
-  orphans,
-  onConfirm,
-  ...discussion
-}: ViewProps) {
-  const writable = meeting.actions.includes('meeting.minutes')
-  const item = meeting.agenda.find(a => a.id === selectedId) ?? meeting.agenda[0]
+// 안건·결정 빼기 확인 창의 상태.
+function useMinutesRemoval(submit: ReturnType<typeof useMinutesMutation>) {
   const [removing, setRemoving] = useState<{ kind: 'agenda' | 'decision'; id: string } | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -127,7 +112,29 @@ export function MeetingMinutesView({
     setError(null)
     setRemoving({ kind, id: target })
   }
-  const nav = { meeting, selectedId: item ? item.id : null, writable, onSelect, submit }
+  return { removing, setRemoving, busy, error, remove, ask }
+}
+export function MeetingMinutesView({
+  councilId,
+  followUpCreate: createTask,
+  followUpDialog,
+  meeting,
+  selectedId,
+  onSelect,
+  draft,
+  submit,
+  onEdit,
+  onCancel,
+  orphans,
+  onConfirm,
+  ...discussion
+}: ViewProps) {
+  const writable = meeting.actions.includes('meeting.minutes')
+  const item = meeting.agenda.find(a => a.id === selectedId) ?? meeting.agenda[0]
+  const { removing, setRemoving, busy, error, remove, ask } = useMinutesRemoval(submit)
+  const [addOpen, setAddOpen] = useState(false)
+  const adding = { open: addOpen, setOpen: setAddOpen }
+  const nav = { meeting, selectedId: item ? item.id : null, writable, onSelect, submit, adding }
   return (
     <div className="flex min-w-0 flex-col gap-5 break-keep">
       <MinutesHeader meeting={meeting} onEdit={onEdit} onCancel={onCancel} onConfirm={onConfirm} />
@@ -167,7 +174,7 @@ export function MeetingMinutesView({
           ) : (
             <>
               <p className="text-sm text-muted-foreground">{T.emptyAgenda}</p>
-              {writable && <MinutesAgendaAdd submit={submit} />}
+              {writable && <MinutesAgendaAdd submit={submit} adding={adding} />}
             </>
           )}
         </Card>

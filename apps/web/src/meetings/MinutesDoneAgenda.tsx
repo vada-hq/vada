@@ -18,9 +18,14 @@ function amendStart(item: MeetingAgendaItem, draft: MinutesDraft | undefined) {
       notes: pending ? pending.text : (item.notes ?? ''),
       baseVersionNo: pending ? pending.version : item.versionNo,
     },
-    baseline: { ...texts, notes: pending ? (pending.server.notes ?? '') : (item.notes ?? '') },
+    baseline: { ...texts, notes: pending ? pendingBase(pending) : (item.notes ?? '') },
   }
 }
+// 다시 연 화면의 초안은 판만 옛것이고 서버 글은 최신이라 처음 기준 글을 모른다. 그때는 어떤 글과도 다른 값을 기준으로 두어
+// 상대 글을 늘 보이고 논의 칸을 보낸다(NUL은 계약이 막아 실제 글과 같을 수 없다, mtg-6 검토).
+const UNKNOWN_BASE = '\u0000'
+const pendingBase = (draft: MinutesDraft) =>
+  draft.server.versionNo === draft.version ? (draft.server.notes ?? '') : UNKNOWN_BASE
 type Props = {
   item: MeetingAgendaItem
   draft: MinutesDraft | undefined

@@ -511,3 +511,54 @@ test('빠진 안건에서 쓰던 폼 글도 완료 화면에서 떠날 때 확�
   expect(screen.getAllByText('빠진 안건의 결정')).toHaveLength(1)
   expect(hasUnsavedInput()).toBe(true)
 })
+
+test('다시 연 화면의 옛 판 초안으로 고치면 상대 글을 먼저 보이고 초안의 판으로 보낸다', async () => {
+  const meeting = sample()
+  const item = meeting.agenda[0]!
+  const path = `${base}/agenda/${item.id}`
+  api.on('POST', path, () => json({ error: 'FAILED' }, 500))
+  const props = {
+    view: councilView(MEETING_COUNCIL),
+    memberId: MEETING_MEMBER,
+    base,
+    selectedId: item.id,
+    onSelect: () => {},
+    onSaved: () => {},
+  }
+  const first = render(<MeetingMinutes {...props} meeting={meeting} />)
+  fireEvent.change(screen.getByLabelText('논의 내용'), { target: { value: '내 논의' } })
+  first.unmount()
+  await waitFor(() => expect(posts()).toHaveLength(1))
+  await act(async () => {})
+  const fresh = {
+    ...meeting,
+    agenda: meeting.agenda.map(a =>
+      a.id === item.id ? { ...a, notes: '상대 논의', versionNo: item.versionNo + 1 } : a,
+    ),
+  }
+  api.on('POST', path, () => json({ error: 'RECORD_CONFIRMED' }, 409))
+  render(<MeetingMinutes {...props} meeting={done(fresh)} />)
+  fireEvent.click(screen.getAllByRole('button', { name: '고치기' })[0]!)
+  expect(screen.getByLabelText<HTMLTextAreaElement>('논의 내용').value).toBe('내 논의')
+  const notice = screen.getByText('다른 사람이 먼저 고쳤어요').parentElement!
+  expect(within(notice).getByText('상대 논의')).toBeTruthy()
+  fireEvent.change(screen.getByLabelText('고친 사유'), { target: { value: '논의 보완' } })
+  fireEvent.click(screen.getByRole('button', { name: '저장' }))
+  await waitFor(() =>
+    expect(posts().some(call => (call.body as { reason?: string }).reason === '논의 보완')).toBe(
+      true,
+    ),
+  )
+  const amend = posts().find(call => (call.body as { reason?: string }).reason === '논의 보완')!
+  expect(amend.body).toMatchObject({ baseVersionNo: item.versionNo, notes: '내 논의' })
+})
+
+test('안건 더하기 폼에 쓰다가 폭이 바뀌어도 폼과 떠날 때 확인이 남는다', async () => {
+  const resize = navigationWidth(1280)
+  draw(sample())
+  fireEvent.click(screen.getByRole('button', { name: '안건 더하기' }))
+  fireEvent.change(screen.getByLabelText('안건 제목'), { target: { value: '쓰던 안건' } })
+  await act(async () => resize(390))
+  expect(screen.getByLabelText<HTMLInputElement>('안건 제목').value).toBe('쓰던 안건')
+  expect(hasUnsavedInput()).toBe(true)
+})

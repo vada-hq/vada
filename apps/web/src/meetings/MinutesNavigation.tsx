@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import type { MeetingDetail } from '@vada/contracts'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -18,24 +17,36 @@ type Props = {
   writable: boolean
   onSelect: (id: string) => void
   submit: (suffix: string, body: object) => Promise<string | null>
+  adding: AgendaAdding
 }
-export function MinutesAgendaAdd({ submit }: Pick<Props, 'submit'>) {
-  const [adding, setAdding] = useState(false)
-  return adding ? (
+// 열림은 부모가 든다. 폭이 sm 경계를 넘어 폼이 다른 자리로 옮겨 그려져도 열린 채 남은 글을 되살린다(mtg-6 검토).
+export type AgendaAdding = { open: boolean; setOpen: (open: boolean) => void }
+export function MinutesAgendaAdd({
+  submit,
+  adding,
+}: Pick<Props, 'submit'> & { adding: AgendaAdding }) {
+  return adding.open ? (
     <MinutesEntryForm
       kind="agenda"
       formKey="agenda:new"
       agendaId={null}
       onSave={value => submit('/agenda', value)}
-      onClose={() => setAdding(false)}
+      onClose={() => adding.setOpen(false)}
     />
   ) : (
-    <Button touch variant="outline" onClick={() => setAdding(true)}>
+    <Button touch variant="outline" onClick={() => adding.setOpen(true)}>
       {T.addAgenda}
     </Button>
   )
 }
-export function MinutesMobileAgenda({ meeting, selectedId, onSelect, writable, submit }: Props) {
+export function MinutesMobileAgenda({
+  meeting,
+  selectedId,
+  onSelect,
+  writable,
+  submit,
+  adding,
+}: Props) {
   const wide = useMinutesWide()
   return (
     <div className="flex min-w-0 flex-col gap-3 sm:hidden">
@@ -56,7 +67,7 @@ export function MinutesMobileAgenda({ meeting, selectedId, onSelect, writable, s
         ))}
       </nav>
       {writable && meeting.agenda.length > 0 && wide !== true && (
-        <MinutesAgendaAdd submit={submit} />
+        <MinutesAgendaAdd submit={submit} adding={adding} />
       )}
     </div>
   )
@@ -67,6 +78,7 @@ export function MinutesAgendaNavigation({
   writable,
   onSelect,
   submit,
+  adding,
 }: Props) {
   const index = meeting.agenda.findIndex(a => a.id === selectedId)
   const wide = useMinutesWide()
@@ -108,7 +120,7 @@ export function MinutesAgendaNavigation({
         ))}
       </nav>
       {writable && meeting.agenda.length > 0 && wide !== false && (
-        <MinutesAgendaAdd submit={submit} />
+        <MinutesAgendaAdd submit={submit} adding={adding} />
       )}
     </Card>
   )
