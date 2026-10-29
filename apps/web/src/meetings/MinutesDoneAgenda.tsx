@@ -7,8 +7,19 @@ import { isMinutesDirty, type MinutesDraft } from './minutes-drafts'
 import { MINUTES_TEXT as T } from './minutes-text'
 
 export type AmendTarget = { kind: 'agenda' | 'decision'; id: string }
-function amendNotes(item: MeetingAgendaItem, draft: MinutesDraft | undefined) {
-  return draft && isMinutesDirty(draft) ? draft.text : (item.notes ?? '')
+// 저장 못 한 논의 초안으로 고치기를 시작하면, 그 초안이 딛고 선 판과 글을 기준으로 삼는다.
+// 그래야 그사이 다른 사람이 고친 논의가 충돌(409)로 드러나고, 다시 저장하기 전에 상대 글을 본다(mtg-6 검토).
+function amendStart(item: MeetingAgendaItem, draft: MinutesDraft | undefined) {
+  const pending = draft && isMinutesDirty(draft) ? draft : undefined
+  const texts = { main: item.title, extra: item.body ?? '' }
+  return {
+    initial: {
+      ...texts,
+      notes: pending ? pending.text : (item.notes ?? ''),
+      baseVersionNo: pending ? pending.version : item.versionNo,
+    },
+    baseline: { ...texts, notes: pending ? (pending.server.notes ?? '') : (item.notes ?? '') },
+  }
 }
 type Props = {
   item: MeetingAgendaItem
@@ -108,12 +119,7 @@ export function MinutesDoneAgenda({
           kind="agenda"
           id={item.id}
           agendaId={item.id}
-          initial={{
-            main: item.title,
-            extra: item.body ?? '',
-            notes: amendNotes(item, draft),
-            baseVersionNo: item.versionNo,
-          }}
+          {...amendStart(item, draft)}
           current={{ main: item.title, extra: item.body ?? '', notes: item.notes ?? '' }}
           onSave={async value => {
             const problem = await submit(`/agenda/${item.id}`, value)

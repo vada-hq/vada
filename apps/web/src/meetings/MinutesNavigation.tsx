@@ -3,6 +3,7 @@ import type { MeetingDetail } from '@vada/contracts'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { MinutesEntryForm } from './MinutesEntryForm'
+import { useMinutesWide } from './use-minutes-wide'
 import {
   MINUTES_TEXT as T,
   agendaNumber,
@@ -35,6 +36,7 @@ export function MinutesAgendaAdd({ submit }: Pick<Props, 'submit'>) {
   )
 }
 export function MinutesMobileAgenda({ meeting, selectedId, onSelect, writable, submit }: Props) {
+  const wide = useMinutesWide()
   return (
     <div className="flex min-w-0 flex-col gap-3 sm:hidden">
       <nav aria-label={T.agendas} className="flex min-w-0 gap-2 overflow-x-auto pb-1">
@@ -53,7 +55,9 @@ export function MinutesMobileAgenda({ meeting, selectedId, onSelect, writable, s
           </Button>
         ))}
       </nav>
-      {writable && meeting.agenda.length > 0 && <MinutesAgendaAdd submit={submit} />}
+      {writable && meeting.agenda.length > 0 && wide !== true && (
+        <MinutesAgendaAdd submit={submit} />
+      )}
     </div>
   )
 }
@@ -65,6 +69,7 @@ export function MinutesAgendaNavigation({
   submit,
 }: Props) {
   const index = meeting.agenda.findIndex(a => a.id === selectedId)
+  const wide = useMinutesWide()
   return (
     <Card className="hidden min-w-0 flex-col gap-4 p-4 sm:flex">
       <div>
@@ -102,7 +107,9 @@ export function MinutesAgendaNavigation({
           </Button>
         ))}
       </nav>
-      {writable && meeting.agenda.length > 0 && <MinutesAgendaAdd submit={submit} />}
+      {writable && meeting.agenda.length > 0 && wide !== false && (
+        <MinutesAgendaAdd submit={submit} />
+      )}
     </Card>
   )
 }

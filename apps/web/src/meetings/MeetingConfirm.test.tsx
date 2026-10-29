@@ -5,6 +5,7 @@ import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
 import { councilView } from '@/test-support/council-fixtures'
+import { navigationWidth } from '@/test-support/navigation-width'
 import { hasUnsavedInput, resetLeaveGuard } from '@/lib/leave-guard'
 import { PageTrailProvider } from '@/components/PageHeading'
 import { MeetingMinutes } from './MeetingMinutes'
@@ -445,5 +446,68 @@ test('다른 사람의 확정으로 폼이 내려가도 남은 폼 글은 떠날
   rerender(<MeetingMinutes {...props} meeting={{ ...done(meeting), actions: [] }} />)
   expect(screen.queryByLabelText('결정 내용')).toBeNull()
   expect(screen.getByText('쓰던 결정')).toBeTruthy()
+  expect(hasUnsavedInput()).toBe(true)
+})
+
+test('충돌한 초안으로 고치기를 시작하면 초안의 판으로 보내고 상대 글을 먼저 보인다', async () => {
+  const meeting = sample()
+  const item = meeting.agenda[0]!
+  const path = `${base}/agenda/${item.id}`
+  const fresh = {
+    ...meeting,
+    agenda: meeting.agenda.map(a =>
+      a.id === item.id ? { ...a, notes: '상대 논의', versionNo: item.versionNo + 1 } : a,
+    ),
+  }
+  api.on('POST', path, () => json({ error: 'VERSION_CONFLICT' }, 409))
+  api.on('GET', base, () => json({ meeting: fresh }))
+  const props = {
+    view: councilView(MEETING_COUNCIL),
+    memberId: MEETING_MEMBER,
+    base,
+    selectedId: item.id,
+    onSelect: () => {},
+    onSaved: () => {},
+  }
+  const { rerender } = render(<MeetingMinutes {...props} meeting={meeting} />)
+  fireEvent.change(screen.getByLabelText('논의 내용'), { target: { value: '내 논의' } })
+  await waitFor(() => expect(screen.getByLabelText('내가 쓴 글')).toBeTruthy(), { timeout: 4000 })
+  rerender(<MeetingMinutes {...props} meeting={done(fresh)} />)
+  fireEvent.click(screen.getAllByRole('button', { name: '고치기' })[0]!)
+  expect(screen.getByLabelText<HTMLTextAreaElement>('논의 내용').value).toBe('내 논의')
+  const notice = screen.getByText('다른 사람이 먼저 고쳤어요').parentElement!
+  expect(within(notice).getByText('상대 논의')).toBeTruthy()
+  fireEvent.change(screen.getByLabelText('고친 사유'), { target: { value: '논의 보완' } })
+  fireEvent.click(screen.getByRole('button', { name: '저장' }))
+  await waitFor(() => expect(posts().at(-1)!.body).toHaveProperty('reason', '논의 보완'))
+  expect(posts().at(-1)!.body).toMatchObject({ baseVersionNo: item.versionNo, notes: '내 논의' })
+})
+
+test('휴대폰 폭에서는 안건 더하기 폼을 한 곳에만 그린다', () => {
+  navigationWidth(390)
+  draw(sample())
+  expect(screen.getAllByRole('button', { name: '안건 더하기' })).toHaveLength(1)
+  cleanup()
+  navigationWidth(1280)
+  draw(sample())
+  expect(screen.getAllByRole('button', { name: '안건 더하기' })).toHaveLength(1)
+})
+
+test('빠진 안건에서 쓰던 폼 글도 완료 화면에서 떠날 때 확인을 건다', () => {
+  const meeting = sample()
+  const props = {
+    view: councilView(MEETING_COUNCIL),
+    memberId: MEETING_MEMBER,
+    base,
+    selectedId: null,
+    onSelect: () => {},
+    onSaved: () => {},
+  }
+  const { rerender } = render(<MeetingMinutes {...props} meeting={meeting} />)
+  fireEvent.click(screen.getByRole('button', { name: '결정 추가' }))
+  fireEvent.change(screen.getByLabelText('결정 내용'), { target: { value: '빠진 안건의 결정' } })
+  const rest = { ...done(meeting), actions: [], agenda: meeting.agenda.slice(1) }
+  rerender(<MeetingMinutes {...props} meeting={rest} />)
+  expect(screen.getAllByText('빠진 안건의 결정')).toHaveLength(1)
   expect(hasUnsavedInput()).toBe(true)
 })

@@ -23,6 +23,8 @@ type Props = {
   initial: AmendInitial
   // 지금 서버에 저장된 값. 폼을 연 뒤 다른 사람이 같은 칸을 고쳤으면 그 글을 보여 준다.
   current: AmendTexts
+  // 바꾼 칸을 가르는 기준 글. 없으면 연 때의 current다(저장 못 한 초안으로 시작하면 그 초안의 기준 글).
+  baseline?: AmendTexts | undefined
   onSave: (value: object) => Promise<string | null>
   onClose: () => void
 }
@@ -86,8 +88,45 @@ function AmendMainField({
     </Field>
   )
 }
-export function MinutesAmendForm({ kind, id, agendaId, initial, current, onSave, onClose }: Props) {
-  const entry = useAmendEntry({ kind, id, agendaId }, initial, current)
+function AmendExtraField({
+  kind,
+  value,
+  busy,
+  error,
+  onChange,
+}: {
+  kind: MinutesEntryKind
+  value: string
+  busy: boolean
+  error: string | undefined
+  onChange: (text: string) => void
+}) {
+  return (
+    <Field label={entryFields[kind].extraLabel} optional error={error}>
+      {kind === 'agenda' ? (
+        <Input
+          className="max-sm:min-h-11"
+          value={value}
+          readOnly={busy}
+          onChange={e => onChange(e.target.value)}
+        />
+      ) : (
+        <Textarea value={value} readOnly={busy} onChange={e => onChange(e.target.value)} />
+      )}
+    </Field>
+  )
+}
+export function MinutesAmendForm({
+  kind,
+  id,
+  agendaId,
+  initial,
+  current,
+  baseline,
+  onSave,
+  onClose,
+}: Props) {
+  const entry = useAmendEntry({ kind, id, agendaId }, initial, baseline ?? current)
   const { value, change } = entry
   const overlap = overlappingChanges(value, entry.first, current)
   const fields = entryFields[kind]
@@ -132,22 +171,13 @@ export function MinutesAmendForm({ kind, id, agendaId, initial, current, onSave,
         error={errors[fields.main]}
         onChange={text => change('main', text)}
       />
-      <Field label={fields.extraLabel} optional error={errors[fields.extra]}>
-        {kind === 'agenda' ? (
-          <Input
-            className="max-sm:min-h-11"
-            value={value.extra}
-            readOnly={busy}
-            onChange={e => change('extra', e.target.value)}
-          />
-        ) : (
-          <Textarea
-            value={value.extra}
-            readOnly={busy}
-            onChange={e => change('extra', e.target.value)}
-          />
-        )}
-      </Field>
+      <AmendExtraField
+        kind={kind}
+        value={value.extra}
+        busy={busy}
+        error={errors[fields.extra]}
+        onChange={text => change('extra', text)}
+      />
       {kind === 'agenda' && (
         <Field label={T.discussion} optional error={errors['notes']}>
           <Textarea

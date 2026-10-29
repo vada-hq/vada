@@ -36,11 +36,11 @@ export function MeetingMinutesDone({
 }: Props) {
   const [editing, setEditing] = useState<AmendTarget | null>(initialEditing ?? null)
   const amendable = meeting.actions.includes('meeting.amend')
-  const remaining = entries(editing ? `amend:${editing.kind}:${editing.id}` : undefined).filter(
-    text => !orphans.includes(text),
-  )
+  const kept = entries(editing ? `amend:${editing.kind}:${editing.id}` : undefined)
+  // 같은 글이 위 빠진 안건 글로 이미 보이면 한 번만 보인다. 떠날 때 확인은 겹침과 상관없이 남은 폼 글 전부로 건다.
+  const remaining = kept.filter(text => !orphans.includes(text))
   // 확정으로 폼이 내려가면 폼의 떠날 때 확인도 풀린다. 남은 폼 글은 메모리에만 있으므로 여기서 다시 건다.
-  useUnsavedInput(remaining.length > 0)
+  useUnsavedInput(kept.length > 0)
   return (
     <div className="flex min-w-0 flex-col gap-5 break-keep">
       <PageHeading trail={{ title: T.done, crumbs: [{ label: meeting.title, truncate: true }] }}>
