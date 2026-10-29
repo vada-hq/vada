@@ -29,7 +29,6 @@ export const MENU = '-mr-1.5 size-8 p-0'
 
 // ── 얼굴 ──
 export const FACE = 'size-7 text-[11px] leading-none'
-export const FACE_EMPTY = 'size-7 rounded-full border border-dashed border-border-strong'
 
 // ── 빈 열·추가 ──
 export const EMPTY = 'px-3 py-5 text-center text-[13px] text-fg-muted'
