@@ -349,6 +349,13 @@ async function addUnusedTables(testDb: TestDb, councilId: string, author: string
     // 학생회마다 다른 해시(token_hash는 UNIQUE): 학생회 번호의 16진 32자를 두 번.
     [president, councilId, councilId.replaceAll('-', '').repeat(2)],
   )
+  // 내보낸 사람의 공지방 읽음 위치(0028): 그 학생회 공지방에 하나.
+  await pg.query(
+    `INSERT INTO left_room_read (room_id, member_id, last_read_at)
+     SELECT cr.id, $2, now() FROM chat_room cr JOIN record r ON r.id = cr.id
+      WHERE r.council_id = $1 AND cr.type = 'all_members' AND cr.event_id IS NULL`,
+    [councilId, author],
+  )
   await raw('audit_body', { council_id: councilId, name: '감사위원회' })
   await raw('voting_body', { council_id: councilId, name: '대의원회' })
   const meeting = await raw('meeting', { title: '회의', held_at: new Date(), event_id: eventId })
