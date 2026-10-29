@@ -19,6 +19,7 @@ import { COUNCIL_ID } from '@/test-support/workspace-at'
 import { serveEventRooms, WithChat } from '@/test-support/event-rooms'
 import { ADDRESS_LOST, EVENT_ERRORS } from '@/lib/messages'
 import EventsPage from './EventsPage'
+import { pickDateTime } from '@/test-support/date-field'
 
 // 주소는 uuid여야 읽히므로 행사 시험은 이 학생회와 행사 번호를 쓴다.
 const EVENT2 = '00000000-0000-4000-8000-0000000000e2'
@@ -513,7 +514,7 @@ test('고치기에서 끝이 시작보다 이르면 저장을 눌러도 보내�
   await openOverview()
   fireEvent.click(await screen.findByRole('button', { name: '기본정보 수정' }))
   const end = screen.getByLabelText('종료 일시')
-  fireEvent.change(end, { target: { value: '2026-10-24T13:00' } })
+  await pickDateTime(end, '2026-10-24T13:00')
   const save = screen.getByRole('button', { name: '저장' })
   expect(save).toHaveProperty('disabled', false)
   fireEvent.click(save)
@@ -532,7 +533,7 @@ test('고치기에서 시작 없이 끝만 넣고 저장을 누르면 보내지 
   fireEvent.click(await screen.findByRole('button', { name: '기본정보 수정' }))
   // 비어 있는 끝은 '종료 시간 미정' 체크로 열린다. 풀어야 칸이 켜진다.
   fireEvent.click(screen.getByRole('checkbox', { name: '종료 시간 미정' }))
-  fireEvent.change(screen.getByLabelText('종료 일시'), { target: { value: '2026-10-24T13:00' } })
+  await pickDateTime(screen.getByLabelText('종료 일시'), '2026-10-24T13:00')
   fireEvent.click(screen.getByRole('button', { name: '저장' }))
   expect(screen.getByText('시작 일시를 입력해 주세요')).toBeTruthy()
   expect(screen.getByLabelText('시작 일시').getAttribute('aria-invalid')).toBe('true')

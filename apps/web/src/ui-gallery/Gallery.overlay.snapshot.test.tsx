@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import type { ComponentType } from 'react'
-import { afterEach, expect, test, vi } from 'vitest'
+import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { windowHistoryIdle } from '@/lib/use-window-history'
 import { snapshotHtml } from '@/test-support/snapshot-html'
@@ -19,6 +19,11 @@ import { MessageMenuSection } from './MenuSections'
 afterEach(() => {
   cleanup()
   vi.useRealTimers()
+})
+// 날짜 칸은 올해가 아니면 연도를 붙인다. 견본 날짜(2026년)가 해가 바뀌어도 같은 글로 그려지게 '지금'을 고정한다.
+beforeEach(() => {
+  vi.useFakeTimers({ toFake: ['Date'] })
+  vi.setSystemTime(new Date('2026-10-28T03:00:00Z'))
 })
 
 test('메시지 고치기 칸', async () => {
@@ -57,10 +62,6 @@ const openers: [string, ComponentType][] = [
 ]
 
 test.each(openers)('%s', (name, Section) => {
-  if (Section === CalendarSection) {
-    vi.useFakeTimers({ toFake: ['Date'] })
-    vi.setSystemTime(new Date('2026-10-28T03:00:00Z'))
-  }
   render(<Section />)
   fireEvent.click(screen.getByRole('button', { name }))
   expect(snapshotHtml()).toMatchSnapshot()

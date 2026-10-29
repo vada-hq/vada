@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { DateTimeField } from '@/components/ui/date-time-field'
 import { Field } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -31,12 +32,8 @@ function TextField({
   kind: 'text' | 'number' | 'moment'
   optional?: boolean
 }) {
-  const typed =
-    kind === 'moment'
-      ? { type: 'datetime-local' }
-      : kind === 'number'
-        ? { inputMode: 'numeric' as const }
-        : {}
+  const typed = kind === 'number' ? { inputMode: 'numeric' as const } : {}
+  const set = (value: string) => onChange({ ...values, [field]: value })
   return (
     <Field
       label={label}
@@ -44,12 +41,23 @@ function TextField({
       required={!optional}
       error={(errors as Partial<Record<TextKey, string>>)[field]}
     >
-      <Input
-        {...typed}
-        value={values[field]}
-        disabled={disabled}
-        onChange={event => onChange({ ...values, [field]: event.target.value })}
-      />
+      {kind === 'moment' ? (
+        <DateTimeField
+          // 시각 칸 이름은 라벨 글을 담지 않는다. 라벨로 날짜 칸을 찾을 때 둘이 함께 걸리지 않게 한다.
+          timeLabel={field === 'opensAt' ? '시작 시각' : '마감 시각'}
+          clearable={optional}
+          value={values[field]}
+          disabled={disabled}
+          onChange={set}
+        />
+      ) : (
+        <Input
+          {...typed}
+          value={values[field]}
+          disabled={disabled}
+          onChange={event => set(event.target.value)}
+        />
+      )}
     </Field>
   )
 }

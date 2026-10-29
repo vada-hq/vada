@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { afterEach, expect, test, vi } from 'vitest'
+import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import {
   councilView,
@@ -9,12 +9,19 @@ import {
 import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
 import { snapshotHtml } from '@/test-support/snapshot-html'
 import CouncilSettings from './CouncilSettings'
+import { pickDate } from '@/test-support/date-field'
 
 // 학생회 설정을 나누기 전의 겉 모양을 그대로 적어 둔 특성 시험이다(docs/features/r01-maintainability.md 조각 6).
 // 나눈 뒤에도 이 스냅숏 파일은 바뀌지 않아야 한다.
 afterEach(() => {
   cleanup()
   vi.unstubAllGlobals()
+  vi.useRealTimers()
+})
+// 임기 칸은 올해가 아니면 연도를 붙인다. 견본 임기(2026년)가 해가 바뀌어도 같은 글이 되게 '지금'을 고정한다.
+beforeEach(() => {
+  vi.useFakeTimers({ toFake: ['Date'] })
+  vi.setSystemTime(new Date('2026-10-28T03:00:00Z'))
 })
 
 function show(permissions = LEADER_PERMISSIONS, onForbidden = () => {}) {
@@ -46,10 +53,10 @@ test('권한 없음: 보기만', () => {
   expect(html()).toMatchSnapshot()
 })
 
-test('임기 순서 오류', () => {
+test('임기 순서 오류', async () => {
   mockApi()
   show()
-  fireEvent.change(screen.getByLabelText('임기 끝'), { target: { value: '2025-12-31' } })
+  await pickDate(screen.getByLabelText('임기 끝'), '2025-12-31')
   // 문제는 누를 때 칸 아래에 보인다.
   fireEvent.click(screen.getByRole('button', { name: '기수 저장' }))
   expect(html()).toMatchSnapshot()

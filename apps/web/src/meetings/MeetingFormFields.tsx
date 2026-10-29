@@ -2,6 +2,8 @@ import type { ReactNode } from 'react'
 import type { MeetingOptionsResponse } from '@vada/contracts'
 import { Card } from '@/components/ui/card'
 import { Field } from '@/components/ui/field'
+import { DateField } from '@/components/ui/date-field'
+import { TimeField } from '@/components/ui/date-time-field'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { NativeSelect } from '@/components/ui/native-select'
@@ -128,28 +130,13 @@ export function MeetingScheduleFields({ value, errors, onChange }: MeetingFields
     <FormSection number="3" title="일정과 장소">
       <div className="grid min-w-0 gap-4 sm:grid-cols-3">
         <Field label="날짜" required error={errors.date}>
-          <Input
-            className="min-w-0 max-sm:min-h-11"
-            type="date"
-            value={value.date}
-            onChange={event => onChange({ date: event.target.value })}
-          />
+          <DateField value={value.date} onChange={date => onChange({ date })} />
         </Field>
         <Field label="시작" required error={errors.start}>
-          <Input
-            className="min-w-0 max-sm:min-h-11"
-            type="time"
-            value={value.start}
-            onChange={event => onChange({ start: event.target.value })}
-          />
+          <TimeField value={value.start} onChange={start => onChange({ start })} />
         </Field>
         <Field label="끝" required error={errors.end}>
-          <Input
-            className="min-w-0 max-sm:min-h-11"
-            type="time"
-            value={value.end}
-            onChange={event => onChange({ end: event.target.value })}
-          />
+          <TimeField value={value.end} onChange={end => onChange({ end })} />
         </Field>
       </div>
       <Field label="장소" required error={errors.place}>

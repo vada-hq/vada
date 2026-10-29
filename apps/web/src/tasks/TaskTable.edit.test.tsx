@@ -159,7 +159,7 @@ test('task.edit가 없으면 제목·마감에 고치기 단추가 없다', asyn
   expect(screen.queryByLabelText('업무 a 마감')).toBeNull()
 })
 
-test('마감은 날짜 칸으로 고치고 비우면 마감 없음이다. 보내는 것은 마감 키 하나다', async () => {
+test('마감은 앱 달력 창으로 고치고 마감 없음이면 비운다. 보내는 것은 마감 키 하나이고 닫히면 칸으로 돌아온다', async () => {
   wide()
   let current = task('a')
   const api = serve(() => [current])
@@ -171,13 +171,15 @@ test('마감은 날짜 칸으로 고치고 비우면 마감 없음이다. 보내
   await screen.findByRole('grid')
   cell('a', 3).focus()
   press('Enter')
-  const input = screen.getByLabelText('업무 a 마감') as HTMLInputElement
-  expect(document.activeElement).toBe(input)
-  expect(input.value).toBe('2026-10-25')
-  fireEvent.change(input, { target: { value: '' } })
-  fireEvent.keyDown(input, { key: 'Enter' })
+  const picker = await screen.findByRole('dialog', { name: '업무 a 마감' })
+  await waitFor(() =>
+    expect(document.activeElement).toBe(
+      within(picker).getByRole('button', { name: '10월 25일 (일)' }),
+    ),
+  )
+  fireEvent.click(within(picker).getByRole('button', { name: '마감 없음' }))
   await waitFor(() => expect(posts(api)).toEqual([{ dueDate: null }]))
-  expect(await screen.findByRole('button', { name: '업무 a 마감 고치기' })).toBeTruthy()
+  await waitFor(() => expect(document.activeElement).toBe(cell('a', 3)))
   expect(cell('a', 3).textContent).toBe('마감 없음')
 })
 

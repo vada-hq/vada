@@ -10,6 +10,7 @@ import { purchaseDetail, purchaseSummary } from '@/test-support/purchase-fixture
 import { asElement } from '@/test-support/elements'
 import { PURCHASE_LOST } from '@/lib/messages'
 import { COUNCIL_ID, PurchasesAt } from '@/test-support/finance-at'
+import { pickDate } from '@/test-support/date-field'
 
 afterEach(async () => {
   cleanup()
@@ -124,7 +125,7 @@ test('링크, 수량, 날짜, 내용을 요청에 담고, 쓸 수 없는 값이�
   expect(posts()).toBe(0)
   fill('품목 1 링크', 'https://example.com/p')
   fill('품목 1 옵션', '무광')
-  fill('필요한 때', '2026-10-30')
+  await pickDate(screen.getByLabelText('필요한 때'), '2026-10-30')
   fill('내용', '행사용')
   fill('품목 1 수량', '0')
   fireEvent.click(submit())

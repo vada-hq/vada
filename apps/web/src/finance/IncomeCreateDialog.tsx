@@ -16,6 +16,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Field } from '@/components/ui/field'
+import { DateField } from '@/components/ui/date-field'
 import { Input } from '@/components/ui/input'
 import { NativeSelect } from '@/components/ui/native-select'
 import { useUnsavedInput } from '@/lib/leave-guard'
@@ -109,12 +110,11 @@ function DateAndNote({
   return (
     <>
       <Field label="받은 날" required error={errors.receivedOn}>
-        <Input
-          type="date"
+        <DateField
           {...range}
           value={values.receivedOn}
           disabled={disabled}
-          onChange={event => onChange({ ...values, receivedOn: event.target.value })}
+          onChange={receivedOn => onChange({ ...values, receivedOn })}
         />
       </Field>
       <Field label="내용" optional error={errors.description}>

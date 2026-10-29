@@ -3,7 +3,7 @@ import { existsSync } from 'node:fs'
 import { readdir } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { afterEach, expect, test, vi } from 'vitest'
+import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import { cleanup, render } from '@testing-library/react'
 import { snapshotHtml } from '@/test-support/snapshot-html'
 import { gallerySections } from './Gallery'
@@ -14,6 +14,12 @@ import { navigationWidth } from '@/test-support/navigation-width'
 afterEach(() => {
   cleanup()
   vi.unstubAllGlobals()
+  vi.useRealTimers()
+})
+// 날짜 칸은 올해가 아니면 연도를 붙인다. 견본 날짜(2026년)가 해가 바뀌어도 같은 글로 그려지게 '지금'을 고정한다.
+beforeEach(() => {
+  vi.useFakeTimers({ toFake: ['Date'] })
+  vi.setSystemTime(new Date('2026-10-28T03:00:00Z'))
 })
 
 const snapshotDirectory = join(dirname(fileURLToPath(import.meta.url)), '__snapshots__/gallery')

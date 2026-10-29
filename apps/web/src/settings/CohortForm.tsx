@@ -3,6 +3,7 @@ import { termErrors } from '../councils/term'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Field } from '@/components/ui/field'
+import { DateField } from '@/components/ui/date-field'
 import { Input } from '@/components/ui/input'
 import { useFormCheck, type FieldErrors } from '@/lib/use-form-check'
 import type { CohortDraft } from './council-settings-form'
@@ -27,19 +28,17 @@ function TermFields({ value, canEdit, onEdit, errors }: TermProps) {
   return (
     <div className="grid grid-cols-2 gap-3">
       <Field label="임기 시작" required={canEdit} error={errors.startsOn}>
-        <Input
-          type="date"
+        <DateField
           value={value.startsOn}
           readOnly={!canEdit}
-          onChange={event => onEdit({ startsOn: event.target.value })}
+          onChange={startsOn => onEdit({ startsOn })}
         />
       </Field>
       <Field label="임기 끝" required={canEdit} error={errors.endsOn}>
-        <Input
-          type="date"
+        <DateField
           value={value.endsOn}
           readOnly={!canEdit}
-          onChange={event => onEdit({ endsOn: event.target.value })}
+          onChange={endsOn => onEdit({ endsOn })}
         />
       </Field>
     </div>

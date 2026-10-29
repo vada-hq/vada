@@ -5,6 +5,7 @@ import { ConfirmDialog } from '@/components/ConfirmDialog'
 import { HistoryMenu } from '@/components/HistoryMenu'
 import { Button } from '@/components/ui/button'
 import { Field } from '@/components/ui/field'
+import { DateField } from '@/components/ui/date-field'
 import { Input } from '@/components/ui/input'
 import { NativeSelect } from '@/components/ui/native-select'
 import { Textarea } from '@/components/ui/textarea'
@@ -15,6 +16,7 @@ import { BudgetRows, BudgetRowsTotal } from '@/finance/BudgetRows'
 import { blankRow, type BudgetRow } from '@/finance/budget-rows'
 import { cn } from '@/lib/utils'
 import { Section } from './GallerySection'
+import { today } from './home-frame-samples'
 import { longName } from './sample-text'
 
 type Spend = { amount: number; actual: number; committed: number }
@@ -248,10 +250,10 @@ function PeriodFrame({ width }: { width: string }) {
         <Input defaultValue="2026년 2학기" />
       </Field>
       <Field label="시작일" required>
-        <Input type="date" defaultValue="2026-07-01" />
+        <DateField today={today} value="2026-07-01" onChange={() => {}} />
       </Field>
       <Field label="끝일" required>
-        <Input type="date" defaultValue="2026-12-31" />
+        <DateField today={today} value="2026-12-31" onChange={() => {}} />
       </Field>
       <Footer submit="만들기" />
     </DialogFrame>

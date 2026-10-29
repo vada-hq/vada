@@ -13,6 +13,7 @@ import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
 import { COUNCIL_ID, FinanceAt } from '@/test-support/finance-at'
 import { periodSummary } from '@/test-support/income-fixtures'
 import { BudgetTab } from './BudgetTab'
+import { pickDate } from '@/test-support/date-field'
 
 // 회계 기간 만들기는 오늘이 든 학기로 채운다. 시험의 오늘은 2026-10-26(2학기)이다.
 beforeEach(() => {
@@ -105,8 +106,8 @@ test('다음 기간을 만들면 그 기간을 골라 예산 편성하고 새로
   fireEvent.click(await screen.findByRole('button', { name: '회계 기간 만들기' }))
   await screen.findByRole('form', { name: '회계 기간 만들기' })
   fill('이름', period.name)
-  fill('시작일', period.startsOn)
-  fill('끝일', period.endsOn)
+  await pickDate(screen.getByLabelText('시작일'), period.startsOn)
+  await pickDate(screen.getByLabelText('끝일'), period.endsOn)
   fireEvent.click(button('만들기'))
   await waitFor(() => expect(window.location.search).toContain(`period=${id}`))
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
@@ -132,9 +133,7 @@ test('기간이 없으면 재정부에게 [회계 기간 만들기]가 있고 �
   expect(asElement(within(form).getByLabelText('이름'), HTMLInputElement).value).toBe(
     '2026년 2학기',
   )
-  expect(asElement(within(form).getByLabelText('시작일'), HTMLInputElement).value).toBe(
-    '2026-07-01',
-  )
+  expect(within(form).getByLabelText('시작일')).toHaveProperty('value', '2026-07-01')
   api.on('POST', `${ORG}/fiscal-periods`, () => json(budgetWithPeriod(), 201))
   api.on('GET', BUDGET, () => json(budgetWithPeriod()))
   fireEvent.click(button('만들기'))
@@ -151,11 +150,11 @@ test('끝일이 시작일보다 앞서거나 이름이 비면 [만들기]를 눌
   const { api } = show()
   fireEvent.click(await screen.findByRole('button', { name: '회계 기간 만들기' }))
   await screen.findByRole('form', { name: '회계 기간 만들기' })
-  fill('끝일', '2025-12-31')
+  await pickDate(screen.getByLabelText('끝일'), '2025-12-31')
   fireEvent.click(button('만들기'))
   expect(screen.getByText('시작일보다 뒤의 날짜를 입력해 주세요')).toBeTruthy()
   expect(screen.getByLabelText('끝일').getAttribute('aria-invalid')).toBe('true')
-  fill('끝일', '2026-12-31')
+  await pickDate(screen.getByLabelText('끝일'), '2026-12-31')
   expect(screen.queryByText('시작일보다 뒤의 날짜를 입력해 주세요')).toBeNull()
   fill('이름', '   ')
   fireEvent.click(button('만들기'))
