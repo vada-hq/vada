@@ -277,8 +277,10 @@ export function tokenHashOfQr(value: string): string | null {
 export const APPLICANT_LIST_LIMIT = 5000
 // 신청자 한 줄마다 서버가 주는 할 수 있는 동작(DEC-38). 화면은 이것만 보고 버튼을 보인다.
 // 출석한 신청은 신청 취소 대신 출석 취소만 준다. 완료한 행사의 줄은 비어 있다(RULE-11).
+// 불참 처리는 출석 기록이 없는 줄에만 준다. 불참한 줄의 출석 취소는 불참을 되돌리고, 출석은 불참을 참석으로 바꾼다(DEC-93).
 export const APPLICANT_ACTIONS = [
   'registration.check_in',
+  'registration.mark_absent',
   'registration.cancel_check_in',
   'registration.cancel',
   'deposit.confirm',
@@ -293,6 +295,8 @@ export type ApplicantAction = (typeof APPLICANT_ACTIONS)[number]
 export interface ApplicantChange {
   id: string
   attended: boolean
+  // 취소하지 않은 출석 기록의 결과가 불참이다(DEC-93). attended와 함께 참일 수 없다.
+  absent: boolean
   cancelled: boolean
   deposit: ApplicantDeposit
   // 그 줄이 신청자 목록에 남는가. 환불함이나 입금 없는 취소는 목록에서 빠진다. 서버가 목록 조회와 같은 규칙으로 센다.
@@ -317,6 +321,8 @@ export interface Applicant {
   // 같은 행사(양식 여럿 포함)에 취소하지 않은 같은 학번이 둘 이상이다. 같은 양식 안은 신청에서 막고(DEC-107) 다른 양식 사이는 드러낸다(DEC-26·DEC-67).
   duplicateStudentId: boolean
   attended: boolean
+  // 운영진이 불참 처리했다(출석 기록의 결과가 불참, DEC-93). 기록이 없으면 참석도 불참도 아니다.
+  absent: boolean
   appliedAt: string
   // 취소했지만 입금이 남아 환불을 기다리는 신청이면 true다(이름·휴대폰 번호가 남고 학번은 비었다).
   cancelled: boolean

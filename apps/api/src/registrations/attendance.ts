@@ -21,10 +21,21 @@ type Target = {
 
 async function activeAttendance(tx: Tx, registrationId: string) {
   const [row] = await tx
-    .select({ id: attendance.id, confirmedAt: attendance.confirmedAt })
+    .select({ id: attendance.id, confirmedAt: attendance.confirmedAt, result: attendance.result })
     .from(attendance)
     .where(and(eq(attendance.registrationId, registrationId), isNull(attendance.cancelledAt)))
   return row ?? null
+}
+
+// 불참 기록은 지우지 않고 취소한다(DEC-66). 늦게 온 사람을 출석하면 불참을 취소하고 참석을 새로 남긴다.
+async function cancelRecord(tx: Tx, actor: Actor, id: string) {
+  await updateRecord(tx, {
+    kind: 'attendance',
+    id,
+    actor: actor.memberId,
+    reason: null,
+    changes: { cancelledAt: clockNow },
+  })
 }
 
 // 출석을 남기고 스캔한 사람에게 보일 이름과 학번을 돌려준다. 이미 출석이면 새로 만들지 않고 already다(오류가 아니다).
@@ -36,7 +47,9 @@ async function confirm(
   target: Target,
   how: { method: Method; ip: string },
 ): Promise<CheckInResult> {
-  const existing = await activeAttendance(tx, target.registrationId)
+  const found = await activeAttendance(tx, target.registrationId)
+  if (found?.result === 'absent') await cancelRecord(tx, actor, found.id)
+  const existing = found?.result === 'attended' ? found : null
   const already = existing !== null
   const attendanceId =
     existing?.id ??
@@ -158,11 +171,18 @@ export async function cancelAttendance(
   // 출석이 있음은 정책이 보장했다.
   const { id } = (await activeAttendance(tx, row.id))!
   if (target.attendanceId && target.attendanceId !== id) throw new ApiError('ATTENDANCE_CHANGED')
-  await updateRecord(tx, {
-    kind: 'attendance',
-    id,
-    actor: actor.memberId,
-    reason: null,
-    changes: { cancelledAt: clockNow },
-  })
+  await cancelRecord(tx, actor, id)
+}
+
+// 불참 처리(DEC-93). 결과가 불참인 출석 기록을 남긴다. 참석한 신청은 정책이 409(CHECKED_IN)로 막고, 이미 불참이면 그대로 둔다.
+// 이름·학번을 응답에 담지 않아(applicantChangeOf) 열람 기록이 없다. 불참은 신청 취소를 막지 않는다.
+export async function markAbsent(tx: Tx, actor: Actor, registrationId: string) {
+  const row = await lockedLiveRegistration(tx, actor, registrationId, 'registration.mark_absent')
+  if (!(await activeAttendance(tx, row.id)))
+    await createRecord(tx, {
+      kind: 'attendance',
+      councilId: actor.councilId,
+      actor: actor.memberId,
+      values: { registrationId: row.id, confirmedAt: clockNow, method: 'manual', result: 'absent' },
+    })
 }

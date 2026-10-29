@@ -46,17 +46,15 @@ type Options = {
 
 function setup(options: Options = {}) {
   const api = mockApi()
-  api.on('GET', `/api/organizations/c1/events/${STAFF_EVENT_ID}/applicants?page=1`, () =>
+  api.on('GET', `/api/organizations/c1/events/${STAFF_EVENT_ID}/applicants`, () =>
     json({
       applicants: [],
       counts: { applicants: 3, attended: 1 },
-      total: 0,
-      page: 1,
+      truncated: false,
       canView: false,
       canManage: false,
       showAffiliation: false,
       showForm: false,
-      accessToken: null,
     }),
   )
   const forms = options.forms ?? [staffForm()]

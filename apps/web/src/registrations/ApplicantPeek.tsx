@@ -35,14 +35,12 @@ export function ApplicantPeek({
   row,
   reason,
   showForm,
-  started,
   now,
   onClose,
 }: {
   row: EventApplicant | undefined
   reason: string | null
   showForm: boolean
-  started: boolean
   now: Date
   onClose: () => void
 }) {
@@ -81,7 +79,7 @@ export function ApplicantPeek({
                 <DepositMark row={row} due={false} />
               </Prop>
               <Prop label={EVENT_APPLICANTS.attendance}>
-                <AttendanceMark row={row} started={started} />
+                <AttendanceMark row={row} />
               </Prop>
             </dl>
             {row.answers.length > 0 && (

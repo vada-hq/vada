@@ -1,28 +1,14 @@
 import { z } from 'zod'
 import type { ErrorCode } from './errors.js'
-import { DEPOSIT_STATUSES } from './deposits.js'
-import { text, token } from './input.js'
 import type { ShownAnswer } from './registration-questions.js'
 import type { Applicant } from './registrations.js'
 import { recordIdInput } from './team.js'
 
+// 화면이 한 쪽에 보이는 줄 수이자 일괄 처리 한 번의 상한이다. 명단은 한 번에 읽고(상한 APPLICANT_LIST_LIMIT) 화면이 쪽을 넘긴다.
+// 서버에서 쪽을 넘기면 쪽마다 열람 기록이 늘어서다(DEC-93, DEC-65).
 export const EVENT_APPLICANT_PAGE_SIZE = 50
-const PAGE_MAX = 100_000
-const ACCESS_TOKEN_MAX = 512
-const SEARCH_MAX = 50
-export const EventApplicantsQuerySchema = z.strictObject({
-  page: z.coerce.number().int().min(1).max(PAGE_MAX).default(1),
-  registration: z.enum(['active', 'cancelled']).optional(),
-  deposit: z.enum(DEPOSIT_STATUSES).optional(),
-  attendance: z.enum(['attended', 'not_attended']).optional(),
-  needsAttention: z
-    .enum(['true', 'false'])
-    .transform(value => value === 'true')
-    .optional(),
-  search: text(SEARCH_MAX).optional(),
-  accessToken: token(ACCESS_TOKEN_MAX).optional(),
-})
-export type EventApplicantsQuery = z.infer<typeof EventApplicantsQuerySchema>
+// 거르기·찾기·쪽 넘김은 화면이 한다. 질의 값은 받지 않는다(모르는 키는 400).
+export const EventApplicantsQuerySchema = z.strictObject({})
 
 export interface EventApplicant extends Applicant {
   formId: string
@@ -36,13 +22,12 @@ export interface EventApplicant extends Applicant {
 export interface EventApplicantsResponse {
   applicants: EventApplicant[]
   counts: { applicants: number; attended: number }
-  total: number
-  page: number
+  // 명단이 상한(APPLICANT_LIST_LIMIT)을 넘어 잘렸다.
+  truncated: boolean
   canView: boolean
   canManage: boolean
   showAffiliation: boolean
   showForm: boolean
-  accessToken: string | null
 }
 
 export const BulkApplicantsSchema = z.strictObject({

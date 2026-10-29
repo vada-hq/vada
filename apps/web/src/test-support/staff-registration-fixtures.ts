@@ -56,6 +56,7 @@ export const applicant = (extra: Partial<Applicant> = {}): Applicant => ({
   payer: true,
   duplicateStudentId: false,
   attended: false,
+  absent: false,
   appliedAt: '2026-10-20T05:00:00.000Z',
   cancelled: false,
   deposit: { status: 'none', amount: null },
@@ -67,6 +68,7 @@ export const applicant = (extra: Partial<Applicant> = {}): Applicant => ({
 export const applicantChange = (extra: Partial<ApplicantChange> = {}): ApplicantChange => ({
   id: REGISTRATION_ID,
   attended: true,
+  absent: false,
   cancelled: false,
   deposit: { status: 'none', amount: null },
   listed: true,

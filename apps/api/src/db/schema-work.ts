@@ -102,6 +102,7 @@ export const attendance = pgTable('attendance', {
   confirmedAt: at('confirmed_at').notNull(),
   method: text('method').notNull(),
   cancelledAt: at('cancelled_at'),
+  result: text('result').notNull().default('attended'),
 })
 
 export const meeting = pgTable('meeting', {

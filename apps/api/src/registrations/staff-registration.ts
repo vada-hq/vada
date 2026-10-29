@@ -97,6 +97,7 @@ export async function applicantChangeOf(
   return {
     id: row.id,
     attended: facts.attended,
+    absent: facts.absent,
     cancelled: facts.cancelledAt !== null,
     deposit: { status, amount: held?.amount ?? null },
     listed: listedFacts({

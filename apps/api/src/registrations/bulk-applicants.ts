@@ -7,9 +7,9 @@ import type { Db, Tx } from '../db/types.js'
 import { confirmDeposit } from '../deposits/service.js'
 import { eventRowOf } from '../events/queries.js'
 import { ApiError } from '../http/errors.js'
-import { checkInManually } from './attendance.js'
+import { checkInManually, markAbsent } from './attendance.js'
 
-export type BulkApplicantAction = 'deposit' | 'attendance'
+export type BulkApplicantAction = 'deposit' | 'attendance' | 'absence'
 async function applyToApplicant(
   tx: Tx,
   actor: Actor,
@@ -24,6 +24,7 @@ async function applyToApplicant(
     )
   if (!row) throw new ApiError('NOT_FOUND')
   if (target.action === 'deposit') await confirmDeposit(tx, actor, row.id, { amount: null })
+  else if (target.action === 'absence') await markAbsent(tx, actor, row.id)
   else await checkInManually(tx, actor, { registrationId: row.id, ip: target.ip })
 }
 

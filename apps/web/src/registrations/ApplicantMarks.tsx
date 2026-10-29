@@ -75,10 +75,9 @@ export function RegistrationMark({ row }: { row: EventApplicant }) {
   )
 }
 
-// 참석: 행사 전이고 출석 기록이 없으면 '—'(아직 모름). 서버에는 '불참' 상태가 없고 출석 기록의 있고 없음뿐이라,
-// 행사 전 기록 없음을 비워 두는 것이 사실과 같다. 행사 첫날부터 기록 없음을 '불참'이라 한다.
-export function AttendanceMark({ row, started }: { row: EventApplicant; started: boolean }) {
-  if (!row.attended && !started)
+// 참석: 출석 기록의 결과(참석, 불참, DEC-93)다. 기록이 없으면 '—'(기록 없음)이다. 운영진이 [불참 처리]해야 '불참'이 된다.
+export function AttendanceMark({ row }: { row: EventApplicant }) {
+  if (!row.attended && !row.absent)
     return (
       <span className={`${listType.small} text-fg-muted`}>
         <span aria-hidden="true">—</span>
@@ -88,7 +87,7 @@ export function AttendanceMark({ row, started }: { row: EventApplicant; started:
   return (
     <Dot
       tone={row.attended ? 'primary' : 'quiet'}
-      word={row.attended ? EVENT_APPLICANTS.attended : EVENT_APPLICANTS.notAttended}
+      word={row.attended ? EVENT_APPLICANTS.attended : EVENT_APPLICANTS.absent}
     />
   )
 }

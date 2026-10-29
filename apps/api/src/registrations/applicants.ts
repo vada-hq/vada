@@ -14,7 +14,13 @@ import { ApiError } from '../http/errors.js'
 import { refundPendingFacts, refundPendingSql } from '../deposits/refund-pending.js'
 import { listedSql } from './listed.js'
 import { recordApplicantAccess } from './access-log.js'
-import { applicantActionsOf, applicantFactsFrom, decideOnEvent, eventFactsOf } from './policy.js'
+import {
+  applicantActionsOf,
+  applicantFactsFrom,
+  attendanceFactsFrom,
+  decideOnEvent,
+  eventFactsOf,
+} from './policy.js'
 import { formRowOf } from './queries.js'
 
 // 같은 행사(양식 여럿 포함)에서 취소하지 않은 신청이 둘 이상인 학번. 같은 양식 안은 신청에서 막으므로(DEC-107) 다른 양식 사이를 드러낸다(DEC-26·DEC-67)
@@ -74,7 +80,7 @@ function applicantRowsOf(tx: Tx, formId: string, filter: ApplicantFilter | undef
         phone: registration.phone,
         appliedFee: registration.appliedFee,
         appliedAt: record.createdAt,
-        attendanceId: attendance.id,
+        attendanceResult: attendance.result,
         cancelledAt: registration.cancelledAt,
         depositId: deposit.id,
         depositAmount: deposit.amount,
@@ -119,7 +125,7 @@ export async function applicantsOf(
     appliedFee: Number(row.appliedFee),
     payer: splitFees ? Number(row.appliedFee) === Number(form.payerFee) : null,
     duplicateStudentId: row.studentId !== null && duplicates.has(row.studentId),
-    attended: row.attendanceId !== null,
+    ...attendanceFactsFrom(row.attendanceResult),
     appliedAt: koreanOf(row.appliedAt),
     cancelled: row.cancelledAt !== null,
     deposit: depositOf(row),
@@ -129,7 +135,7 @@ export async function applicantsOf(
         name: row.name,
         appliedFee: row.appliedFee,
         cancelledAt: row.cancelledAt,
-        attended: row.attendanceId !== null,
+        ...attendanceFactsFrom(row.attendanceResult),
         deposit:
           row.depositId === null
             ? null

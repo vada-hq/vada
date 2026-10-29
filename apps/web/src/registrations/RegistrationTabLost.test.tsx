@@ -70,16 +70,13 @@ function setup() {
         applicants: server.applicants.length,
         attended: server.applicants.filter(row => row.attended).length,
       },
-      total: server.applicants.length,
-      page: 1,
+      truncated: false,
       canView: true,
       canManage: true,
       showAffiliation: false,
       showForm: false,
-      accessToken: 'read-once',
     })
-  api.on('GET', `${EVENT_APPLICANTS_PATH}?page=1`, readApplicants)
-  api.on('GET', `${EVENT_APPLICANTS_PATH}?page=1&accessToken=read-once`, readApplicants)
+  api.on('GET', EVENT_APPLICANTS_PATH, readApplicants)
   api.on('GET', '/api/organizations/c1/accounts', () => json({ accounts: [], truncated: false }))
   const handlers = { onForbidden: vi.fn(), onLost: vi.fn() }
   render(

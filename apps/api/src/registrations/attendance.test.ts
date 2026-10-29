@@ -62,6 +62,7 @@ test(
       applicant: {
         id,
         attended: true,
+        absent: false,
         cancelled: false,
         deposit: { status: 'none', amount: null },
         listed: true,

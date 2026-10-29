@@ -119,9 +119,11 @@ test('마이그레이션은 필요한 표 67개를 빠짐없이 만든다', asyn
         '0027_registration_questions',
         '0028_left_room_read',
         '0029_product_info',
+        '0030_draft_form_without_close',
+        '0031_attendance_result',
       ],
     )
-    assert.equal((await pg.query('SELECT id FROM drizzle.__drizzle_migrations')).rows.length, 30)
+    assert.equal((await pg.query('SELECT id FROM drizzle.__drizzle_migrations')).rows.length, 32)
   } finally {
     await close()
   }

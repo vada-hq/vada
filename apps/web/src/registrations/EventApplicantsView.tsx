@@ -1,11 +1,9 @@
 import { useEffect, useRef, useState, useSyncExternalStore, type RefObject } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import {
-  EVENT_APPLICANT_PAGE_SIZE,
   koreanDateOf,
   type ApplicantChange,
   type BulkApplicantsResponse,
-  type EventApplicantsQuery,
   type EventApplicantsResponse,
 } from '@vada/contracts'
 import { Button } from '@/components/ui/button'
@@ -16,7 +14,13 @@ import {
   eventApplicantCount,
 } from '@/lib/registration-messages'
 import { ApplicantPeek } from './ApplicantPeek'
-import { attentionFirst, eventStarted, isWhole, reasonOf, shownRows } from './applicant-summary'
+import {
+  eventStarted,
+  isWhole,
+  reasonOf,
+  visibleOf,
+  type ApplicantFilter,
+} from './applicant-summary'
 import { sheet } from './doc-look'
 import { EventApplicantActions } from './EventApplicantActions'
 import { BulkBar, BulkResult, type BulkKind } from './EventApplicantsBulk'
@@ -28,16 +32,18 @@ import { listSize, listType, sheetX } from './list-look'
 type Props = {
   councilId: string
   data: EventApplicantsResponse
-  // 행사 시작 시각(한국). 첫날부터 출석 기록 없음을 '불참'이라 한다. 모르면 null이다.
+  // 행사 시작 시각(한국). 첫날부터 [불참 처리]를 보인다. 모르면 null이다.
   startsAt?: string | null
-  query?: Partial<EventApplicantsQuery>
+  query?: ApplicantFilter
+  // 지금 쪽(1부터). 거르기·쪽 넘김은 받은 명단 안에서 한다.
+  page?: number
   selected?: ReadonlySet<string>
   result?: BulkApplicantsResponse | null
   resultKind?: BulkKind
   resultNames?: ReadonlyMap<string, string>
   busy?: boolean
   submitting?: boolean
-  onQuery?: (query: Partial<EventApplicantsQuery>) => void
+  onQuery?: (query: ApplicantFilter) => void
   onPage?: (page: number) => void
   onToggle?: (id: string) => void
   onTogglePage?: () => void
@@ -54,6 +60,7 @@ const noop = () => undefined
 const DEFAULTS: Omit<Full, 'councilId' | 'data'> = {
   startsAt: null,
   query: {},
+  page: 1,
   selected: new Set(),
   result: null,
   resultKind: 'deposit',
@@ -109,16 +116,17 @@ function useWide(box: RefObject<HTMLElement | null>, data: EventApplicantsRespon
 }
 
 // 쪽: 표 아래 오른쪽 회색 '1 / 3 ‹ ›'(50줄씩). 끝 쪽에서는 그 방향 단추를 두지 않는다(끄지 않는다).
+// 받은 명단 안에서 넘겨 서버를 다시 부르지 않는다. 한 쪽뿐이면 그리지 않는다.
 function Pager({
-  data,
-  busy,
+  page,
+  pages,
   onPage,
 }: {
-  data: EventApplicantsResponse
-  busy: boolean
+  page: number
+  pages: number
   onPage: (page: number) => void
 }) {
-  const pages = Math.max(1, Math.ceil(data.total / EVENT_APPLICANT_PAGE_SIZE))
+  if (pages <= 1) return null
   const arrow = `${listSize.hit} rounded-lg p-0 text-fg-muted`
   return (
     <nav
@@ -126,27 +134,25 @@ function Pager({
       className={`flex items-center justify-end gap-1 ${sheetX} py-2`}
     >
       <span className={`${listType.small} ${listType.num} px-2 text-fg-muted`}>
-        {data.page} / {pages}
+        {page} / {pages}
       </span>
-      {data.page > 1 && (
+      {page > 1 && (
         <Button
           type="button"
           variant="ghost"
           aria-label={EVENT_APPLICANTS.previousPage}
-          busy={busy}
-          onClick={() => onPage(data.page - 1)}
+          onClick={() => onPage(page - 1)}
           className={arrow}
         >
           <ChevronLeft aria-hidden />
         </Button>
       )}
-      {data.page < pages && (
+      {page < pages && (
         <Button
           type="button"
           variant="ghost"
           aria-label={EVENT_APPLICANTS.nextPage}
-          busy={busy}
-          onClick={() => onPage(data.page + 1)}
+          onClick={() => onPage(page + 1)}
           className={arrow}
         >
           <ChevronRight aria-hidden />
@@ -166,10 +172,10 @@ function Message({ children }: { children: string }) {
   )
 }
 
-function rowModels(props: Full): RowModel[] {
+function rowModels(props: Full, rows: EventApplicantsResponse['applicants']): RowModel[] {
   const { data } = props
   const results = new Map(props.result?.results.map(item => [item.registrationId, item.error]))
-  return attentionFirst(shownRows(data, props.query)).map(row => {
+  return rows.map(row => {
     const error = results.get(row.id)
     return {
       row,
@@ -221,7 +227,7 @@ function Rows({ props, list, wide }: { props: Full; list: ListProps; wide: boole
   if (list.rows.length === 0)
     return (
       <Message>
-        {isWhole(props.data, props.query) ? EVENT_APPLICANTS.empty : EVENT_APPLICANTS.noMatch}
+        {isWhole(props.query) ? EVENT_APPLICANTS.empty : EVENT_APPLICANTS.noMatch}
       </Message>
     )
   return wide ? <EventApplicantsTable {...list} /> : <EventApplicantsList {...list} />
@@ -234,11 +240,11 @@ function Applicants({ props }: { props: Full }) {
   const now = useNow()
   const [peek, setPeek] = useState<string | null>(null)
   const started = eventStarted(props.startsAt, koreanDateOf(now))
-  const rows = rowModels(props)
+  const visible = visibleOf(data.applicants, props.query, props.page)
+  const rows = rowModels(props, visible.rows)
   const list: ListProps = {
     data,
     rows,
-    started,
     busy: props.busy,
     onToggle: props.onToggle,
     onTogglePage: props.onTogglePage,
@@ -261,7 +267,12 @@ function Applicants({ props }: { props: Full }) {
           onReload={props.onReload}
         />
         <Rows props={props} list={list} wide={wide} />
-        <Pager data={data} busy={props.busy} onPage={props.onPage} />
+        <Pager page={visible.page} pages={visible.pages} onPage={props.onPage} />
+        {data.truncated && (
+          <p className={`${sheetX} pb-2 ${listType.small} text-fg-muted`}>
+            {EVENT_APPLICANTS.truncated}
+          </p>
+        )}
         <BulkResult data={data} result={props.result} names={props.resultNames} />
       </section>
       {data.canManage && (
@@ -271,6 +282,7 @@ function Applicants({ props }: { props: Full }) {
           allPicked={rows.length > 0 && rows.every(model => model.picked)}
           busy={props.busy}
           wide={wide}
+          started={started}
           onBulk={props.onBulk}
           onUnselect={props.onUnselect}
           onSelectPage={props.onTogglePage}
@@ -280,7 +292,6 @@ function Applicants({ props }: { props: Full }) {
         row={peekRow}
         reason={peekRow ? reasonOf(peekRow, data.applicants) : null}
         showForm={data.showForm}
-        started={started}
         now={now}
         onClose={() => setPeek(null)}
       />

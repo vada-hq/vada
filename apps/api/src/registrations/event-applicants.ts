@@ -1,9 +1,5 @@
 import { and, count, eq, isNull } from 'drizzle-orm'
-import {
-  EVENT_APPLICANT_PAGE_SIZE,
-  type EventApplicantsQuery,
-  type EventApplicantsResponse,
-} from '@vada/contracts'
+import { APPLICANT_LIST_LIMIT, type EventApplicantsResponse } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
 import { attendance, registration, registrationForm } from '../db/schema.js'
 import type { Tx } from '../db/types.js'
@@ -14,13 +10,7 @@ import { duplicateStudentIds } from './applicants.js'
 import { eventApplicantOf, eventApplicantRows } from './event-applicant-rows.js'
 import { decideOnEvent, eventFactsOf, type EventFacts } from './policy.js'
 
-type Target = {
-  eventId: string
-  ip: string
-  now: Date
-  query: EventApplicantsQuery
-  access: () => { token: string; first: boolean }
-}
+type Target = { eventId: string; ip: string; now: Date }
 
 async function countsOf(tx: Tx, eventId: string) {
   const base = and(eq(registrationForm.eventId, eventId), isNull(registration.cancelledAt))
@@ -34,7 +24,7 @@ async function countsOf(tx: Tx, eventId: string) {
     .from(attendance)
     .innerJoin(registration, eq(registration.id, attendance.registrationId))
     .innerJoin(registrationForm, eq(registrationForm.id, registration.formId))
-    .where(and(base, isNull(attendance.cancelledAt)))
+    .where(and(base, isNull(attendance.cancelledAt), eq(attendance.result, 'attended')))
   return { applicants: applicants!.n, attended: attended!.n }
 }
 
@@ -45,14 +35,12 @@ async function visibleApplicants(tx: Tx, actor: Actor, target: Target, facts: Ev
     .where(eq(registrationForm.eventId, target.eventId))
     .orderBy(registrationForm.id)
   if (!forms.length) return {}
-  const access = target.access()
   const duplicates = await duplicateStudentIds(tx, target.eventId)
-  const scope = { eventId: target.eventId, query: target.query, duplicates, now: target.now }
-  const [total] = await tx.select({ n: count() }).from(eventApplicantRows(tx, scope).as('filtered'))
-  const rows = await eventApplicantRows(tx, scope)
-    .limit(EVENT_APPLICANT_PAGE_SIZE)
-    .offset((target.query.page - 1) * EVENT_APPLICANT_PAGE_SIZE)
-  // 같은 토큰으로 쪽·검색을 바꾸면 다른 양식이 드러날 수 있어 응답마다 포함된 양식을 기록한다(DEC-65).
+  const scope = { eventId: target.eventId, duplicates, now: target.now }
+  // 명단은 한 번에 준다(상한 5,000명, 한 개 더 읽어 넘쳤는지 안다). 거르기·찾기·쪽 넘김은 화면이 해서
+  // 한 번 읽을 때 응답에 실린 양식마다 열람 기록이 한 줄이다(DEC-93, DEC-65).
+  const read = await eventApplicantRows(tx, scope).limit(APPLICANT_LIST_LIMIT + 1)
+  const rows = read.slice(0, APPLICANT_LIST_LIMIT)
   for (const formId of new Set(rows.map(row => row.formId)))
     await recordApplicantAccess(tx, {
       actor,
@@ -68,9 +56,8 @@ async function visibleApplicants(tx: Tx, actor: Actor, target: Target, facts: Ev
       ...eventApplicantOf(row, actor, facts, duplicates),
       answers: answers.get(row.id)!,
     })),
-    total: total!.n,
+    truncated: read.length > APPLICANT_LIST_LIMIT,
     showForm: forms.length > 1,
-    accessToken: access.token,
   }
 }
 
@@ -85,13 +72,11 @@ export async function eventApplicantsOf(
   return {
     applicants: [],
     counts: await countsOf(tx, event.id),
-    total: 0,
-    page: target.query.page,
+    truncated: false,
     canView,
     canManage: canView && decideOnEvent(actor, facts, 'form.check_in') === null,
     showAffiliation: false,
     showForm: false,
-    accessToken: null,
     ...(canView ? await visibleApplicants(tx, actor, target, facts) : {}),
   }
 }

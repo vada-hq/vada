@@ -83,10 +83,16 @@ test(
     assert.deepEqual(body.applicant, {
       id,
       attended: false,
+      absent: false,
       cancelled: false,
       deposit: { status: 'confirmed', amount: FEE },
       listed: true,
-      actions: ['registration.check_in', 'registration.cancel', 'deposit.cancel'],
+      actions: [
+        'registration.check_in',
+        'registration.mark_absent',
+        'registration.cancel',
+        'deposit.cancel',
+      ],
     })
     const { rows } = await t.pg.query<{
       registration_id: string
@@ -234,6 +240,7 @@ test(
     assert.deepEqual(body.deposit, { status: 'none', amount: null })
     assert.deepEqual(body.applicant.actions, [
       'registration.check_in',
+      'registration.mark_absent',
       'registration.cancel',
       'deposit.confirm',
     ])
@@ -561,6 +568,7 @@ test(
       return {
         id,
         attended: row.attended,
+        absent: row.absent,
         cancelled: row.cancelled,
         deposit: row.deposit,
         listed: true,
@@ -613,6 +621,7 @@ test(
     )
     // 신청자 정보(이름, 학번, 휴대폰)는 담지 않는다.
     assert.deepEqual(Object.keys(cancelled.applicant).sort(), [
+      'absent',
       'actions',
       'attended',
       'cancelled',

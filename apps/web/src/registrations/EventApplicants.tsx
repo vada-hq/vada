@@ -4,7 +4,6 @@ import {
   type ApplicantChange,
   type BulkApplicantsResponse,
   type EventApplicant,
-  type EventApplicantsQuery,
 } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
@@ -14,6 +13,7 @@ import {
   EVENT_APPLICANTS,
   REGISTRATION_STAFF_ERRORS,
 } from '@/lib/registration-messages'
+import { visibleOf, type ApplicantFilter } from './applicant-summary'
 import type { BulkKind } from './EventApplicantsBulk'
 import { EventApplicantsView } from './EventApplicantsView'
 import { eventApplicantsPath, useEventApplicants } from './useEventApplicants'
@@ -22,7 +22,7 @@ import { useStaffPost } from './useStaffPost'
 type Props = EventDialogHandlers & {
   councilId: string
   eventId: string
-  // 행사 시작 시각(한국). 첫날부터 출석 기록 없음을 '불참'이라 한다.
+  // 행사 시작 시각(한국). 첫날부터 [불참 처리]를 보인다.
   startsAt?: string | null
   changes?: ReadonlyMap<string, ApplicantChange>
   onChange?: (change: ApplicantChange) => void
@@ -38,6 +38,7 @@ function updatedRows(rows: EventApplicant[], changes: Props['changes']) {
       {
         ...row,
         attended: change.attended,
+        absent: change.absent,
         cancelled: change.cancelled,
         deposit: change.deposit,
         actions: change.actions,
@@ -55,6 +56,9 @@ function useEventControls(props: Props, list: List) {
   const [resultKind, setResultKind] = useState<BulkKind>('deposit')
   const [resultNames, setResultNames] = useState<ReadonlyMap<string, string>>(new Map())
   const [problem, setProblem] = useState<string | null>(null)
+  // 거르기와 쪽은 화면 상태다. 바꿔도 서버를 다시 부르지 않는다(DEC-93).
+  const [filter, setFilter] = useState<ApplicantFilter>({})
+  const [page, setPage] = useState(1)
   const loaded = useRef(props.onLoaded)
   useEffect(() => {
     loaded.current = props.onLoaded
@@ -74,12 +78,13 @@ function useEventControls(props: Props, list: List) {
       setResultNames(new Map())
     }
   }, [list.state])
-  const setQuery = (query: Partial<EventApplicantsQuery>) => {
+  const setQuery = (query: ApplicantFilter) => {
     if (post.busy) return
     setSelected(new Set())
     setResult(null)
     setResultNames(new Map())
-    list.setQuery(before => ({ ...before, ...query, page: query.page ?? 1 }))
+    setFilter(before => ({ ...before, ...query }))
+    setPage(1)
   }
   const toggle = (id: string) =>
     setSelected(before => {
@@ -124,6 +129,13 @@ function useEventControls(props: Props, list: List) {
     resultKind,
     resultNames,
     problem,
+    filter,
+    page,
+    // 쪽을 넘기면 고른 줄을 푼다(일괄 처리는 보이는 쪽 안에서, 50명까지).
+    setPage: (next: number) => {
+      setSelected(new Set())
+      setPage(next)
+    },
     setQuery,
     toggle,
     bulk,
@@ -151,11 +163,11 @@ export function EventApplicants(props: Props) {
     ...list.state.data,
     applicants: updatedRows(list.state.data.applicants, props.changes),
   }
+  // 고르기는 지금 쪽의 줄만 한 번에 고른다(일괄 처리 한 번은 50명까지).
+  const pageRows = visibleOf(data.applicants, controls.filter, controls.page).rows
   const togglePage = () =>
     setSelected(before =>
-      data.applicants.every(row => before.has(row.id))
-        ? new Set()
-        : new Set(data.applicants.map(row => row.id)),
+      pageRows.every(row => before.has(row.id)) ? new Set() : new Set(pageRows.map(row => row.id)),
     )
   return (
     <>
@@ -163,7 +175,8 @@ export function EventApplicants(props: Props) {
         councilId={props.councilId}
         data={data}
         startsAt={props.startsAt ?? null}
-        query={list.query}
+        query={controls.filter}
+        page={controls.page}
         selected={selected}
         result={result}
         resultKind={controls.resultKind}
@@ -171,7 +184,7 @@ export function EventApplicants(props: Props) {
         busy={post.busy || list.busy}
         submitting={post.busy}
         onQuery={setQuery}
-        onPage={page => setQuery({ page })}
+        onPage={controls.setPage}
         onToggle={toggle}
         onTogglePage={togglePage}
         onUnselect={() => setSelected(new Set())}

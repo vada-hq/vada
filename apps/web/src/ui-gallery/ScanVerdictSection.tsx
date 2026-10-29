@@ -10,6 +10,7 @@ type Checked = Extract<ScanOutcome, { kind: 'checked' }>
 const unpaid: ApplicantChange = {
   id: '00000000-0000-4000-8000-0000000000a1',
   attended: true,
+  absent: false,
   cancelled: false,
   deposit: { status: 'none', amount: null },
   listed: true,

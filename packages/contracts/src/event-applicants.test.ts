@@ -3,36 +3,15 @@ import { test } from 'node:test'
 import { BulkApplicantsSchema, EventApplicantsQuerySchema } from './registrations.js'
 
 const ID = '019e0000-0000-7000-8000-000000000000'
-test('행사 명단 쿼리: 첫 쪽 기본값과 필터를 읽고 빈 검색·상한 초과·제어 문자·모르는 값을 거절한다', () => {
-  assert.deepEqual(EventApplicantsQuerySchema.parse({}), { page: 1 })
-  assert.deepEqual(
-    EventApplicantsQuerySchema.parse({
-      page: '2',
-      needsAttention: 'false',
-      deposit: 'none',
-      registration: 'active',
-      attendance: 'not_attended',
-    }),
-    {
-      page: 2,
-      needsAttention: false,
-      deposit: 'none',
-      registration: 'active',
-      attendance: 'not_attended',
-    },
-  )
-  assert.equal(EventApplicantsQuerySchema.safeParse({ search: '😀'.repeat(50) }).success, true)
+// 명단은 한 번에 읽고 거르기·쪽 넘김은 화면이 한다(DEC-93). 질의 값은 하나도 받지 않는다.
+test('행사 명단 쿼리: 빈 질의만 받고 예전 쪽·거르기·찾기·열람 토큰과 모르는 키를 거절한다', () => {
+  assert.deepEqual(EventApplicantsQuerySchema.parse({}), {})
   for (const body of [
-    { page: 0 },
-    { page: 100001 },
-    { page: 1.5 },
-    { search: '' },
-    { search: '  ' },
-    { search: '😀'.repeat(51) },
-    { search: '\u0000' },
-    { search: '\ud800' },
-    { needsAttention: true },
-    { attendance: 'bad' },
+    { page: '1' },
+    { search: '김' },
+    { needsAttention: 'true' },
+    { attendance: 'attended' },
+    { accessToken: 'x' },
     { extra: true },
   ])
     assert.equal(EventApplicantsQuerySchema.safeParse(body).success, false)

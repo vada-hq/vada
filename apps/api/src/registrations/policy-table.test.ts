@@ -25,6 +25,8 @@ const EXCEPTIONS: Record<string, string> = {
   '양식 멈춤 회장 form.pause': '이미 그 상태인 멈추기는 조용히 200이다(012-3 M3)',
   '신청자 attended 회장 registration.check_in':
     '출석한 신청의 [출석]은 decide 밖에서 숨기고 쓰기는 200 already다(012-4 M2)',
+  '신청자 absent 회장 registration.mark_absent':
+    '이미 불참인 신청의 [불참 처리]는 decide 밖에서 숨기고 쓰기는 조용히 200이다(DEC-93)',
 }
 const usedExceptions = new Set<string>()
 // 돌아간 표(칸 이름의 첫 낱말: 양식, 신청자). 일부 시험만 돌려도 예외 목록 검사가 돌아간 표만 본다.
@@ -58,11 +60,12 @@ const FINANCE = 's-financeMember'
 const PLAIN = 's-plain'
 const FEE = 5000
 
-type State = 'free' | 'live' | 'attended' | 'paid' | 'pending' | 'done'
-const STATES: State[] = ['free', 'live', 'attended', 'paid', 'pending', 'done']
+type State = 'free' | 'live' | 'attended' | 'absent' | 'paid' | 'pending' | 'done'
+const STATES: State[] = ['free', 'live', 'attended', 'absent', 'paid', 'pending', 'done']
 
 const PATH: Record<ApplicantAction, [string, unknown]> = {
   'registration.check_in': ['attendance', {}],
+  'registration.mark_absent': ['absence', {}],
   'registration.cancel_check_in': ['attendance/cancel', {}],
   'registration.cancel': ['cancel', {}],
   'deposit.confirm': ['deposit', { amount: FEE }],
@@ -88,7 +91,13 @@ const BLOCKED: Record<State, Partial<Record<ApplicantAction, string>>> = {
     'deposit.refund': 'NOT_REFUNDABLE',
   },
   attended: {
+    'registration.mark_absent': 'CHECKED_IN',
     'registration.cancel': 'CHECKED_IN',
+    'deposit.cancel': 'NO_DEPOSIT',
+    'deposit.refund': 'NOT_REFUNDABLE',
+  },
+  // 불참은 신청 취소를 막지 않는다(DEC-93). 출석하면 참석으로 바뀌고 출석 취소는 불참을 되돌린다.
+  absent: {
     'deposit.cancel': 'NO_DEPOSIT',
     'deposit.refund': 'NOT_REFUNDABLE',
   },
@@ -99,6 +108,7 @@ const BLOCKED: Record<State, Partial<Record<ApplicantAction, string>>> = {
   },
   pending: {
     'registration.check_in': 'NOT_FOUND',
+    'registration.mark_absent': 'NOT_FOUND',
     'registration.cancel_check_in': 'NOT_FOUND',
     'registration.cancel': 'NOT_FOUND',
     'deposit.confirm': 'NOT_FOUND',
@@ -108,14 +118,36 @@ const BLOCKED: Record<State, Partial<Record<ApplicantAction, string>>> = {
 
 // 읽기 actions(사람마다). 출석 안 한 신청의 [출석]은 이미 출석이면 숨긴다.
 const SHOWN: Record<State, Record<string, ApplicantAction[]>> = {
-  free: { [PRESIDENT]: ['registration.check_in', 'registration.cancel'], [FINANCE]: [] },
+  free: {
+    [PRESIDENT]: ['registration.check_in', 'registration.mark_absent', 'registration.cancel'],
+    [FINANCE]: [],
+  },
   live: {
-    [PRESIDENT]: ['registration.check_in', 'registration.cancel', 'deposit.confirm'],
+    [PRESIDENT]: [
+      'registration.check_in',
+      'registration.mark_absent',
+      'registration.cancel',
+      'deposit.confirm',
+    ],
     [FINANCE]: [],
   },
   attended: { [PRESIDENT]: ['registration.cancel_check_in', 'deposit.confirm'], [FINANCE]: [] },
+  absent: {
+    [PRESIDENT]: [
+      'registration.check_in',
+      'registration.cancel_check_in',
+      'registration.cancel',
+      'deposit.confirm',
+    ],
+    [FINANCE]: [],
+  },
   paid: {
-    [PRESIDENT]: ['registration.check_in', 'registration.cancel', 'deposit.cancel'],
+    [PRESIDENT]: [
+      'registration.check_in',
+      'registration.mark_absent',
+      'registration.cancel',
+      'deposit.cancel',
+    ],
     [FINANCE]: [],
   },
   pending: { [PRESIDENT]: ['deposit.cancel'], [FINANCE]: ['deposit.refund'] },
@@ -125,6 +157,7 @@ const SHOWN: Record<State, Record<string, ApplicantAction[]>> = {
 // 상태마다 신청에 해 둘 쓰기
 const STEPS: Partial<Record<State, [string, unknown][]>> = {
   attended: [['attendance', {}]],
+  absent: [['absence', {}]],
   paid: [['deposit', { amount: FEE }]],
   pending: [
     ['deposit', { amount: FEE }],

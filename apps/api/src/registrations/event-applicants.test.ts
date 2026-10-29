@@ -15,33 +15,29 @@ const bulk = (
 ) => t.post(`/events/${eventId}/applicants/${action}`, { registrationIds: ids }, user)
 
 test(
-  '양식이 없던 행사는 열람 토큰을 주지 않고, 첫 신청을 읽을 때 기록을 남긴다',
+  '양식이 없던 행사는 열람 기록을 남기지 않고, 첫 신청을 읽을 때 기록을 남긴다',
   withRegistrations(async t => {
     const event = await t.makeEvent()
     const empty = (await (await list(t, event)).json()) as EventApplicantsResponse
-    assert.equal(empty.accessToken, null)
+    assert.deepEqual([empty.applicants, empty.truncated], [[], false])
     assert.equal(await logs(t), 0)
     await t.makeRegistration(await t.makeForm(event), { name: '첫신청' })
     const body = (await (await list(t, event)).json()) as EventApplicantsResponse
     assert.equal(body.applicants[0]!.name, '첫신청')
-    assert.ok(body.accessToken)
     assert.equal(await logs(t), 1)
   }),
 )
-
 test(
-  '행사 명단은 응답에 포함된 양식마다 열람 기록을 남기고 빈 양식과 검색에서 빠진 양식은 기록하지 않는다',
+  '행사 명단은 한 번 읽을 때 응답에 실린 양식마다 열람 기록을 한 줄 남기고 빈 양식은 기록하지 않는다',
   withRegistrations(async t => {
     const event = await t.makeEvent()
     await t.makeForm(event, { name: '빈 양식' })
     const first = await t.makeForm(event, { name: '오전', collectsPhone: true })
     const second = await t.makeForm(event, { name: '오후', collectsPhone: true })
-    const filtered = await t.makeForm(event, { name: '검색 제외' })
     for (const form of [first, first, second])
       await t.makeRegistration(form, { name: '노출참가자', phone: '01012345678' })
-    await t.makeRegistration(filtered, { name: '다른참가자' })
-    await t.makeRegistration(await t.makeForm(await t.makeEvent()), { name: '노출참가자' })
-    const response = await list(t, event, '?search=' + encodeURIComponent('노출'))
+    await t.makeRegistration(await t.makeForm(await t.makeEvent()), { name: '다른행사' })
+    const response = await list(t, event)
     assert.equal(response.status, 200)
     const body = (await response.json()) as EventApplicantsResponse
     assert.deepEqual(
@@ -62,40 +58,29 @@ test(
         ip: 'unknown',
       })),
     )
-    for (const token of ['', `&accessToken=${encodeURIComponent(body.accessToken!)}`]) {
-      const empty = await list(t, event, `?search=${encodeURIComponent('없는참가자')}${token}`)
-      assert.equal(empty.status, 200)
-      assert.deepEqual(((await empty.json()) as EventApplicantsResponse).applicants, [])
-      assert.equal(await logs(t), 2)
-    }
+    // 다시 읽으면 다시 남는다(읽을 때마다, DEC-65).
+    await list(t, event)
+    assert.equal(await logs(t), 4)
   }),
 )
-
 test(
-  '행사 명단은 두 번째 양식 기록이 실패하면 앞 기록도 롤백하고 새 열람과 토큰 재조회 모두 개인정보를 차단한다',
+  '행사 명단은 두 번째 양식 기록이 실패하면 앞 기록도 롤백하고 개인정보를 주지 않는다',
   withRegistrations(async t => {
     const event = await t.makeEvent()
     const first = await t.makeForm(event)
     const second = await t.makeForm(event)
     await t.makeRegistration(first, { name: '첫비밀' })
     await t.makeRegistration(second, { name: '둘째비밀' })
-    const initial = (await (
-      await list(t, event, '?search=' + encodeURIComponent('첫비밀'))
-    ).json()) as EventApplicantsResponse
-    assert.equal(await logs(t), 1)
     await t.pg.exec(
       `CREATE FUNCTION fail_second_form_log() RETURNS trigger AS $$ BEGIN IF NEW.form_id = '${second}'::uuid THEN RAISE EXCEPTION 'log down'; END IF; RETURN NEW; END $$ LANGUAGE plpgsql; CREATE TRIGGER fail_second_form_log BEFORE INSERT ON applicant_access_log FOR EACH ROW EXECUTE FUNCTION fail_second_form_log();`,
     )
-    for (const query of ['', `?accessToken=${encodeURIComponent(initial.accessToken!)}`]) {
-      const failed = await list(t, event, query)
-      assert.equal(failed.status, 500)
-      const text = await failed.text()
-      for (const name of ['첫비밀', '둘째비밀']) assert.ok(!text.includes(name))
-      assert.equal(await logs(t), 1)
-    }
+    const failed = await list(t, event)
+    assert.equal(failed.status, 500)
+    const text = await failed.text()
+    for (const name of ['첫비밀', '둘째비밀']) assert.ok(!text.includes(name))
+    assert.equal(await logs(t), 0)
   }),
 )
-
 test(
   '일괄 납부의 DB 오류는 그 줄만 롤백하고 뒤의 줄도 적용한다',
   withRegistrations(async t => {
@@ -117,7 +102,7 @@ test(
 )
 
 test(
-  '확인 필요는 중복·환불 대기·마감 뒤 미입금이며 이름 검색의 %는 글자 그대로다',
+  '확인 필요는 중복·환불 대기·마감 뒤 미입금이고 줄마다 서버가 표시한다',
   withRegistrations(async t => {
     const event = await t.makeEvent()
     const form = await t.makeForm(event, { closesAt: new Date('2026-10-24T00:00:00Z') })
@@ -126,40 +111,19 @@ test(
     const ordinary = await t.makeRegistration(form, { name: '무료' })
     assert.equal((await bulk(t, event, [refunded])).status, 200)
     assert.equal((await t.post(`/registrations/${refunded}/cancel`, {})).status, 200)
-    const body = (await (
-      await list(t, event, '?needsAttention=true')
-    ).json()) as EventApplicantsResponse
+    const body = (await (await list(t, event)).json()) as EventApplicantsResponse
     assert.deepEqual(
-      body.applicants.map(row => row.id),
-      [unpaid, refunded],
-    )
-    const token = encodeURIComponent(body.accessToken!)
-    const none = (await (
-      await list(t, event, `?needsAttention=false&accessToken=${token}`)
-    ).json()) as EventApplicantsResponse
-    assert.deepEqual(
-      none.applicants.map(row => row.id),
-      [ordinary],
-    )
-    const pending = (await (
-      await list(t, event, `?registration=cancelled&deposit=refund_pending&accessToken=${token}`)
-    ).json()) as EventApplicantsResponse
-    assert.deepEqual(
-      pending.applicants.map(row => row.id),
-      [refunded],
-    )
-    const search = (await (
-      await list(t, event, `?search=%25&accessToken=${token}`)
-    ).json()) as EventApplicantsResponse
-    assert.deepEqual(
-      search.applicants.map(row => row.id),
-      [unpaid],
+      body.applicants.map(row => [row.id, row.needsAttention, row.cancelled]),
+      [
+        [unpaid, true, false],
+        [refunded, true, true],
+        [ordinary, false, false],
+      ],
     )
   }),
 )
-
 test(
-  '행사 명단: 50줄씩 신청 순, 양식 열, 중복 경고와 검색·거르기, 쪽을 넘길 때 반환된 양식 기록',
+  '행사 명단: 50명이 넘어도 한 번에 신청 순으로 주고, 양식 열과 중복 경고, 참석 수(불참 제외)와 읽은 양식 기록',
   withRegistrations(async t => {
     const event = await t.makeEvent()
     const first = await t.makeForm(event, { name: '오전' })
@@ -173,54 +137,38 @@ test(
         }),
       )
     await t.attend(ids[0]!)
+    await t.attend(ids[2]!, { result: 'absent', method: 'manual' })
     const response = await list(t, event)
     assert.equal(response.status, 200)
     const body = (await response.json()) as EventApplicantsResponse
-    assert.equal(body.applicants.length, 50)
+    assert.equal(body.applicants.length, 51)
+    assert.deepEqual(
+      body.applicants.map(row => row.id),
+      ids,
+    )
     assert.deepEqual(body.counts, { applicants: 51, attended: 1 })
-    assert.equal(body.total, 51)
+    assert.equal(body.truncated, false)
     assert.equal(body.canManage, true)
     assert.equal(body.showForm, true)
     assert.equal(body.showAffiliation, false)
     assert.deepEqual(
-      body.applicants.slice(0, 2).map(row => row.needsAttention),
-      [true, true],
+      body.applicants.slice(0, 3).map(row => [row.needsAttention, row.attended, row.absent]),
+      [
+        [true, true, false],
+        [true, false, false],
+        [false, false, true],
+      ],
     )
-    assert.equal(body.applicants[0]!.formTitle, '오전')
-    assert.equal(await logs(t), 1)
-    const token = encodeURIComponent(body.accessToken!)
-    const next = (await (
-      await list(t, event, `?page=2&accessToken=${token}`)
-    ).json()) as EventApplicantsResponse
-    assert.equal(next.applicants.length, 1)
-    assert.equal(next.applicants[0]!.formTitle, '오후')
     assert.deepEqual(
-      (await t.pg.query('SELECT form_id FROM applicant_access_log ORDER BY id')).rows,
-      [{ form_id: first }, { form_id: second }],
+      [body.applicants[0]!.formTitle, body.applicants[50]!.formTitle],
+      ['오전', '오후'],
     )
-    const found = (await (
-      await list(
-        t,
-        event,
-        `?search=202612345&needsAttention=true&attendance=attended&accessToken=${token}`,
-      )
-    ).json()) as EventApplicantsResponse
     assert.deepEqual(
-      found.applicants.map(row => row.id),
-      [ids[0]],
+      (await t.pg.query('SELECT form_id FROM applicant_access_log ORDER BY form_id')).rows,
+      [first, second].sort().map(form_id => ({ form_id })),
     )
-    assert.equal(await logs(t), 3)
-    assert.equal(
-      (await list(t, event, `?page=2&accessToken=${token}`, 's-vicePresident')).status,
-      400,
-    )
-    assert.equal((await list(t, event, `?accessToken=${token}x`)).status, 400)
-    assert.equal(await logs(t), 3)
-    await list(t, event)
-    assert.equal(await logs(t), 4)
   }),
 )
-
 test(
   '행사 명단: 권한 없는 운영진은 신청 수·참석 수만, 다른 학생회·없는 행사는 404',
   withRegistrations(async t => {
@@ -235,7 +183,7 @@ test(
     assert.equal(body.canManage, false)
     assert.deepEqual(body.applicants, [])
     assert.deepEqual(body.counts, { applicants: 1, attended: 1 })
-    assert.equal(body.accessToken, null)
+    assert.equal(body.truncated, false)
     assert.ok(!JSON.stringify(body).includes('비밀신청자'))
     assert.equal(await logs(t), 0)
     for (const target of [MISSING, await t.makeEvent({}, t.other), 'bad'])
@@ -332,16 +280,11 @@ test(
 )
 
 test(
-  '행사 명단 요청과 일괄 본문: 상한·모르는 키·중복·잘못된 id와 미인증을 막는다',
+  '행사 명단 요청과 일괄 본문: 질의 값·상한·모르는 키·중복·잘못된 id와 미인증을 막는다',
   withRegistrations(async t => {
     const event = await t.makeEvent()
-    for (const query of [
-      '?page=0',
-      '?page=1&page=2',
-      '?unknown=1',
-      '?search=%00',
-      '?search=' + encodeURIComponent('😀'.repeat(51)),
-    ])
+    // 거르기·쪽 넘김은 화면이 한다. 예전 질의 값도 모르는 키라 400이다.
+    for (const query of ['?page=1', '?search=a', '?accessToken=x', '?unknown=1'])
       assert.equal((await list(t, event, query)).status, 400)
     for (const body of [
       {},

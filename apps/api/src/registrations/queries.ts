@@ -76,7 +76,7 @@ async function countsOf(db: Reader, formIds: string[]) {
     .select({ formId: registration.formId, n: count() })
     .from(attendance)
     .innerJoin(registration, eq(registration.id, attendance.registrationId))
-    .where(and(live, isNull(attendance.cancelledAt)))
+    .where(and(live, isNull(attendance.cancelledAt), eq(attendance.result, 'attended')))
     .groupBy(registration.formId)
   for (const id of formIds) result.set(id, { applicants: 0, attended: 0 })
   for (const row of applicants) result.get(row.formId)!.applicants = row.n

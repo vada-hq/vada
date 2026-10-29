@@ -48,6 +48,7 @@ export async function registrationCountsByEvent(db: Reader, scope: RecordScope) 
         and(
           eq(attendance.registrationId, registration.id),
           isNull(attendance.cancelledAt),
+          eq(attendance.result, 'attended'),
           eq(attendanceRecord.councilId, scope.councilId),
         ),
       ),

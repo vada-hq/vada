@@ -1,11 +1,6 @@
-import { useId, useState } from 'react'
+import { useState } from 'react'
 import { RotateCw, Search, SlidersHorizontal, X } from 'lucide-react'
-import {
-  DEPOSIT_STATUSES,
-  EventApplicantsQuerySchema,
-  type EventApplicantsQuery,
-  type EventApplicantsResponse,
-} from '@vada/contracts'
+import { DEPOSIT_STATUSES, type EventApplicantsResponse } from '@vada/contracts'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { NativeSelect } from '@/components/ui/native-select'
@@ -18,13 +13,19 @@ import {
   eventApplicantTotal,
   QUICK_FILTER_LABEL,
 } from '@/lib/registration-messages'
-import { quickFilters, statusOf, STATUS_KEYS, type Quick } from './applicant-summary'
+import {
+  quickFilters,
+  statusOf,
+  STATUS_KEYS,
+  type ApplicantFilter,
+  type Quick,
+} from './applicant-summary'
 import { listSize, listType, sheetX } from './list-look'
 
 // ① 머리와 거르기: '행사 참가자' + 수 붙은 빠른 거르기(Luma 상태 탭의 수, 고르면 진한 글 + 밑줄) … 찾기 · 거르기 · 새로 읽기.
 // 자세한 거르기(신청·입금·참석)는 한 단계 안(팝오버)에 두고, 건 조건은 문장 알약('입금: 입금 안 함 ×', Linear 거르기 문장)으로 보인다.
 
-type Query = Partial<EventApplicantsQuery>
+type Query = ApplicantFilter
 type Props = {
   data: EventApplicantsResponse
   query: Query
@@ -50,7 +51,8 @@ const DETAIL = {
     label: EVENT_APPLICANTS.attendance,
     options: [
       ['attended', EVENT_APPLICANTS.attended],
-      ['not_attended', EVENT_APPLICANTS.notAttended],
+      ['absent', EVENT_APPLICANTS.absent],
+      ['none', EVENT_APPLICANTS.noRecord],
     ],
   },
 } as const
@@ -62,10 +64,8 @@ const clearStatus = Object.fromEntries(STATUS_KEYS.map(key => [key, undefined]))
 const ghost = `${listSize.text} gap-1.5 rounded-lg px-2 py-0 ${listType.body} font-medium text-fg-secondary hover:bg-surface-muted hover:text-fg-secondary pointer-coarse:px-3`
 
 function quickLabel(quick: Quick) {
-  if (quick.key === 'all')
-    return quick.count === null ? EVENT_APPLICANTS.filterAll : eventApplicantTotal(quick.count)
-  const label = QUICK_FILTER_LABEL[quick.key]
-  return quick.count === null ? label : `${label} ${quick.count}`
+  if (quick.key === 'all') return eventApplicantTotal(quick.count)
+  return `${QUICK_FILTER_LABEL[quick.key]} ${quick.count}`
 }
 
 function QuickFilters({ data, query, busy, onQuery }: Props) {
@@ -75,7 +75,7 @@ function QuickFilters({ data, query, busy, onQuery }: Props) {
       aria-label={EVENT_APPLICANTS.quickFilters}
       className="flex flex-wrap items-end gap-x-4"
     >
-      {quickFilters(data, query).map(quick => (
+      {quickFilters(data.applicants, query).map(quick => (
         <Button
           key={quick.key}
           type="button"
@@ -100,10 +100,9 @@ function QuickFilters({ data, query, busy, onQuery }: Props) {
   )
 }
 
+// 찾기는 받은 명단 안에서 한다. 서버에 보내지 않아 길이 검사가 없다.
 function ApplicantSearch({ query, busy, onQuery }: Props) {
   const [value, setValue] = useState(query.search ?? '')
-  const [invalid, setInvalid] = useState(false)
-  const errorId = useId()
   return (
     <div className="flex min-w-0 flex-1 flex-col gap-1 lg:w-56 lg:flex-none">
       <div className="relative">
@@ -115,8 +114,6 @@ function ApplicantSearch({ query, busy, onQuery }: Props) {
           type="search"
           className="h-9 rounded-lg border-0 bg-surface-muted pl-9 focus-visible:bg-white pointer-coarse:h-11"
           aria-label={EVENT_APPLICANTS.search}
-          aria-invalid={invalid || undefined}
-          aria-describedby={invalid ? errorId : undefined}
           disabled={busy}
           // oxlint-disable-next-line react/forbid-component-props -- 제출과 칸 확인이 없는 검색칸의 짧은 안내다.
           placeholder={EVENT_APPLICANTS.searchHint}
@@ -124,19 +121,10 @@ function ApplicantSearch({ query, busy, onQuery }: Props) {
           onChange={event => {
             const next = event.target.value
             setValue(next)
-            const parsed = EventApplicantsQuerySchema.shape.search.safeParse(
-              next.trim() || undefined,
-            )
-            setInvalid(!parsed.success)
-            if (parsed.success) onQuery({ search: parsed.data })
+            onQuery({ search: next.trim() || undefined })
           }}
         />
       </div>
-      {invalid && (
-        <p id={errorId} className={`${listType.small} text-danger`}>
-          {EVENT_APPLICANTS.searchInvalid}
-        </p>
-      )}
     </div>
   )
 }
@@ -194,7 +182,7 @@ function pillsOf(query: Query, quicks: Quick[]): Pill[] {
 
 // 빠른 거르기로 설명되지 않는 자세한 거르기만 알약으로 보인다. ×로 그 조건만 푼다.
 function FilterPills(props: Props) {
-  const pills = pillsOf(props.query, quickFilters(props.data, props.query))
+  const pills = pillsOf(props.query, quickFilters(props.data.applicants, props.query))
   if (!pills.length) return null
   return (
     <div className="flex flex-wrap gap-2 pt-2">

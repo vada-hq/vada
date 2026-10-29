@@ -218,6 +218,13 @@
       "when": 1793306980868,
       "tag": "0030_draft_form_without_close",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1793307482178,
+      "tag": "0031_attendance_result",
+      "breakpoints": true
     }
   ]
 }

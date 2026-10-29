@@ -4,6 +4,7 @@ import {
   CancelAttendanceSchema,
   CheckInSchema,
   EmptyRequestSchema,
+  type ApplicantChangeResponse,
   type ApplicantsResponse,
   type CheckInResult,
   type StaffCancelResponse,
@@ -18,7 +19,7 @@ import { json } from '../http/validate.js'
 import { purgeFormIfDue } from './purge.js'
 import { applicantsOf } from './applicants.js'
 import { addEventApplicantRoutes } from './event-applicant-routes.js'
-import { cancelAttendance, checkInByQr, checkInManually } from './attendance.js'
+import { cancelAttendance, checkInByQr, checkInManually, markAbsent } from './attendance.js'
 import { cancelByStaff } from './cancel-by-staff.js'
 import { applicantChangeOf } from './staff-registration.js'
 import {
@@ -77,6 +78,19 @@ export function addApplicantRoutes(kit: RouteKit) {
         checkInManually(tx, actor, { registrationId: registrationIdOf(c), ip }),
       )
       return c.json(result satisfies CheckInResult)
+    },
+  )
+  routes.post(
+    `${root}/registrations/:registrationId/absence`,
+    json(EmptyRequestSchema),
+    auth,
+    async c => {
+      limited(c)
+      const applicant = await inCouncilChange(db, changing(c), async (tx, actor) => {
+        await markAbsent(tx, actor, registrationIdOf(c))
+        return applicantChangeOf(tx, actor, registrationIdOf(c))
+      })
+      return c.json({ applicant } satisfies ApplicantChangeResponse)
     },
   )
   addCancelRoutes(kit)

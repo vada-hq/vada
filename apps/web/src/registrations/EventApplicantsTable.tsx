@@ -10,6 +10,7 @@ import {
   RegistrationMark,
   ResultMark,
 } from './ApplicantMarks'
+import type { BulkKind } from './EventApplicantsBulk'
 import { col, listSize, listType } from './list-look'
 
 // ② 1280 명단: 문서 속 얇은 표. 바깥 상자 없이 종이 안에 열 이름 줄(회색 12px, 아래 선 하나, 스크롤하면 위에 붙음)과
@@ -21,14 +22,13 @@ export type RowModel = {
   reason: string | null
   picked: boolean
   // 일괄 처리 뒤 이 줄의 결과(처리 = null, 실패 = 까닭). 이 줄을 보내지 않았으면 없다.
-  result: { kind: 'deposit' | 'attendance'; failure: string | null } | undefined
+  result: { kind: BulkKind; failure: string | null } | undefined
   actions: ReactNode
 }
 
 export type ListProps = {
   data: EventApplicantsResponse
   rows: RowModel[]
-  started: boolean
   busy: boolean
   onToggle: (id: string) => void
   onTogglePage: () => void
@@ -92,11 +92,14 @@ export function rowSurface(model: RowModel, rest = '') {
 }
 
 // 줄을 보냈으면 그 칸 아래에 결과를 남긴다.
-function ResultFor({ model, kind }: { model: RowModel; kind: 'deposit' | 'attendance' }) {
-  return model.result?.kind === kind ? <ResultMark failure={model.result.failure} /> : null
+// 불참 처리 결과는 참석 칸에 둔다.
+function ResultFor({ model, kinds }: { model: RowModel; kinds: BulkKind[] }) {
+  return model.result && kinds.includes(model.result.kind) ? (
+    <ResultMark failure={model.result.failure} />
+  ) : null
 }
 
-function StatusCells({ model, started }: { model: RowModel; started: boolean }) {
+function StatusCells({ model }: { model: RowModel }) {
   const { row } = model
   return (
     <>
@@ -106,13 +109,13 @@ function StatusCells({ model, started }: { model: RowModel; started: boolean }) 
       <td className={`${col.deposit} px-2 py-1`}>
         <span className="flex flex-col items-start">
           <DepositMark row={row} />
-          <ResultFor model={model} kind="deposit" />
+          <ResultFor model={model} kinds={['deposit']} />
         </span>
       </td>
       <td className={`${col.attendance} px-2 py-1`}>
         <span className="flex flex-col items-start">
-          <AttendanceMark row={row} started={started} />
-          <ResultFor model={model} kind="attendance" />
+          <AttendanceMark row={row} />
+          <ResultFor model={model} kinds={['attendance', 'absence']} />
         </span>
       </td>
     </>
@@ -151,7 +154,7 @@ function Row({ model, props }: { model: RowModel; props: ListProps }) {
         <td className={`${col.affiliation} ${sideCell}`}>{row.affiliation ?? '—'}</td>
       )}
       {data.showForm && <td className={`${col.form} ${sideCell}`}>{row.formTitle}</td>}
-      <StatusCells model={model} started={props.started} />
+      <StatusCells model={model} />
       <td className={`${col.more} ${edgeR} text-right`}>{model.actions}</td>
     </tr>
   )

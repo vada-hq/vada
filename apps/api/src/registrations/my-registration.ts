@@ -64,14 +64,18 @@ export async function mineRowOf(db: Reader, token: string) {
   return row && row.name !== null ? { ...row, name: row.name } : null
 }
 
-// 출석 확인이 취소되지 않고 남아 있는지
-export async function isAttended(db: Reader, registrationId: string) {
+// 취소하지 않은 출석 기록의 결과(참석, 불참, DEC-93). 기록이 없으면 null이다.
+export async function attendanceResultOf(db: Reader, registrationId: string) {
   const [row] = await db
-    .select({ id: attendance.id })
+    .select({ result: attendance.result })
     .from(attendance)
     .where(and(eq(attendance.registrationId, registrationId), isNull(attendance.cancelledAt)))
-  return row !== undefined
+  return row ? (row.result as 'attended' | 'absent') : null
 }
+
+// 참석이 취소되지 않고 남아 있는지. 불참은 참석이 아니다(신청 취소를 막지 않는다, DEC-93).
+export const isAttended = async (db: Reader, registrationId: string) =>
+  (await attendanceResultOf(db, registrationId)) === 'attended'
 
 // 개인 링크로 보는 내 신청. 토큰을 가진 사람 자신의 것이라 이름·학번·휴대폰과 계좌를 담는다.
 export async function lookupMine(db: Reader, token: string, now: Date): Promise<MyRegistration> {

@@ -107,6 +107,7 @@ const applicant = (id: string, extra: Partial<Applicant>): Applicant => ({
   payer: true,
   duplicateStudentId: false,
   attended: false,
+  absent: false,
   appliedAt: '2026-10-20T05:00:00.000Z',
   cancelled: false,
   deposit: { status: 'none', amount: null },
@@ -215,18 +216,29 @@ const eventRows: EventApplicant[] = [
     answers: [],
     needsAttention: false,
   },
+  {
+    ...applicant('00000000-0000-4000-8000-000000000104', {
+      name: '박불참',
+      studentId: '20260004',
+      absent: true,
+      actions: ['registration.check_in', 'registration.cancel_check_in', 'registration.cancel'],
+    }),
+    formId: '00000000-0000-4000-8000-000000000201',
+    formTitle: '재학생 참가 신청',
+    affiliation: null,
+    answers: [],
+    needsAttention: false,
+  },
 ]
 
 const eventList: EventApplicantsResponse = {
   applicants: eventRows,
-  counts: { applicants: 53, attended: 1 },
-  total: 53,
-  page: 1,
+  counts: { applicants: 4, attended: 1 },
+  truncated: false,
   canView: true,
   canManage: true,
   showAffiliation: false,
   showForm: true,
-  accessToken: null,
 }
 
 // 표(행사 전), 읽기 권한만 있음(행사 시작 뒤), 개인정보 권한 없음, 일괄 부분 실패를 맞대 본다.
@@ -250,7 +262,6 @@ export function EventApplicantsSection() {
           data={{
             ...eventList,
             applicants: [],
-            total: 0,
             canView: false,
             canManage: false,
             showForm: false,

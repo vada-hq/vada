@@ -75,7 +75,6 @@ export const EVENT_APPLICANTS = {
   noMatch: '맞는 참가자 없음',
   search: '이름이나 학번으로 찾기',
   searchHint: '이름·학번',
-  searchInvalid: '검색어가 너무 길거나 사용할 수 없는 글자가 있어요.',
   quickFilters: '참가자 거르기',
   filter: '거르기',
   filterAll: '전체',
@@ -86,6 +85,7 @@ export const EVENT_APPLICANTS = {
   bulk: '일괄 처리',
   bulkDeposit: '입금 확인',
   bulkAttendance: '참석 처리',
+  bulkAbsence: '불참 처리',
   unselect: '선택 풀기',
   resultDone: '처리',
   resultFailed: '실패',
@@ -93,7 +93,7 @@ export const EVENT_APPLICANTS = {
   active: '신청함',
   cancelled: '취소함',
   attended: '참석',
-  notAttended: '불참',
+  absent: '불참',
   noRecord: '참석 기록 없음',
   free: '무료',
   due: '받을 금액',
@@ -112,12 +112,14 @@ export const EVENT_APPLICANTS = {
   retry: '다시 시도',
   loading: '불러오는 중이에요',
   unknownApplicant: '신청자',
+  // 서버 상한(5,000명)을 넘어 명단이 잘렸다.
+  truncated: '처음 5,000명만 보여요',
 }
 export const QUICK_FILTER_LABEL = {
   unpaid: '입금 안 함',
   attention: '확인 필요',
   attended: '참석',
-  notAttended: '불참',
+  absent: '불참',
 } as const
 export const eventApplicantTotal = (count: number) => `총 ${count}명`
 export const eventApplicantSelected = (count: number) => `${count}명 선택`

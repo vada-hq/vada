@@ -13,13 +13,14 @@ import {
 import { listType, sheetX } from './list-look'
 
 // ③ 일괄 띠: 고를 때만 뜨는 짙은 알약(Linear 아래 떠 있는 고르기 막대). '3명 선택 │ 입금 확인 · 참석 처리 │ ×'.
-// [입금 확인]은 줄 메뉴·입금 창·입금 열 값과 같은 이름이다. [불참 처리]는 서버 길이 없어 두지 않는다(서버가 생기면 더한다).
+// [입금 확인]은 줄 메뉴·입금 창·입금 열 값과 같은 이름이다. [불참 처리]는 행사 첫날부터 보인다(그 전에는 아직 올지 모른다, DEC-93).
 // 1280은 아래 가운데에 떠 있고, 390은 아래 꽉 찬 띠다(두 단추 같은 폭). 스크롤해도 화면 아래에 붙는다(sticky).
 
-export type BulkKind = 'deposit' | 'attendance'
+export type BulkKind = 'deposit' | 'attendance' | 'absence'
 const BULK: { kind: BulkKind; label: string }[] = [
   { kind: 'deposit', label: EVENT_APPLICANTS.bulkDeposit },
   { kind: 'attendance', label: EVENT_APPLICANTS.bulkAttendance },
+  { kind: 'absence', label: EVENT_APPLICANTS.bulkAbsence },
 ]
 
 const onDark =
@@ -31,6 +32,7 @@ type Props = {
   allPicked: boolean
   busy: boolean
   wide: boolean
+  started: boolean
   onBulk: (kind: BulkKind) => void
   onUnselect: () => void
   onSelectPage: () => void
@@ -69,7 +71,7 @@ export function BulkBar(props: Props) {
       {eventApplicantSelected(props.count)}
     </span>
   )
-  const actions = BULK.map(item => (
+  const actions = BULK.filter(item => item.kind !== 'absence' || props.started).map(item => (
     <Button
       key={item.kind}
       type="button"
@@ -100,7 +102,7 @@ export function BulkBar(props: Props) {
         {unselect}
       </Frame>
     )
-  // 390: 한 줄에 다 들어가지 않아 '3명 선택 · 23명 모두 선택 … ×' / 두 단추(같은 폭)로 쌓는다.
+  // 390: 한 줄에 다 들어가지 않아 '3명 선택 · 23명 모두 선택 … ×' / 단추들(같은 폭)로 쌓는다.
   return (
     <Frame wide={false}>
       <span className="flex w-full items-center gap-1 pl-1">
@@ -116,7 +118,9 @@ export function BulkBar(props: Props) {
         )}
         <span className="ml-auto">{unselect}</span>
       </span>
-      <span className="grid w-full grid-cols-2">{actions}</span>
+      <span className={cn('grid w-full', actions.length > 2 ? 'grid-cols-3' : 'grid-cols-2')}>
+        {actions}
+      </span>
     </Frame>
   )
 }

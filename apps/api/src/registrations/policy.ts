@@ -14,7 +14,7 @@ import { activeDepositOf } from '../deposits/queries.js'
 import { refundPendingFacts } from '../deposits/refund-pending.js'
 import { ApiError } from '../http/errors.js'
 import { completedEventIdsAmong, lockEventsShared } from '../policy/locks.js'
-import { isAttended } from './my-registration.js'
+import { attendanceResultOf } from './my-registration.js'
 import { registrationContextOf } from './permission-context.js'
 import { isFormClosed } from './state.js'
 
@@ -46,6 +46,7 @@ export type FormFacts = EventFacts & {
 
 const APPLICANT_PERMISSION: Record<ApplicantAction, Action> = {
   'registration.check_in': 'registration.manage',
+  'registration.mark_absent': 'registration.manage',
   'registration.cancel_check_in': 'registration.manage',
   'registration.cancel': 'registration.manage',
   'deposit.confirm': 'deposit.confirm',
@@ -168,6 +169,8 @@ export type ApplicantFacts = EventFacts & {
   // 적용 참가비가 없다. 참가비 없는 신청은 입금을 확인하지 않는다.
   free: boolean
   attended: boolean
+  // 취소하지 않은 출석 기록의 결과가 불참이다(DEC-93)
+  absent: boolean
   // 취소하지 않은 입금 기록
   deposit: { id: string; amount: number; refundedAt: Date | null } | null
 }
@@ -175,6 +178,7 @@ export type ApplicantFacts = EventFacts & {
 // 살아 있는 신청에만 하는 동작. 취소했거나 비운 신청은 없는 것과 같아 404다.
 const LIVE_ACTIONS = [
   'registration.check_in',
+  'registration.mark_absent',
   'registration.cancel_check_in',
   'registration.cancel',
   'deposit.confirm',
@@ -188,7 +192,11 @@ export const mayApplicant = (actor: Actor, context: Context, action: ApplicantAc
 // 권한과 완료와 살아 있음을 지나서 신청과 입금의 상태가 막는 첫 코드. 이미 출석한 신청의 출석은 조용히 already로 넘어간다.
 const STATE_CODE: Record<ApplicantAction, (facts: ApplicantFacts) => ErrorCode | null> = {
   'registration.check_in': () => null,
-  'registration.cancel_check_in': facts => (facts.attended ? null : 'NOT_CHECKED_IN'),
+  // 참석한 신청은 출석을 먼저 취소한다. 이미 불참이면 조용히 넘어간다.
+  'registration.mark_absent': facts => (facts.attended ? 'CHECKED_IN' : null),
+  // 출석 취소는 불참 기록도 되돌린다.
+  'registration.cancel_check_in': facts =>
+    facts.attended || facts.absent ? null : 'NOT_CHECKED_IN',
   'registration.cancel': facts => (facts.attended ? 'CHECKED_IN' : null),
   'deposit.confirm': facts => {
     if (facts.deposit) return 'DEPOSIT_EXISTS'
@@ -225,13 +233,14 @@ export function decideApplicant(
 export const applicantActionsOf = (actor: Actor, facts: ApplicantFacts): ApplicantAction[] =>
   APPLICANT_ACTIONS.filter(action => {
     if (action === 'registration.check_in' && facts.attended) return false
+    if (action === 'registration.mark_absent' && facts.absent) return false
     return decideApplicant(actor, facts, action) === null
   })
 
 // 이미 읽은 행사 사실에 신청 한 줄의 값을 얹는다(목록은 줄마다 같은 행사 사실을 쓴다).
 export const applicantFactsFrom = (
   event: EventFacts,
-  row: Pick<ApplicantFacts, 'attended' | 'cancelledAt' | 'deposit'> & {
+  row: Pick<ApplicantFacts, 'attended' | 'absent' | 'cancelledAt' | 'deposit'> & {
     name: string | null
     appliedFee: number | string
   },
@@ -241,8 +250,18 @@ export const applicantFactsFrom = (
   cancelledAt: row.cancelledAt,
   free: Number(row.appliedFee) <= 0,
   attended: row.attended,
+  absent: row.absent,
   deposit: row.deposit,
 })
+
+// 출석 기록의 결과 하나를 참석·불참 두 사실로 나눈다. 목록(줄마다 읽은 결과)과 쓰기가 같이 쓴다.
+export const attendanceFactsFrom = (result: string | null) => ({
+  attended: result === 'attended',
+  absent: result === 'absent',
+})
+
+const attendanceFactsOf = async (db: Reader, registrationId: string) =>
+  attendanceFactsFrom(await attendanceResultOf(db, registrationId))
 
 // 쓰기의 사실: 신청 행을 잠근 뒤 같은 거래에서 읽는다.
 export async function applicantFactsOf(
@@ -263,7 +282,7 @@ export async function applicantFactsOf(
       name: row.name,
       appliedFee: row.appliedFee,
       cancelledAt: row.cancelledAt,
-      attended: await isAttended(db, row.id),
+      ...(await attendanceFactsOf(db, row.id)),
       deposit: await activeDepositOf(db, row.id),
     },
   )
