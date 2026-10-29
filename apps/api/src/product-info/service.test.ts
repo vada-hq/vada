@@ -30,6 +30,36 @@ function quiet(t: TestContext) {
   return lines
 }
 
+test('상품 조회 로그는 진단 코드·HTTP 상태·시도 횟수만 더하고 주소는 남기지 않는다', async t => {
+  const lines = quiet(t)
+  const diag = { code: 'PARSE_ERROR', status: 502, attempts: 2 }
+  const lookup = async (): Promise<LookupResult> => ({ outcome: 'other', diag })
+  const productInfo = createProductInfo({ lookup, clock: () => new Date('2026-06-01T03:00:00Z') })
+  const url = urlOf(1)
+  await productInfo(url)
+  assert.deepEqual(lines, [
+    `log ${JSON.stringify({ event: 'product_info', outcome: 'other', ...diag })}`,
+  ])
+  assert.ok(!lines.join('\n').includes(url))
+  assert.ok(!lines.join('\n').includes('coupang'))
+})
+
+test('성공 로그에는 상태와 시도 횟수를 넣고 캐시 로그는 결과 종류만 남긴다', async t => {
+  const lines = quiet(t)
+  const lookup = async (): Promise<LookupResult> => ({
+    outcome: 'ok',
+    product,
+    diag: { status: 200, attempts: 2 },
+  })
+  const productInfo = createProductInfo({ lookup, clock: () => new Date('2026-06-01T03:00:00Z') })
+  await productInfo(urlOf(1))
+  await productInfo(urlOf(1))
+  assert.deepEqual(lines, [
+    `log ${JSON.stringify({ event: 'product_info', outcome: 'ok', status: 200, attempts: 2 })}`,
+    `log ${JSON.stringify({ event: 'product_info', outcome: 'cached' })}`,
+  ])
+})
+
 test('같은 주소가 동시에 오면 ReefAPI를 한 번만 부르고, 끝난 뒤 실패였으면 다음에 다시 부른다', async t => {
   quiet(t)
   let release: (result: LookupResult) => void = () => {}

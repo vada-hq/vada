@@ -153,6 +153,7 @@ test('쿠팡 상품 정보를 읽지 못한 패널을 닫아도 원문에서 직
   fireEvent.click(await screen.findByRole('link', { name: LINK }))
   const panel = within(await screen.findByRole('complementary', { name: '상품 정보' }))
   expect(await panel.findByText('상품 정보 없음')).toBeTruthy()
+  expect(panel.getByText('지금은 불러올 수 없어요.')).toBeTruthy()
   expect(panel.getByRole('link', { name: '쿠팡에서 열기' })).toBeTruthy()
   fireEvent.click(panel.getByRole('button', { name: '닫기' }))
   fireEvent.keyDown(await screen.findByRole('button', { name: '메시지 동작' }), { key: 'Enter' })

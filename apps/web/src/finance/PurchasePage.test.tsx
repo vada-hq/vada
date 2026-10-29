@@ -11,6 +11,7 @@ import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
 import { purchaseDetail } from '@/test-support/purchase-fixtures'
 import { taskDetail } from '@/test-support/task-detail-fixtures'
 import { ProductPreview } from './ProductPreview'
+import { RequestProductInfo } from './RequestProductInfo'
 
 const LINK = 'https://www.coupang.com/vp/products/100?itemId=11'
 const REQUEST = '0199d1a0-0000-7000-8000-00000000a001'
@@ -58,6 +59,38 @@ function open(start: Record<string, unknown> = {}, memberId = view.me.memberId) 
 }
 const fill = (name: string, value: string) =>
   fireEvent.change(screen.getByLabelText(name), { target: { value } })
+
+test.each([
+  ['unsupported', '쿠팡 상품 주소만 불러올 수 있어요.'],
+  ['not_found', '쿠팡에서 찾을 수 없는 상품이에요. 직접 적어 주세요.'],
+  ['unavailable', '지금은 불러올 수 없어요. 직접 적어 주세요.'],
+])('품목 불러오기 실패 %s는 까닭을 보이고 직접 적은 값을 유지한다', async (reason, text) => {
+  const api = setup()
+  api.on('POST', `${BASE}/product-info`, () => json({ product: null, reason }))
+  open()
+  fill('품목 1 이름', '직접 적은 펜')
+  fill('품목 1 수량', '3')
+  fill('품목 1 링크', reason === 'unsupported' ? 'https://example.com/item' : LINK)
+  fireEvent.click(screen.getByRole('button', { name: '불러오기' }))
+  expect(await screen.findByText(text)).toBeTruthy()
+  expect(screen.getByLabelText<HTMLInputElement>('품목 1 이름').value).toBe('직접 적은 펜')
+  expect(screen.getByLabelText<HTMLInputElement>('품목 1 수량').value).toBe('3')
+  fill('품목 1 링크', 'https://example.com/next')
+  expect(screen.queryByText(text)).toBeNull()
+  api.assertNoUnexpectedRequests()
+})
+
+test.each([
+  ['not_found', '쿠팡에서 찾을 수 없는 상품이에요.'],
+  ['unavailable', '지금은 불러올 수 없어요.'],
+])('구매 요청 보기 실패 %s는 남은 품목 정보로 확인하도록 안내한다', async (reason, text) => {
+  const api = mockApi()
+  api.on('POST', `${BASE}/product-info`, () => json({ product: null, reason }))
+  render(<RequestProductInfo councilId={C} link={LINK} />)
+  expect(await screen.findByText(`${text} 요청에 남은 품목 정보로 확인해 주세요.`)).toBeTruthy()
+  expect(screen.queryByText(/직접 적어 주세요/)).toBeNull()
+  api.assertNoUnexpectedRequests()
+})
 
 test('작성은 별도 주소에서 열리고 새로고침 후 입력·원문·업무 연결을 보존하며 표시용 상품 값은 보내지 않는다', async () => {
   const api = setup()

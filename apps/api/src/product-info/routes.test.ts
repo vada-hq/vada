@@ -75,9 +75,12 @@ test('상품 정보: 쿠팡 상품 주소면 product가 오고, ReefAPI는 정�
     assert.equal(reef.calls.length, 1)
     assert.deepEqual(JSON.parse(reef.calls[0]!.body), { product_id: NORMALIZED })
     assert.equal(reef.calls[0]!.headers.get('x-api-key'), KEY)
-    // 로그는 결과 종류만이다. 주소, 키, 학생회, 사람은 없다.
+    // 로그는 결과 종류와 진단 숫자뿐이다. 주소, 키, 학생회, 사람은 없다.
     assert.deepEqual(logs, [
-      { level: 'log', line: JSON.stringify({ event: 'product_info', outcome: 'ok' }) },
+      {
+        level: 'log',
+        line: JSON.stringify({ event: 'product_info', outcome: 'ok', status: 200, attempts: 1 }),
+      },
     ])
     assert.ok(!JSON.stringify(body).includes(KEY))
   } finally {
@@ -107,33 +110,48 @@ test('상품 정보: 단축 주소·다른 쇼핑몰은 부르지 않고 unsuppo
   }
 })
 
-test('상품 정보: NOT_FOUND는 not_found, 그 밖의 실패·모양이 다른 응답은 unavailable이고 모두 200이며 다시 시도하지 않는다', async t => {
+test('상품 정보: NOT_FOUND는 not_found, 그 밖의 실패·모양이 다른 응답은 unavailable이고 모두 200이다. 일시 오류만 한 번 다시 부른다', async t => {
   const logs = captureLogs(t)
-  const cases: [Respond, string, string][] = [
+  type Case = [Respond, string, string, { code: string; status: number | null; attempts: number }]
+  const cases: Case[] = [
     [
       () => Response.json({ ok: false, error: { code: 'NOT_FOUND' } }, { status: 404 }),
       'not_found',
       'not_found',
+      { code: 'NOT_FOUND', status: 404, attempts: 1 },
     ],
     [
       () => Response.json({ ok: false, error: { code: 'TARGET_BLOCKED' } }, { status: 502 }),
       'unavailable',
       'blocked',
+      { code: 'TARGET_BLOCKED', status: 502, attempts: 2 },
     ],
     [
       () => Response.json({ ok: false, error: { code: 'QUOTA_EXCEEDED' } }, { status: 402 }),
       'unavailable',
       'quota',
+      { code: 'QUOTA_EXCEEDED', status: 402, attempts: 1 },
     ],
     [
       () => Response.json({ ok: false, error: { code: 'AUTH_FAILED' } }, { status: 401 }),
       'unavailable',
       'auth',
+      { code: 'AUTH_FAILED', status: 401, attempts: 1 },
     ],
-    [() => new Response('<html></html>'), 'unavailable', 'other'],
-    [() => Promise.reject(new TypeError('fetch failed')), 'unavailable', 'other'],
+    [
+      () => new Response('<html></html>'),
+      'unavailable',
+      'other',
+      { code: 'non_json', status: 200, attempts: 1 },
+    ],
+    [
+      () => Promise.reject(new TypeError('fetch failed')),
+      'unavailable',
+      'other',
+      { code: 'network', status: null, attempts: 1 },
+    ],
   ]
-  for (const [respond, reason, outcome] of cases) {
+  for (const [respond, reason, outcome, diag] of cases) {
     const testDb = await createTestDb()
     try {
       logs.length = 0
@@ -143,10 +161,12 @@ test('상품 정보: NOT_FOUND는 not_found, 그 밖의 실패·모양이 다른
         { status: 200, body: { product: null, reason } },
         outcome,
       )
-      assert.equal(reef.calls.length, 1, outcome)
+      assert.equal(reef.calls.length, diag.attempts, outcome)
       // 크레딧과 키는 사람이 손볼 일이라 경고 단계다.
       const level = outcome === 'quota' || outcome === 'auth' ? 'warn' : 'log'
-      assert.deepEqual(logs, [{ level, line: JSON.stringify({ event: 'product_info', outcome }) }])
+      assert.deepEqual(logs, [
+        { level, line: JSON.stringify({ event: 'product_info', outcome, ...diag }) },
+      ])
     } finally {
       await testDb.close()
     }
@@ -188,9 +208,11 @@ test('상품 정보 캐시: not_found도 10분 두고, unavailable은 두지 않
     next = () => Response.json({ ok: false, error: { code: 'TARGET_BLOCKED' } }, { status: 502 })
     const other = 'https://www.coupang.com/vp/products/999'
     assert.equal((await ask(other)).body.reason, 'unavailable')
+    // TARGET_BLOCKED는 한 번 다시 불러 2번이다.
+    assert.equal(reef.calls.length, 3)
     next = () => Response.json(twoItems())
     assert.equal((await ask(other)).body.reason, null)
-    assert.equal(reef.calls.length, 3)
+    assert.equal(reef.calls.length, 4)
   } finally {
     await testDb.close()
   }

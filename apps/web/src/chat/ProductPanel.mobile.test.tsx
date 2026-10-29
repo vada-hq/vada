@@ -21,6 +21,7 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import MobileNavigation from '@/workspace/MobileNavigation'
 import { ProductPanelFrame } from './ProductPanel'
+import ProductDetails from './ProductDetails'
 
 afterEach(async () => {
   cleanup()
@@ -33,6 +34,24 @@ const ROOM = '00000000-0000-4000-8000-0000000000a1'
 const MESSAGE = '00000000-0000-4000-8000-0000000000b1'
 const LINK = 'https://www.coupang.com/vp/products/7334523?itemId=18698271'
 const tabs = () => screen.queryByRole('navigation', { name: '휴대폰 메뉴' })
+
+test.each([
+  ['unsupported', '쿠팡 상품 주소만 불러올 수 있어요.'],
+  ['not_found', '쿠팡에서 찾을 수 없는 상품이에요.'],
+  ['unavailable', '지금은 불러올 수 없어요.'],
+] as const)('휴대폰 상품 패널의 %s는 빈 상태 아래 까닭과 쿠팡 링크를 보인다', (reason, text) => {
+  navigationWidth(390)
+  render(
+    <ProductPanelFrame focusKey={LINK} onClose={() => {}}>
+      <ProductDetails state={{ kind: 'none', reason }} url={LINK} />
+    </ProductPanelFrame>,
+  )
+  const panel = within(screen.getByRole('complementary', { name: '상품 정보' }))
+  expect(panel.getByText('상품 정보 없음')).toBeTruthy()
+  expect(panel.getByText(text)).toBeTruthy()
+  expect(panel.getByRole('link', { name: '쿠팡에서 열기' })).toBeTruthy()
+  expect(panel.queryByText(/직접 적어 주세요/)).toBeNull()
+})
 
 function openEventMessages() {
   navigationWidth(390)

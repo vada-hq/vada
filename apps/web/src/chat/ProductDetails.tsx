@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { ExternalLink } from 'lucide-react'
 import type { ProductInfo } from '@vada/contracts'
+import { PRODUCT_NONE_REASON } from '@/lib/product-info'
 import StateMessage from '@/components/StateMessage'
 import { Badge } from '@/components/ui/badge'
 import { buttonVariants } from '@/components/ui/button'
@@ -82,7 +83,7 @@ type Props = {
   request?: ReactNode
 }
 
-// 상품 정보 패널의 내용. 못 불러오면 '상품 정보 없음'과 [쿠팡에서 열기]만이다(막지 않는다, DEC-89).
+// 상품 정보 패널의 내용. 못 불러와도 까닭과 [쿠팡에서 열기]로 확인할 길을 둔다(DEC-89).
 export default function ProductDetails({ state, url, request }: Props) {
   return (
     <div className="flex flex-col gap-4">
@@ -92,7 +93,12 @@ export default function ProductDetails({ state, url, request }: Props) {
           <Placeholder />
         </>
       )}
-      {state.kind === 'none' && <StateMessage kind="empty">상품 정보 없음</StateMessage>}
+      {state.kind === 'none' && (
+        <div className="flex flex-col gap-1 break-keep">
+          <StateMessage kind="empty">상품 정보 없음</StateMessage>
+          <p className="text-sm text-muted-foreground">{PRODUCT_NONE_REASON[state.reason]}</p>
+        </div>
+      )}
       {state.kind === 'ready' && <Loaded product={state.product} />}
       <div className="flex flex-wrap gap-2">
         <a

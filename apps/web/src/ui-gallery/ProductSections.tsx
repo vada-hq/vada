@@ -31,7 +31,7 @@ const SAMPLE: ProductInfo = {
 const STATES: { label: string; state: ProductState }[] = [
   { label: '불러옴', state: { kind: 'ready', product: SAMPLE } },
   { label: '불러오는 중', state: { kind: 'loading' } },
-  { label: '실패', state: { kind: 'none' } },
+  { label: '실패', state: { kind: 'none', reason: 'unavailable' } },
 ]
 
 const sample = (id: string, body: string, options: Partial<ChatMessage> = {}): ChatMessage => ({

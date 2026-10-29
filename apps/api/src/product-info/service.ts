@@ -15,8 +15,12 @@ type LoggedOutcome = LookupOutcome | 'cached' | 'daily_cap'
 const WARN = new Set<LoggedOutcome>(['quota', 'auth', 'daily_cap'])
 
 // 성공률을 세는 한 줄(DEC-89). 주소·학생회·사람은 넣지 않는다(AGENTS.md '로그·비밀').
-function logOutcome(outcome: LoggedOutcome) {
-  const line = JSON.stringify({ event: 'product_info', outcome })
+function logOutcome(outcome: LoggedOutcome, diag?: LookupResult['diag']) {
+  const line = JSON.stringify({
+    event: 'product_info',
+    outcome,
+    ...(diag ? { code: diag.code, status: diag.status, attempts: diag.attempts } : {}),
+  })
   if (WARN.has(outcome)) console.warn(line)
   else console.log(line)
 }
@@ -46,7 +50,7 @@ export function createProductInfo({
       return { product: null, reason: 'unavailable' }
     }
     const result = await reef(product)
-    logOutcome(result.outcome)
+    logOutcome(result.outcome, result.diag)
     const response = responseOf(result, clock())
     if (response.reason !== 'unavailable') cache.set(product.url, response, clock())
     return response

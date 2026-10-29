@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import type { FieldErrors } from '@/lib/use-form-check'
 import type { ItemValues } from './request-form'
 import { sellerOf } from '@/lib/seller'
+import { PRODUCT_NONE_REASON } from '@/lib/product-info'
 import { wonLabel } from './purchase-view'
 import { ProductPreview } from './ProductPreview'
 import { useItemProduct } from './use-item-product'
@@ -105,7 +106,7 @@ export function RequestItemFields({
         variant="outline"
         size="sm"
         className="self-start"
-        busy={disabled || product.state === 'loading'}
+        busy={disabled || product.state.kind === 'loading'}
         onClick={() => void product.load()}
       >
         불러오기
@@ -151,14 +152,15 @@ function ProductReadout({
 }) {
   return (
     <>
-      {state === 'loading' && (
+      {state.kind === 'loading' && (
         <p role="status" className="text-xs text-gray-500">
           상품 정보를 불러오는 중이에요.
         </p>
       )}
-      {state === 'none' && (
-        <p role="status" className="text-xs text-gray-500">
-          상품 정보를 읽지 못했어요. 이름과 수량을 직접 적어 주세요.
+      {state.kind === 'none' && (
+        <p role="status" className="text-xs break-keep text-muted-foreground">
+          {PRODUCT_NONE_REASON[state.reason]}
+          {state.reason !== 'unsupported' && ' 직접 적어 주세요.'}
         </p>
       )}
       {product && <ProductPreview product={product} />}
