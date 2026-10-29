@@ -117,7 +117,7 @@ test.each([true, false])(
   },
 )
 
-test('카드에 업무명, 부서 칩, 지남 칩, 담당자, 마감이 있고 행사 이름은 없다', async () => {
+test('카드에 업무명, 부서 칩, 담당자, 마감이 있고 지남은 마감 글에만 붙으며 행사 이름은 없다', async () => {
   serve([
     task('a', { event: { id: EVENT_ID, name: '신입생 환영회' } }),
     task('b', { overdue: true, assignee: null, department: null }),
@@ -132,7 +132,7 @@ test('카드에 업무명, 부서 칩, 지남 칩, 담당자, 마감이 있고 �
   expect(within(a).queryByText('지남')).toBeNull()
   const b = screen.getByRole('button', { name: '업무 b' }).closest('li')!
   expect(within(b).getByText('학생회 업무')).toBeTruthy()
-  expect(within(b).getByText('지남')).toBeTruthy()
+  expect(within(b).queryByText('지남')).toBeNull()
   expect(within(b).getByText('담당자 없음')).toBeTruthy()
   expect(within(b).getByText('10월 25일 · 지남')).toBeTruthy()
   const c = screen.getByRole('button', { name: '업무 c' }).closest('li')!

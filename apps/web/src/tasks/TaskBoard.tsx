@@ -142,7 +142,7 @@ export function TaskBoard(props: Props) {
       {empty && props.councilEmpty === false && (
         <StateMessage kind="empty">{props.emptyText}</StateMessage>
       )}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid max-w-300 grid-cols-3 gap-4">
         {columns.map(column => (
           <BoardColumn
             key={column.status}

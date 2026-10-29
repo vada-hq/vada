@@ -55,11 +55,11 @@ test('부서 없는 미배정 카드도 학생회 업무의 회색선을 유지�
 })
 
 test.each<TaskStatus>(['todo', 'in_progress'])(
-  '%s 마감 지남은 칩과 날짜만 빨간 강조이며 부서색을 덮지 않는다',
+  '%s 마감 지남은 날짜만 빨간 강조이고 따로 지남 칩은 없으며 부서색을 덮지 않는다',
   status => {
     const card = draw({ status, overdue: true })
     expect(card.className).toContain('border-l-category-1')
-    expect(within(card).getByText('지남').className).toContain('text-danger')
+    expect(within(card).queryByText('지남')).toBeNull()
     expect(within(card).getByText('10월 25일 · 지남').className).toContain('text-danger-emphasis')
     expect(within(card).getByText('담당자 없음').className).not.toContain('text-danger')
   },

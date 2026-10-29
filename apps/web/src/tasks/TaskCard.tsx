@@ -205,24 +205,28 @@ function BoardTaskCard({
         </Button>
         <CardMenu task={task} busy={busy} menu={menu} />
       </div>
-      <div className="mt-2 mb-3 flex flex-wrap items-center gap-2">
-        <Badge className={cn('max-w-full border-transparent', color.chip)} title={department}>
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+        <Badge
+          className={cn('max-w-full min-w-0 border-transparent', color.chip)}
+          title={department}
+        >
           <span className="truncate">{department}</span>
         </Badge>
-        {overdue && <Badge tone="danger">지남</Badge>}
-        <AssigneeText task={task} direct={direct} />
-      </div>
-      <div className="flex items-center justify-between border-t border-border-faint pt-3">
-        <span
-          className={cn(
-            'flex items-center gap-1.5 text-xs',
-            overdue ? 'font-semibold text-danger-emphasis' : 'text-fg-muted',
+        <div className="ml-auto flex max-w-full min-w-0 items-center gap-3 text-xs">
+          {hasResult && (
+            <FileText aria-label="결과물 있음" className="size-4 shrink-0 text-fg-faint" />
           )}
-        >
-          <Calendar aria-hidden className="size-3.5" />
-          {overdue ? `${dueLabel(task.dueDate)} · 지남` : dueLabel(task.dueDate)}
-        </span>
-        {hasResult && <FileText aria-label="결과물 있음" className="size-4 text-fg-faint" />}
+          <span
+            className={cn(
+              'flex shrink-0 items-center gap-1 whitespace-nowrap tabular-nums',
+              overdue ? 'font-semibold text-danger-emphasis' : 'text-fg-muted',
+            )}
+          >
+            <Calendar aria-hidden className="size-3.5" />
+            {overdue ? `${dueLabel(task.dueDate)} · 지남` : dueLabel(task.dueDate)}
+          </span>
+          <AssigneeText task={task} direct={direct} />
+        </div>
       </div>
       {error && (
         <p role="alert" className="mt-2 text-xs text-destructive wrap-anywhere">
