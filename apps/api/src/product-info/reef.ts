@@ -5,7 +5,7 @@ import type { CoupangProduct } from './coupang-url.js'
 // ReefAPI 쿠팡 상품 하나 보기(reefapi.com/docs/coupang, 한 번에 2 credits, 실패는 무료).
 const PRODUCT_ENDPOINT = 'https://api.reefapi.com/coupang/v1/product'
 // 사람이 기다릴 수 있는 한계(NN/g 10초) 안에서 일시 오류는 한 번 다시 부른다. 실패한 호출은 무료다.
-const TIMEOUT_MS = 10_000
+export const LOOKUP_BUDGET_MS = 10_000
 const RETRY_MIN_MS = 3_000
 const RETRY_ATTEMPT = 2
 // 문서 예시의 검색 응답이 2.5MB라 상품 응답도 넉넉히 잡고, 넘으면 읽다가 끊는다.
@@ -199,7 +199,7 @@ async function attemptOf(
 export function createReefLookup({
   apiKey,
   fetcher = fetch,
-  timeoutMs = TIMEOUT_MS,
+  timeoutMs = LOOKUP_BUDGET_MS,
   now = Date.now,
 }: {
   apiKey: string

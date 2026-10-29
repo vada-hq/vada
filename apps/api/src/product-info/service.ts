@@ -2,7 +2,12 @@ import type { ProductInfoResponse } from '@vada/contracts'
 import { createExpiringCache } from './cache.js'
 import { coupangProductOf, coupangShortLinkOf, type CoupangProduct } from './coupang-url.js'
 import { createDailyCap } from './daily-cap.js'
-import type { LookupOutcome, LookupResult, ProductLookup } from './reef.js'
+import {
+  LOOKUP_BUDGET_MS,
+  type LookupOutcome,
+  type LookupResult,
+  type ProductLookup,
+} from './reef.js'
 import type { ShortLinkCode, ShortLinkResolver } from './short-link.js'
 
 // ReefAPI는 저장하지 않고 매번 새로 읽는다. 같은 상품을 여러 사람이 여는 동안 크레딧을 아끼려고 짧게 둔다(DEC-89).
@@ -38,7 +43,32 @@ function responseOf(result: LookupResult, fetchedAt: Date): ProductInfoResponse 
   return { product: null, reason: result.outcome === 'not_found' ? 'not_found' : 'unavailable' }
 }
 
+// 다른 요청이 먼저 시작한 같은 상품 조회에 합류할 때, 단축 링크를 푸느라 쓴 시간만큼 덜 기다린다.
+// 그 조회는 자기 10초를 쓰므로 그대로 기다리면 이 요청은 10초를 넘는다. 남은 몫이 지나면 unavailable이다.
+function withinBudget(pending: Promise<ProductInfoResponse> | undefined, spentMs: number) {
+  if (!pending || !spentMs) return pending
+  return new Promise<ProductInfoResponse>((resolve, reject) => {
+    const timer = setTimeout(() => resolve(UNAVAILABLE), Math.max(LOOKUP_BUDGET_MS - spentMs, 0))
+    void pending.then(resolve, reject).finally(() => clearTimeout(timer))
+  })
+}
+
 type Target = { product: CoupangProduct; spentMs: number; short?: 'ok' }
+
+// 단축 링크를 풀어 상품 주소와 쓴 시간을 얻는다. 못 풀면 바로 돌려줄 응답이다.
+async function targetOfShort(
+  url: string,
+  resolve: ShortLinkResolver,
+  clock: () => Date,
+): Promise<Target | ProductInfoResponse> {
+  const started = clock().getTime()
+  const resolved = await resolve(url)
+  if (resolved.code !== 'ok') {
+    logOutcome('short_failed', undefined, resolved.code)
+    return SHORT_TRANSIENT.has(resolved.code) ? UNAVAILABLE : UNSUPPORTED
+  }
+  return { product: resolved.product, spentMs: clock().getTime() - started, short: 'ok' }
+}
 
 // lookup이 없으면(키 없음) 불러오기만 꺼진다. 쿠팡 상품 주소가 아니면 부르지 않는다.
 // 단축 링크는 resolveShortLink가 있을 때만 상품 주소로 풀고, 풀린 상품 주소로 캐시·ReefAPI를 쓴다(기능 022 정한 것 13).
@@ -67,23 +97,10 @@ export function createProductInfo({
     if (response.reason !== 'unavailable') cache.set(target.product.url, response, clock())
     return response
   }
-  // 단축 링크를 풀어 상품 주소를 얻는다. 못 풀면 바로 돌려줄 응답이다.
-  async function targetOfShort(
-    url: string,
-    resolve: ShortLinkResolver,
-  ): Promise<Target | ProductInfoResponse> {
-    const started = clock().getTime()
-    const resolved = await resolve(url)
-    if (resolved.code !== 'ok') {
-      logOutcome('short_failed', undefined, resolved.code)
-      return SHORT_TRANSIENT.has(resolved.code) ? UNAVAILABLE : UNSUPPORTED
-    }
-    return { product: resolved.product, spentMs: clock().getTime() - started, short: 'ok' }
-  }
   // 같은 상품이 캐시에 있거나 부르는 중이면 그것을 쓰고, 아니면 ReefAPI를 부른다.
   function fromTarget(target: Target, reef: ProductLookup): Promise<ProductInfoResponse> {
     const key = target.product.url
-    const ready = cache.get(key, clock()) ?? running.get(key)
+    const ready = cache.get(key, clock()) ?? withinBudget(running.get(key), target.spentMs)
     if (ready) {
       logOutcome('cached', undefined, target.short)
       return Promise.resolve(ready)
@@ -99,7 +116,7 @@ export function createProductInfo({
     if (!resolveShortLink || !coupangShortLinkOf(url)) return UNSUPPORTED
     // 키가 없으면 단축 링크도 풀지 않는다(쿠팡을 부를 까닭이 없다).
     if (!lookup) return UNAVAILABLE
-    const target = await targetOfShort(url, resolveShortLink)
+    const target = await targetOfShort(url, resolveShortLink, clock)
     return 'spentMs' in target ? fromTarget(target, lookup) : target
   }
 }

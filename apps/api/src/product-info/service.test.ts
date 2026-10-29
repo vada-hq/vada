@@ -176,3 +176,29 @@ test('단축 링크: 키가 없으면 풀지 않고 unavailable, 푸는 함수�
     reason: 'unsupported',
   })
 })
+
+test('단축 링크가 다른 요청이 부르는 중인 같은 상품에 합류하면 10초 예산의 남은 몫까지만 기다리고 unavailable이다', async t => {
+  quiet(t)
+  t.mock.timers.enable({ apis: ['setTimeout'] })
+  const clock = { now: new Date('2026-06-01T03:00:00Z') }
+  let release: (result: LookupResult) => void = () => {}
+  const lookup = () => new Promise<LookupResult>(resolve => (release = resolve))
+  const resolveShortLink: ShortLinkResolver = async () => {
+    clock.now = new Date('2026-06-01T03:00:09Z')
+    return { code: 'ok', product: { url: urlOf(7), itemId: null, vendorItemId: null } }
+  }
+  const productInfo = createProductInfo({ lookup, resolveShortLink, clock: () => clock.now })
+  const direct = productInfo(urlOf(7))
+  const viaShort = productInfo(SHORT)
+  let settled = false
+  void viaShort.then(() => (settled = true))
+  const settle = () => new Promise(resolve => setImmediate(resolve))
+  await settle()
+  t.mock.timers.tick(999)
+  await settle()
+  assert.equal(settled, false)
+  t.mock.timers.tick(1)
+  assert.deepEqual(await viaShort, { product: null, reason: 'unavailable' })
+  release({ outcome: 'ok', product })
+  assert.equal((await direct).reason, null)
+})

@@ -9,7 +9,18 @@ const TIMEOUT_MS = 3_000
 // 같은 공유 링크는 늘 같은 상품을 가리킨다. 대화방의 여럿이 열거나 선조회 뒤 다시 열 때 쿠팡을 다시 부르지 않게
 // 상품 캐시와 같은 10분, 500개로 둔다.
 const CACHE = { ttlMs: 600_000, max: 500 }
-const REDIRECTS = new Set([301, 302, 303, 307, 308])
+const MOVED_PERMANENTLY = 301
+const FOUND = 302
+const SEE_OTHER = 303
+const TEMPORARY_REDIRECT = 307
+const PERMANENT_REDIRECT = 308
+const REDIRECTS = new Set([
+  MOVED_PERMANENTLY,
+  FOUND,
+  SEE_OTHER,
+  TEMPORARY_REDIRECT,
+  PERMANENT_REDIRECT,
+])
 
 // 로그에 남기는 결과 코드. 원문 주소·코드·Location은 남기지 않는다.
 export type ShortLinkCode =
