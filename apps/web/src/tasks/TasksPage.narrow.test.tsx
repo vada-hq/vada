@@ -48,6 +48,8 @@ function setup(path: string, narrowed: string) {
   api.on('GET', `${base}?view=all&status=open${narrowed}`, () =>
     json({ tasks: [behind], truncated: false }),
   )
+  // 좁은 화면의 상태 탭은 끝난 업무도 같은 거르기로 읽는다.
+  api.onPrefix('GET', `${base}?view=all&status=done`, () => json({ tasks: [], truncated: false }))
   api.on('GET', `${base}/options`, () => json({ departments: [], linkableEvents: [] }))
   api.on('GET', `/api/organizations/${COUNCIL_ID}/members`, () => {
     const team = teamResponse()
@@ -104,7 +106,7 @@ test('거르지 않은 목록은 칩 수와 같은 응답을 다시 쓰고 거�
   expect(screen.getByRole('button', { name: `마감 없음 ${TASK_OPEN_LIMIT}+` })).toBeTruthy()
   const reads = api.calls.filter(call => call.path.startsWith(`${base}?`))
   expect(new Set(reads.map(call => call.path))).toEqual(
-    new Set([`${base}?view=all&status=open&event=none`]),
+    new Set([`${base}?view=all&status=open&event=none`, `${base}?view=all&status=done&event=none`]),
   )
   api.assertNoUnexpectedRequests()
 })
