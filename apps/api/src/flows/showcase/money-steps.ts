@@ -6,6 +6,7 @@ import type { BudgetItemEntry, DirectExpenseEntry, FinanceContent } from './cont
 import {
   budgetId,
   budgetKey,
+  departmentId,
   eventId,
   found,
   org,
@@ -46,14 +47,14 @@ export async function accountStep(ctx: ShowcaseCtx, finance: FinanceContent) {
 }
 
 // 예산 항목 만들기 본문. 담당 부서(item.department)는 아직 받는 칸이 없어 보내지 않는다.
-// 예산 항목 담당 부서(work/budget-dept)가 main에 오르면 여기에 departmentId를 더한다:
-//   departmentId: item.department ? departmentId(ctx, item.department) : null
+// 담당 부서는 부장 홈 '우리 부서가 맡은 예산' 줄의 근거다.
 function budgetItemBody(ctx: ShowcaseCtx, item: BudgetItemEntry) {
   return {
     purpose: item.purpose,
     amount: item.amount,
     type: item.type,
     eventId: item.event ? eventId(ctx, item.event) : null,
+    departmentId: item.department ? departmentId(ctx, item.department) : null,
   }
 }
 

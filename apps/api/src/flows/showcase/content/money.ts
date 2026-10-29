@@ -22,7 +22,7 @@ export const FINANCE: FinanceContent = {
       purpose: '행사 운영비',
       amount: 100_000,
       type: 'expense',
-      department: '기획부',
+      department: null,
     },
     {
       at: 'D-3 19:20',
@@ -38,7 +38,7 @@ export const FINANCE: FinanceContent = {
       purpose: '식비',
       amount: 300_000,
       type: 'expense',
-      department: '기획부',
+      department: null,
     },
     {
       at: 'D-3 21:12',
@@ -46,7 +46,7 @@ export const FINANCE: FinanceContent = {
       purpose: '행사 운영비',
       amount: 1_500_000,
       type: 'expense',
-      department: '기획부',
+      department: null,
     },
     {
       at: 'D-3 21:12',
@@ -62,7 +62,7 @@ export const FINANCE: FinanceContent = {
       purpose: '식비',
       amount: 2_000_000,
       type: 'expense',
-      department: '기획부',
+      department: null,
     },
     {
       at: 'D-3 21:23',
@@ -94,7 +94,7 @@ export const FINANCE: FinanceContent = {
       purpose: '대관·상품',
       amount: 500_000,
       type: 'expense',
-      department: '기획부',
+      department: null,
     },
   ],
   incomes: [

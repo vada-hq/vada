@@ -81,6 +81,9 @@ async function checkHomes(run: Run) {
   assert.equal(planning.kind, 'department')
   const lanes = planning.departmentBoard!.lanes.events.map(lane => lane.event.name)
   assert.ok(lanes.includes('새내기 배움터'), lanes.join(', '))
+  // 기획부가 맡은 예산 항목은 간식비 하나라 그 이름과 금액이 한 줄로 나온다.
+  assert.equal(planning.departmentBoard!.budget?.name, '간식비')
+  assert.equal(planning.departmentBoard!.budget?.amount, 300_000)
 }
 
 async function checkPlanningRoom(run: Run) {
