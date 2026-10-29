@@ -10,6 +10,8 @@ import CouncilHome from './CouncilHome'
 import DepartmentHome from './DepartmentHome'
 import FinanceHome from './FinanceHome'
 import HomeS5, { HomeS5Preview } from './s5/HomeS5'
+import LayoutHome from './layout/LayoutHome'
+import { LayoutPreview } from './layout/layout-preview'
 import { useFinanceView } from './use-finance-view'
 import { CouncilBlocked, CouncilEvents } from './CouncilSection'
 import DepartmentsSection from './DepartmentsSection'
@@ -24,7 +26,7 @@ import SettlingSection from './SettlingSection'
 import { useHomeExtras, type HomeExtras } from './useHomeExtras'
 import WeekEventsSection from './WeekEventsSection'
 import UnassignedBand from './UnassignedBand'
-import type { ReactNode } from 'react'
+import type { ComponentProps, ReactNode } from 'react'
 import { Button } from '@/components/ui/button'
 
 export type HomeOpeners = {
@@ -216,6 +218,19 @@ const isDepartmentHome = (
 ): home is HomeResponse & { departmentBoard: HomeDepartmentBoard } =>
   home.kind === 'department' && home.departmentBoard !== undefined
 
+// 시안 미리보기(home-s5.html)에서만 회장단 홈 자리를 시안으로 바꾼다: S5 흑백 시안, 배치 시안(component=layout).
+function usePreviewHome(
+  home: HomeResponse,
+  props: Omit<ComponentProps<typeof HomeS5>, 'variant' | 'data' | 's7'>,
+) {
+  const s5 = useContext(HomeS5Preview)
+  const layout = useContext(LayoutPreview)
+  if (home.kind !== 'council') return null
+  if (layout) return <LayoutHome {...layout} pushBand={props.pushBand} />
+  if (s5) return <HomeS5 {...s5} {...props} />
+  return null
+}
+
 export default function HomeBody({ name, memberId, awaitingDepartment = false, ...props }: Props) {
   const setPushSlot = useContext(PushBandSlot)
   const { home, councilId, rooms, onOpenEvent, onOpenPage, onNewEvent } = props
@@ -223,10 +238,8 @@ export default function HomeBody({ name, memberId, awaitingDepartment = false, .
   // 작업 공간의 알림 꺼짐 띠가 새 홈 틀의 이 자리에 그려진다. 띠가 없으면 자리도 없다.
   const pushBand = setPushSlot && <div ref={setPushSlot} className="empty:hidden" />
   const opens = { onOpenEvent, onOpenPage, onNewEvent }
-  // S5 흑백 시안 미리보기(home-s5.html)에서만 회장단 홈 자리를 시안으로 바꾼다.
-  const s5 = useContext(HomeS5Preview)
-  if (s5 && home.kind === 'council')
-    return <HomeS5 {...s5} councilId={councilId} pushBand={pushBand} {...opens} />
+  const preview = usePreviewHome(home, { councilId, pushBand, ...opens })
+  if (preview) return preview
   if (isDepartmentHome(home))
     return (
       <DepartmentHome

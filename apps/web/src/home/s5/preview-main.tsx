@@ -17,6 +17,17 @@ import C2Preview, { C2_VARIANTS, type C2Variant } from '../c2/C2Preview'
 import { C2_DATA_NAMES, type C2DataName } from '../c2/c2-data'
 import C35Preview, { C35_PARTS, type C35Part } from '../c35/C35Preview'
 import { C35_DATA_NAMES, type C35DataName } from '../c35/c35-data'
+import {
+  LAYOUT_DAY_NAMES,
+  LAYOUT_DAYS,
+  LAYOUT_GREETS,
+  LAYOUT_PLAN_NAMES,
+  LAYOUT_PLANS,
+  type LayoutDayName,
+  type LayoutGreet,
+  type LayoutPlan,
+} from '../layout/layout-days'
+import { LayoutPreview, type LayoutPreviewValue } from '../layout/layout-preview'
 import ThemeTile from '../c1r/themes/ThemeTile'
 import { applyTheme, themeOf } from '../c1r/themes/theme'
 import { councilHomeSample } from '../../ui-gallery/CouncilHomeSections'
@@ -31,7 +42,26 @@ const realHome = params.get('component') === 'home'
 const variant = (
   ['A', 'B', 'C', 'B2'].includes(params.get('variant') ?? '') ? params.get('variant') : 'A'
 ) as S5Variant
-const dataName = (params.get('data') ?? 'main') as S5DataName
+// 배치 시안: /home-s5.html?component=layout&variant=L1|L2|L3&day=busy|quiet|first&week=a|b&greet=line|date|merge
+// greet가 없으면 안마다 정한 값(layout-days.ts LAYOUT_PLANS). 테마는 base 고정. 셸 견본은 하루에 맞춘다.
+const layoutOn = params.get('component') === 'layout'
+const layoutPlan = (
+  LAYOUT_PLAN_NAMES.includes(params.get('variant') as LayoutPlan) ? params.get('variant') : 'L1'
+) as LayoutPlan
+const layoutDay = (
+  LAYOUT_DAY_NAMES.includes(params.get('day') as LayoutDayName) ? params.get('day') : 'quiet'
+) as LayoutDayName
+const layout: LayoutPreviewValue = {
+  plan: layoutPlan,
+  day: layoutDay,
+  week: params.get('week') === 'b' ? 'b' : 'a',
+  greet: LAYOUT_GREETS.includes(params.get('greet') as LayoutGreet)
+    ? (params.get('greet') as LayoutGreet)
+    : LAYOUT_PLANS[layoutPlan].greet,
+}
+const dataName = (
+  layoutOn ? LAYOUT_DAYS[layoutDay].shell : (params.get('data') ?? 'main')
+) as S5DataName
 const data = S5_DATA[dataName] ?? S5_DATA.main
 const greeting = (
   ['line', 'date', 'merge'].includes(params.get('greeting') ?? '') ? params.get('greeting') : 'line'
@@ -176,7 +206,7 @@ const c35 = params.get('component') === 'c35'
 const tile = params.get('component') === 'tile'
 const theme = themeOf(params.get('theme'))
 if (c1r || tile || realHome) applyTheme(theme)
-if (c2 || c35) applyTheme('base')
+if (c2 || c35 || layoutOn) applyTheme('base')
 const c1rVariant = (
   Object.keys(C1R_VARIANTS).includes(params.get('variant') ?? '') ? params.get('variant') : '0'
 ) as C1rVariant
@@ -197,7 +227,15 @@ const c35Data = (
   C35_DATA_NAMES.includes(params.get('data') as C35DataName) ? params.get('data') : 'main'
 ) as C35DataName
 createRoot(document.getElementById('root')!).render(
-  c35 ? (
+  layoutOn ? (
+    <StrictMode>
+      <LayoutPreview.Provider value={layout}>
+        <div className="flex min-h-dvh flex-col">
+          <Workspace />
+        </div>
+      </LayoutPreview.Provider>
+    </StrictMode>
+  ) : c35 ? (
     <StrictMode>
       <C35Preview part={c35Part} variant={c35Variant} data={c35Data} />
     </StrictMode>
