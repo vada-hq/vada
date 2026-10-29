@@ -10,19 +10,20 @@ type Stored = Extract<ProductInfoResponse, { product: ProductInfo } | { reason: 
 // 저장하지 못하면 읽을 때마다 다시 불러 크레딧을 쓰므로, 버리지 않고 줄여서라도 둔다.
 // DB의 CHECK(65,536바이트)는 jsonb 글자가 쉼표·쌍점 뒤에 띄어 쓰는 몫까지 잡은 마지막 막이다.
 const PRODUCT_JSON_MAX_BYTES = 32_768
-// 글 하나의 상한(상품명·배송 문구 등). 쿠팡 상품명은 100자 안팎이다. 이 상한이 있어 고른 판매 단위 하나는 늘 32KB 안에 든다.
+// 글 하나의 상한(상품명·배송 문구 등). 쿠팡 상품명은 100자 안팎이다.
+// 제어 문자를 빈칸으로 바꾼 뒤라 JSON에서 글자당 3바이트를 넘지 않아, 고른 판매 단위 하나는 늘 32KB 안에 든다.
 const TEXT_MAX = 1000
 const URL_MAX = 2048
-// jsonb는 NUL과 홀로 쓰인 서러게이트를 받지 않는다. 저장이 실패하지 않게 NUL은 지우고 서러게이트는 U+FFFD로 바꾼다.
+// jsonb는 NUL과 홀로 쓰인 서러게이트를 받지 않는다. 저장이 실패하지 않게 제어 문자(NUL 포함)는 빈칸으로,
+// 홀로 쓰인 서러게이트는 U+FFFD로 바꾼다. 제어 문자는 JSON에서 6바이트로 불어나 크기 상한도 무너뜨린다.
+const CONTROL = /\p{Cc}/gu
 const LONE_SURROGATE = /[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/g
-
-const NUL = String.fromCharCode(0)
 // U+FFFD REPLACEMENT CHARACTER
 const REPLACEMENT_CODE = 0xfffd
 const REPLACEMENT = String.fromCharCode(REPLACEMENT_CODE)
 
 const cleanText = (value: string) =>
-  value.replaceAll(NUL, '').slice(0, TEXT_MAX).replace(LONE_SURROGATE, REPLACEMENT)
+  value.replace(CONTROL, ' ').slice(0, TEXT_MAX).replace(LONE_SURROGATE, REPLACEMENT)
 const bytesOf = (value: unknown) => Buffer.byteLength(JSON.stringify(value))
 
 function cleaned(product: ProductInfo): ProductInfo {

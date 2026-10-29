@@ -222,23 +222,30 @@ test('저장 크기 상한을 넘는 상품은 고른 판매 단위를 남기고
 test('DB가 받지 않는 글자(NUL, 홀로 쓰인 서러게이트)와 아주 긴 글은 다듬어 저장한다. 다시 부르지 않는다', async t => {
   quiet(t)
   const testDb = await dbOf(t)
+  // 제어 문자는 JSON에서 6바이트씩이라, 고른 판매 단위 하나만으로도 32KB를 넘길 수 있었다.
+  const controls = String.fromCharCode(1).repeat(5000)
   const odd: ProductInfo = {
     ...product,
     name: 'a\u0000b\uD800c',
+    items: [{ itemId: '11', name: controls, price: 1000, listPrice: null }],
     shipping: '가'.repeat(5000),
+    deliveryEta: controls,
+    imageUrl: controls,
   }
   const { asked, lookup } = fakeLookup(() => ({ outcome: 'ok', product: odd }))
   const productInfo = service(testDb, lookup, { now: T0 })
   const response = await productInfo(urlOf(1))
-  assert.equal(response.product?.name, `ab${String.fromCharCode(0xfffd)}c`)
+  assert.equal(response.product?.name, `a b${String.fromCharCode(0xfffd)}c`)
   assert.equal(response.product?.shipping?.length, 1000)
+  assert.equal(response.product?.deliveryEta, ' '.repeat(1000))
+  assert.equal(response.product?.items[0]?.name, ' '.repeat(1000))
   assert.equal((await storedRows(testDb)).length, 1)
   assert.deepEqual(await productInfo(urlOf(1)), response)
   assert.equal(asked.length, 1)
 })
 
-// 두 번째부터의 select는 바로 실행하되(그때의 DB를 읽음) 결과는 gate가 열린 뒤에 준다.
-function lateReads(db: Db, gate: Promise<void>): Db {
+// firstLate번째부터의 select는 바로 실행하되(그때의 DB를 읽음) 결과는 gate가 열린 뒤에 준다.
+function lateReads(db: Db, gate: Promise<void>, firstLate = 2): Db {
   let count = 0
   const late = (query: object) => {
     const then = (query as PromiseLike<unknown>).then.bind(query)
@@ -253,7 +260,7 @@ function lateReads(db: Db, gate: Promise<void>): Db {
       if (prop !== 'select') return Reflect.get(target, prop, receiver) as unknown
       return (...args: Parameters<Db['select']>) => {
         const builder = target.select(...args)
-        if (++count < 2) return builder
+        if (++count < firstLate) return builder
         const from = builder.from.bind(builder)
         return Object.assign(builder, {
           from: (...table: Parameters<typeof from>) => late(from(...table)),
@@ -262,6 +269,34 @@ function lateReads(db: Db, gate: Promise<void>): Db {
     },
   })
 }
+
+test('단축 링크 새로고침이 남은 몫 안에 저장값 읽기가 끝나지 않으면 새로 부르지 않고 실패를 알린다(두 번 부르지 않음)', async t => {
+  quiet(t)
+  const testDb = await dbOf(t)
+  let openGate: () => void = () => {}
+  const gate = new Promise<void>(resolve => (openGate = resolve))
+  const clock = { now: T0 }
+  const { asked, lookup } = fakeLookup()
+  const resolveShortLink: ShortLinkResolver = async () => {
+    clock.now = new Date('2026-06-01T03:00:09.900Z')
+    return { code: 'ok', product: { url: urlOf(7), itemId: null, vendorItemId: null } }
+  }
+  const productInfo = createProductInfo({
+    db: lateReads(testDb.db, gate, 1),
+    lookup,
+    resolveShortLink,
+    clock: () => clock.now,
+  })
+  // 늦게 오는 DB 읽기(빈 결과)를 기다리는 읽기
+  const reading = productInfo(urlOf(7))
+  await new Promise(resolve => setTimeout(resolve, 20))
+  const refreshing = productInfo(SHORT, { refresh: true })
+  await new Promise(resolve => setTimeout(resolve, 500))
+  openGate()
+  assert.equal((await reading).reason, null)
+  assert.deepEqual(await refreshing, { product: null, reason: 'unavailable', refreshFailed: true })
+  assert.equal(asked.length, 1)
+})
 
 test('저장값 읽기가 늦게 와도, 그 사이 같은 상품의 다른 조회가 불러 저장했으면 다시 부르지 않는다', async t => {
   quiet(t)

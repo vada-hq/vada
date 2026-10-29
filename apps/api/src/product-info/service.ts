@@ -127,6 +127,12 @@ function createCaller(db: Db, reef: ProductLookup, clock: () => Date) {
   }
 }
 
+// 새로고침이 못 불러왔으면 저장값을 그대로 두고 그것을 준다.
+async function settledRefresh(db: Db, key: string, fresh: ProductInfoResponse) {
+  if (fresh.reason !== 'unavailable') return fresh
+  return failedRefresh(await readStoredProduct(db, key))
+}
+
 // 상품마다 진행 중인 일을 하나로 합친다. 같은 상품이 동시에 오면(대화방의 여럿이 같은 링크를 엶, 선조회와 패널) 한 번만 부르고 결과를 나눈다.
 function createJobs(db: Db, reef: ProductLookup, clock: () => Date) {
   const jobs = new Map<string, Job>()
@@ -138,11 +144,6 @@ function createJobs(db: Db, reef: ProductLookup, clock: () => Date) {
     })
     jobs.set(key, job)
     return job.done
-  }
-  // 새로고침이 못 불러왔으면 저장값을 그대로 두고 그것을 준다.
-  async function settled(key: string, fresh: ProductInfoResponse) {
-    if (fresh.reason !== 'unavailable') return fresh
-    return failedRefresh(await readStoredProduct(db, key))
   }
   async function read(target: Target) {
     const key = target.product.url
@@ -165,19 +166,22 @@ function createJobs(db: Db, reef: ProductLookup, clock: () => Date) {
     })
   }
   // 새로고침은 저장값을 보지 않고 부른다. 부르는 중인 일이 있으면 그 결과가 새 값이라 합류한다.
+  // 저장값만 읽던 일이 끝나면 다시 보고, 진행 중인 일이 없을 때만 새로 부른다(같은 상품을 두 번 부르지 않는다).
+  // 남은 몫이 다했거나 기다릴 횟수를 넘겼는데 일이 아직 있으면 새로 부르지 않고 실패를 알린다.
   async function refresh(target: Target) {
     const key = target.product.url
-    for (let tries = 0; tries < JOIN_TRIES; tries++) {
-      const current = jobs.get(key)
-      if (!current) break
+    let current = jobs.get(key)
+    for (let tries = 1; current; tries++) {
       const shared = await withinBudget(current.done, target.spentMs)
-      if (current.fetches) return settled(key, shared)
+      if (current.fetches || jobs.get(key) === current || tries >= JOIN_TRIES)
+        return settledRefresh(db, key, current.fetches ? shared : UNAVAILABLE)
+      current = jobs.get(key)
     }
     const fresh = await start(key, job => {
       job.fetches = true
       return call(target, true)
     })
-    return settled(key, fresh)
+    return settledRefresh(db, key, fresh)
   }
   return { read, refresh }
 }
