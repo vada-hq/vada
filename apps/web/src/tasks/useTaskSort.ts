@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import type { CouncilView, TeamResponse } from '@vada/contracts'
+import type { CouncilView, TaskSummary } from '@vada/contracts'
 import { sortTasks, TASK_SORTS, type TaskSort } from './task-sort'
 import type { TaskList } from './useTasks'
 
@@ -32,7 +32,18 @@ function useTaskSort(memberId: string) {
 
 const NO_DEPARTMENTS: readonly { id: string }[] = []
 
-// 받은 목록을 고른 정렬로 줄 세운 목록. 같은 응답·정렬·부서 차례면 같은 배열이라 표의 칸 고침(useEffect 의존)이 렌더마다 풀리지 않는다.
+// 줄 세운 배열 → 그것을 만든 받은 응답 배열. 표의 칸 고침(TaskListBody)은 새 응답이 올 때만 풀어야 하는데,
+// 정렬이나 부서 차례가 바뀌어도 줄 세운 배열은 새로 생기기 때문이다.
+const responses = new WeakMap<readonly TaskSummary[], readonly TaskSummary[]>()
+export const responseOf = (tasks: readonly TaskSummary[]) => responses.get(tasks) ?? tasks
+
+function sortedOf(tasks: TaskSummary[], sort: TaskSort, order: readonly { id: string }[]) {
+  const sorted = sortTasks(tasks, sort, order)
+  responses.set(sorted, tasks)
+  return sorted
+}
+
+// 받은 목록을 고른 정렬로 줄 세운 목록. 같은 응답·정렬·부서 차례면 같은 배열이다.
 function useSortedList(
   list: TaskList,
   sort: TaskSort,
@@ -42,7 +53,7 @@ function useSortedList(
   const { state, reload } = list
   const sorted = useMemo(
     () =>
-      state.kind === 'ready' ? { ...state, tasks: sortTasks(state.tasks, sort, order) } : state,
+      state.kind === 'ready' ? { ...state, tasks: sortedOf(state.tasks, sort, order) } : state,
     [state, sort, order],
   )
   return { state: sorted, reload }
@@ -53,7 +64,7 @@ function useSortedList(
 export function useSortedTasks(
   view: Pick<CouncilView, 'me'>,
   lists: { list: TaskList; done: TaskList },
-  team: Pick<TeamResponse, 'departments'> | null,
+  team: { departments: readonly { id: string }[] } | null,
 ) {
   const sort = useTaskSort(view.me.memberId)
   const list = useSortedList(lists.list, sort.value, team?.departments)

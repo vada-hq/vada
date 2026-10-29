@@ -18,7 +18,7 @@ export function TaskSortSelect({ value, onChange }: Props) {
       <NativeSelect
         id={id}
         value={value}
-        className="h-8 w-auto text-sm max-sm:min-h-11"
+        className="h-8 w-auto max-sm:min-h-11"
         onChange={event => {
           const next = sortOf(event.target.value)
           if (next) onChange(next)

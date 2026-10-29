@@ -21,6 +21,7 @@ import type { TaskCells } from './useTaskCells'
 import type { useStatusChange } from './useStatusChange'
 import type { useTaskAssign } from './useTaskAssign'
 import type { TaskList } from './useTasks'
+import { responseOf } from './useTaskSort'
 
 const EMPTY: Record<TaskFilter, string> = {
   open: '끝나지 않은 업무 없음',
@@ -135,7 +136,9 @@ function Ready({
   // 고른 칸의 응답으로 줄을 먼저 바꿔 두고, 다시 읽은 목록이 오면 그 목록을 따른다.
   const { patches, clearPatches } = table.cells
   const shown = tasks.map(task => patches[task.id] ?? task)
-  useEffect(clearPatches, [tasks, clearPatches])
+  // 정렬만 바뀐 배열이 아니라 새 응답이 왔을 때 푼다.
+  const response = responseOf(tasks)
+  useEffect(clearPatches, [response, clearPatches])
   const sections = sectionsOf(shown, props, today)
   const summary = view !== 'mine' && filter === 'open'
   return (
