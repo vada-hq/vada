@@ -36,7 +36,7 @@ const OPEN = [
     assignee: { id: 'p2', name: longName, current: false },
   }),
 ]
-const DONE = [task('s5', { status: 'done', next: 'todo', title: '현수막 주문' })]
+const DONE = [task('s5', { status: 'done', next: null, title: '현수막 주문' })]
 const noop = () => {}
 
 function Example({ start, truncated = false }: { start: TaskStatus; truncated?: boolean }) {

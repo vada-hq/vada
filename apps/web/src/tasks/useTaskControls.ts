@@ -67,9 +67,10 @@ function changesOf(url: QueryUrl, memberId: string) {
       rememberTaskTab(memberId, tab)
       url.set({ ...CLEAR_NARROW, tab, view: null, events: null })
     },
-    setFilter: (filter: TaskFilter) => url.set({ filter }),
+    // 넓은 화면의 끝남 거르기와 좁은 화면의 끝남 탭은 같은 것을 고른다. 마지막에 고른 쪽이 폭을 바꿔도 남는다.
+    setFilter: (filter: TaskFilter) => url.set({ filter, col: null }),
     // 휴대폰 상태 탭. 할 일은 기본값이라 주소에서 빠진다.
-    setColumn: (col: TaskStatus) => url.set({ col }),
+    setColumn: (col: TaskStatus) => url.set({ col, filter: col === 'done' ? 'done' : null }),
     setScope: (scope: string | null) => url.set({ scope }),
     setState: (state: string | null) => url.set({ state }),
     clearMyFilters: () => url.set({ scope: null, state: null }),
@@ -78,7 +79,7 @@ function changesOf(url: QueryUrl, memberId: string) {
       url.set({ layout })
     },
     // 끝남 열이 넘칠 때 표의 '끝남'으로 간다. 고른 배치가 아니라 길이라 기억하지 않는다.
-    showDoneTable: () => url.set({ layout: 'list', filter: 'done' }),
+    showDoneTable: () => url.set({ layout: 'list', filter: 'done', col: null }),
   }
 }
 
@@ -117,7 +118,11 @@ export function useTaskControls(councilId: string, eventId: string | undefined, 
     includeEvents: query['events'] === 'include',
     filter: pick<TaskFilter>(TASK_FILTERS, query['filter'], 'open'),
     layout: pick<TaskLayout>(TASK_LAYOUTS, query['layout'], 'board'),
-    column: pick<TaskStatus>(TASK_STATUSES, query['col'], 'todo'),
+    column: pick<TaskStatus>(
+      TASK_STATUSES,
+      query['col'],
+      query['filter'] === 'done' ? 'done' : 'todo',
+    ),
     dept: query['dept'] ?? null,
     assignee: assigneeOf(query),
     due: query['due'] ?? null,

@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, expect, test, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import type { TaskSummary } from '@vada/contracts'
 import { councilView, teamResponse } from '@/test-support/council-fixtures'
 import { EVENT_ID } from '@/test-support/event-fixtures'
@@ -32,7 +32,7 @@ const OPEN = [
   task('b', { actions: [] }),
   task('c', { status: 'in_progress', next: 'done' }),
 ]
-const DONE = [task('d', { status: 'done', next: 'todo' })]
+const DONE = [task('d', { status: 'done', next: null })]
 
 let api: ReturnType<typeof mockApi>
 function serve(
@@ -44,7 +44,10 @@ function serve(
 ) {
   api = mockApi()
   api.on('GET', `/api/organizations/${COUNCIL_ID}/members`, () => json(teamResponse()))
-  const options = json({ departments: [], linkableEvents: [] })
+  const options = json({
+    departments: [{ id: null, name: null, assignees: [{ id: 'm1', name: '김회장' }] }],
+    linkableEvents: [],
+  })
   api.on('GET', `${base}/options`, () => options.clone())
   api.on('GET', `${base}/options?event=${EVENT_ID}`, () => options.clone())
   api.on('GET', listPath('open', event), () => json({ tasks: OPEN, truncated: false }))
@@ -105,7 +108,7 @@ test('탭을 바꾸면 주소에 남고 다시 열어도 같은 탭이다', asyn
   await waitFor(() => expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}?col=in_progress`))
   expect(rowTitles()).toEqual(['업무 c'])
   fireEvent.click(screen.getByRole('tab', { name: '끝남 1' }))
-  await waitFor(() => expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}?col=done`))
+  await waitFor(() => expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}?filter=done&col=done`))
   expect(rowTitles()).toEqual(['업무 d'])
   unmount()
   render(page())
@@ -162,4 +165,41 @@ test('1024 이상에서는 지금 3열 보드이고 상태 탭이 없다', async
   render(page())
   expect(await screen.findByRole('region', { name: /^할 일/ })).toBeTruthy()
   expect(screen.queryByRole('tablist', { name: '업무 상태' })).toBeNull()
+})
+
+test('빠른 추가는 새 업무가 보이는 할 일 탭에만 있다', async () => {
+  serve()
+  render(page())
+  expect(await screen.findByRole('textbox', { name: '새 업무' })).toBeTruthy()
+  fireEvent.click(await screen.findByRole('tab', { name: '진행 중 1' }))
+  await waitFor(() => expect(screen.queryByRole('textbox', { name: '새 업무' })).toBeNull())
+  fireEvent.click(screen.getByRole('tab', { name: '끝남 1' }))
+  await waitFor(() => expect(screen.queryByRole('textbox', { name: '새 업무' })).toBeNull())
+})
+
+test('넓은 화면의 끝남 거르기와 좁은 화면의 끝남 탭은 폭을 오가도 같은 끝남이다', async () => {
+  window.history.replaceState(null, '', `/tasks/${COUNCIL_ID}?filter=done&layout=list`)
+  serve()
+  api.on('GET', `/api/organizations/${COUNCIL_ID}/events`, () =>
+    json({ events: [], truncated: false }),
+  )
+  render(page())
+  expect((await screen.findByRole('tab', { name: '끝남 1' })).getAttribute('aria-selected')).toBe(
+    'true',
+  )
+  fireEvent.click(screen.getByRole('tab', { name: '할 일 2' }))
+  await waitFor(() => expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}?layout=list`))
+  fireEvent.click(screen.getByRole('tab', { name: '끝남 1' }))
+  await waitFor(() =>
+    expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}?filter=done&layout=list&col=done`),
+  )
+  act(() => resize(1024))
+  const doneFilter = await screen.findByRole('button', { name: '끝남' })
+  expect(doneFilter.getAttribute('aria-pressed')).toBe('true')
+  fireEvent.click(screen.getByRole('button', { name: '끝나지 않은 것' }))
+  await waitFor(() => expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}?layout=list`))
+  act(() => resize(1023))
+  expect((await screen.findByRole('tab', { name: '할 일 2' })).getAttribute('aria-selected')).toBe(
+    'true',
+  )
 })

@@ -169,7 +169,9 @@ test('1024px 아래의 상태 탭도 주소에 남고 할 일은 기본값이라
   const view = startAt(`/tasks/${COUNCIL_ID}?events=include`)
   expect(screen.queryByRole('group', { name: '보기 모양' })).toBeNull()
   fireEvent.click(await screen.findByRole('tab', { name: '끝남 0' }))
-  await waitFor(() => expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}?col=done&events=include`))
+  await waitFor(() =>
+    expect(pathNow()).toBe(`/tasks/${COUNCIL_ID}?filter=done&col=done&events=include`),
+  )
   view.unmount()
   startAt(pathNow())
   expect(await selected('끝남 0')).toBe('true')
