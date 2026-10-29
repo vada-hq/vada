@@ -31,6 +31,7 @@ export function EventApplicantActions(props: Props) {
           size="icon"
           touch
           aria-label={eventApplicantActions(applicant.name)}
+          className="size-8 rounded-lg p-0 text-fg-muted pointer-coarse:size-11"
         >
           <MoreHorizontal aria-hidden className="size-4" />
         </Button>

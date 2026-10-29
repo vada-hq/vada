@@ -70,26 +70,36 @@ export const FEE_ACCOUNT_CLOSED = '고른 계좌를 닫았어요. 다른 계좌�
 export const APPLICANTS_LOAD_FAILED = '신청자를 불러오지 못했어요. 연결을 확인해 주세요.'
 export const EVENT_APPLICANTS = {
   title: '행사 참가자',
-  empty: '행사 참가자 없음',
+  empty: '신청자 없음',
+  noMatch: '맞는 참가자 없음',
   search: '이름이나 학번으로 찾기',
+  searchHint: '이름·학번',
   searchInvalid: '검색어가 너무 길거나 사용할 수 없는 글자가 있어요.',
-  registration: '신청 상태',
-  deposit: '입금 상태',
-  depositColumn: '입금',
-  attendance: '참석 상태',
+  quickFilters: '참가자 거르기',
+  filter: '거르기',
+  filterAll: '전체',
+  registration: '신청',
+  deposit: '입금',
+  attendance: '참석',
   attention: '확인 필요',
-  bulkDeposit: '납부 확인',
+  bulk: '일괄 처리',
+  bulkDeposit: '입금 확인',
   bulkAttendance: '참석 처리',
-  allRegistrations: '신청 전체',
-  allDeposits: '입금 전체',
-  allAttendance: '참석 전체',
-  active: '신청',
-  cancelled: '취소',
+  unselect: '선택 풀기',
+  resultDone: '처리',
+  resultFailed: '실패',
+  applied: '신청',
+  active: '신청함',
+  cancelled: '취소함',
   attended: '참석',
-  notAttended: '미참석',
+  notAttended: '불참',
+  noRecord: '참석 기록 없음',
   free: '무료',
+  due: '받을 금액',
   name: '이름',
   studentId: '학번',
+  phone: '휴대폰',
+  fee: '참가비',
   affiliation: '소속',
   form: '양식',
   actions: '동작',
@@ -102,12 +112,20 @@ export const EVENT_APPLICANTS = {
   loading: '불러오는 중이에요',
   unknownApplicant: '신청자',
 }
+export const QUICK_FILTER_LABEL = {
+  unpaid: '입금 안 함',
+  attention: '확인 필요',
+  attended: '참석',
+  notAttended: '불참',
+} as const
 export const eventApplicantTotal = (count: number) => `총 ${count}명`
 export const eventApplicantSelected = (count: number) => `${count}명 선택`
+export const eventApplicantSelectAll = (count: number) => `${count}명 모두 선택`
 export const eventApplicantCount = (kind: 'applicants' | 'attended', count: number) =>
-  `${kind === 'applicants' ? EVENT_APPLICANTS.active : EVENT_APPLICANTS.attended} ${count}명`
+  `${kind === 'applicants' ? EVENT_APPLICANTS.applied : EVENT_APPLICANTS.attended} ${count}명`
 export const eventApplicantSelect = (name: string) => `${name} 선택`
 export const eventApplicantActions = (name: string) => `${name} 동작`
+export const clearApplicantFilter = (label: string) => `${label} 거르기 풀기`
 export const DEPOSIT_LABEL: Record<DepositStatus, string> = {
   none: '입금 안 함',
   confirmed: '입금 확인',

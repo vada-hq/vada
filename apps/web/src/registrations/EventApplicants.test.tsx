@@ -1,9 +1,10 @@
 // @vitest-environment jsdom
 import { afterEach, expect, test, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import type { EventApplicant, EventApplicantsResponse } from '@vada/contracts'
 import { applicant, STAFF_EVENT_ID } from '@/test-support/staff-registration-fixtures'
 import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
+import { navigationWidth } from '@/test-support/navigation-width'
 import { EventApplicants } from './EventApplicants'
 
 afterEach(() => {
@@ -33,11 +34,13 @@ const data = (extra: Partial<EventApplicantsResponse> = {}): EventApplicantsResp
   accessToken: 'read-once',
   ...extra,
 })
-function setup(value = data()) {
+function setup(value = data(), startsAt: string | null = null) {
   const api = mockApi()
   api.on('GET', `${PATH}?page=1`, () => json(value))
   const handlers = { onForbidden: vi.fn(), onLost: vi.fn() }
-  render(<EventApplicants councilId="c1" eventId={STAFF_EVENT_ID} {...handlers} />)
+  render(
+    <EventApplicants councilId="c1" eventId={STAFF_EVENT_ID} startsAt={startsAt} {...handlers} />,
+  )
   return { api, handlers }
 }
 
@@ -68,10 +71,10 @@ test('읽기 권한만 있으면 명단은 보이고 선택과 일괄 띠는 없
   setup(data({ canManage: false }))
   await screen.findByText('김새내')
   expect(screen.queryByRole('checkbox', { name: '김새내 선택' })).toBeNull()
-  expect(screen.queryByRole('button', { name: '납부 확인' })).toBeNull()
+  expect(screen.queryByRole('button', { name: '입금 확인' })).toBeNull()
 })
 
-test('일괄 납부는 선택한 줄만 보내고 실패 줄과 이유를 남긴다', async () => {
+test('일괄 입금 확인은 선택한 줄만 보내고 실패 줄과 이유를 남긴다', async () => {
   const value = data({ applicants: [row(), row({ id: secondId, name: '이실패' })] })
   const { api } = setup(value)
   await screen.findByText('김새내')
@@ -85,7 +88,7 @@ test('일괄 납부는 선택한 줄만 보내고 실패 줄과 이유를 남긴
   )
   api.on('GET', `${PATH}?page=1&accessToken=read-once`, () => json(value))
   fireEvent.click(screen.getByRole('checkbox', { name: '현재 쪽 모두 선택' }))
-  fireEvent.click(screen.getByRole('button', { name: '납부 확인' }))
+  fireEvent.click(screen.getByRole('button', { name: '입금 확인' }))
   await screen.findByText('1명 처리, 1명 실패')
   expect(screen.getByText(/이실패: 이미 입금을 확인한 신청/)).toBeTruthy()
   expect(screen.getByRole('checkbox', { name: '김새내 선택' })).toHaveProperty('checked', false)
@@ -155,8 +158,8 @@ test('일괄 실패 줄이 재조회한 필터에서 빠져도 처리 당시 이
     json(data({ applicants: [], total: 0 })),
   )
   fireEvent.click(screen.getByRole('checkbox', { name: '현재 쪽 모두 선택' }))
-  fireEvent.click(screen.getByRole('button', { name: '납부 확인' }))
-  await screen.findByText('행사 참가자 없음')
+  fireEvent.click(screen.getByRole('button', { name: '입금 확인' }))
+  await screen.findByText('신청자 없음')
   expect(screen.getByText(/이실패: 이미 입금을 확인한 신청/)).toBeTruthy()
 })
 
@@ -189,13 +192,159 @@ test('상한을 넘긴 검색은 보내지 않고 칸에서 고쳐 다시 찾을
 })
 
 // 답은 명단을 읽는 사람 모두가 본다(관리 권한과 상관없다).
-test('명단 줄에 질문마다 답이 보이고 관리 권한이 없어도 같다', async () => {
+test('한 사람 보기에 질문마다 답이 보이고 관리 권한이 없어도 같다', async () => {
   const answers = [
     { questionId: 'q1', title: '티셔츠 사이즈', values: ['M'] },
     { questionId: 'q2', title: '참가 종목', values: [] },
   ]
   setup(data({ canManage: false, applicants: [row({ answers })] }))
-  expect(await screen.findByText('티셔츠 사이즈')).toBeTruthy()
-  expect(screen.getByText('M')).toBeTruthy()
-  expect(screen.getByText('참가 종목')).toBeTruthy()
+  fireEvent.click(await screen.findByRole('button', { name: '김새내' }))
+  const panel = await screen.findByRole('dialog', { name: '김새내' })
+  expect(within(panel).getByText('티셔츠 사이즈')).toBeTruthy()
+  expect(within(panel).getByText('M')).toBeTruthy()
+  expect(within(panel).getByText('참가 종목')).toBeTruthy()
+})
+
+// 신청자 관리 화면(문서 속 얇은 표 모양, 10/30 확정)
+const thirdId = '00000000-0000-4000-8000-0000000000a3'
+const three = () =>
+  data({
+    total: 3,
+    applicants: [
+      row({ name: '가입금', studentId: '20260010' }),
+      row({
+        id: secondId,
+        name: '나중복',
+        studentId: '20260020',
+        duplicateStudentId: true,
+        needsAttention: true,
+        deposit: { status: 'confirmed', amount: 5000 },
+        actions: ['deposit.cancel'],
+      }),
+      row({
+        id: thirdId,
+        name: '다중복',
+        studentId: '20260020',
+        duplicateStudentId: true,
+        needsAttention: true,
+      }),
+    ],
+  })
+const rowOf = async (name: string) => (await screen.findByText(name)).closest('tr') as HTMLElement
+
+test('확인 필요 줄이 맨 위에 모이고 같은 학번 경고에 상대 이름이 붙는다', async () => {
+  setup(three())
+  await screen.findByText('가입금')
+  const names = screen
+    .getAllByRole('row')
+    .slice(1)
+    .map(tr => tr.textContent ?? '')
+  expect(names[0]).toContain('나중복')
+  expect(names[1]).toContain('다중복')
+  expect(names[2]).toContain('가입금')
+  expect(within(await rowOf('나중복')).getByText('같은 학번 · 다중복')).toBeTruthy()
+  expect(within(await rowOf('다중복')).getByText('같은 학번 · 나중복')).toBeTruthy()
+  expect(within(await rowOf('나중복')).getByRole('img', { name: '확인 필요' })).toBeTruthy()
+})
+
+test('입금 안 함 줄에 받을 금액(적용 참가비)이 붙고 입금 확인 줄은 받은 금액이다', async () => {
+  setup(three())
+  const unpaid = await rowOf('가입금')
+  expect(within(unpaid).getByText('입금 안 함')).toBeTruthy()
+  expect(within(unpaid).getByText('5,000원')).toBeTruthy()
+  expect(within(unpaid).getByText('받을 금액')).toBeTruthy()
+  const paid = await rowOf('나중복')
+  expect(within(paid).getByText('입금 확인')).toBeTruthy()
+  expect(within(paid).queryByText('받을 금액')).toBeNull()
+})
+
+test('행사 전에는 출석 기록 없는 줄의 참석 칸이 비고, 행사가 시작되면 불참이다', async () => {
+  setup(data({ total: 1 }), '2099-01-01T10:00')
+  const before = await rowOf('김새내')
+  expect(within(before).getByText('참석 기록 없음')).toBeTruthy()
+  expect(within(before).queryByText('불참')).toBeNull()
+  cleanup()
+  setup(data({ total: 1 }), '2020-01-01T10:00')
+  expect(within(await rowOf('김새내')).getByText('불참')).toBeTruthy()
+})
+
+test('머리 수는 받은 명단에서 세고, 수를 누르면 그 상태로 거른다', async () => {
+  const { api } = setup(three())
+  await screen.findByText('가입금')
+  const filters = screen.getByRole('group', { name: '참가자 거르기' })
+  expect(within(filters).getByRole('button', { name: '총 3명' }).getAttribute('aria-pressed')).toBe(
+    'true',
+  )
+  expect(within(filters).getByRole('button', { name: '입금 안 함 2' })).toBeTruthy()
+  api.on('GET', `${PATH}?page=1&needsAttention=true&accessToken=read-once`, () =>
+    json(data({ total: 2, applicants: three().applicants.slice(1) })),
+  )
+  fireEvent.click(within(filters).getByRole('button', { name: '확인 필요 2' }))
+  await waitFor(() => expect(screen.queryByText('가입금')).toBeNull())
+  expect(
+    within(filters).getByRole('button', { name: '확인 필요 2' }).getAttribute('aria-pressed'),
+  ).toBe('true')
+})
+
+test('여러 쪽이면 모르는 상태별 수는 적지 않는다', async () => {
+  setup(data({ total: 120 }))
+  await screen.findByText('김새내')
+  const filters = screen.getByRole('group', { name: '참가자 거르기' })
+  expect(within(filters).getByRole('button', { name: '총 120명' })).toBeTruthy()
+  expect(within(filters).getByRole('button', { name: '입금 안 함' })).toBeTruthy()
+  expect(within(filters).getByRole('button', { name: '확인 필요' })).toBeTruthy()
+})
+
+test('일괄 띠는 입금 확인과 참석 처리만 있고 불참 처리는 없다', async () => {
+  setup(three())
+  await screen.findByText('가입금')
+  fireEvent.click(screen.getByRole('checkbox', { name: '가입금 선택' }))
+  const bar = screen.getByRole('region', { name: '일괄 처리' })
+  expect(within(bar).getByText('1명 선택')).toBeTruthy()
+  expect(within(bar).getByRole('button', { name: '입금 확인' })).toBeTruthy()
+  expect(within(bar).getByRole('button', { name: '참석 처리' })).toBeTruthy()
+  expect(within(bar).queryByRole('button', { name: '불참 처리' })).toBeNull()
+})
+
+test('일괄 결과가 그 줄에도 남는다', async () => {
+  const value = three()
+  const { api } = setup(value)
+  await screen.findByText('가입금')
+  api.on('POST', `${PATH}/deposit`, () =>
+    json({
+      results: [
+        { registrationId: applicant().id, error: null },
+        { registrationId: thirdId, error: 'DEPOSIT_EXISTS' },
+      ],
+    }),
+  )
+  api.on('GET', `${PATH}?page=1&accessToken=read-once`, () => json(value))
+  fireEvent.click(screen.getByRole('checkbox', { name: '가입금 선택' }))
+  fireEvent.click(screen.getByRole('checkbox', { name: '다중복 선택' }))
+  fireEvent.click(screen.getByRole('button', { name: '입금 확인' }))
+  await screen.findByText('1명 처리, 1명 실패')
+  expect(within(await rowOf('가입금')).getByText('처리')).toBeTruthy()
+  expect(within(await rowOf('다중복')).getByText(/실패/)).toBeTruthy()
+})
+
+test('읽기 권한만 있으면 휴대폰 폭에서도 체크와 일괄 띠가 없고, 관리 권한이면 휴대폰 폭에도 체크가 있다', async () => {
+  navigationWidth(390)
+  setup(data({ canManage: false, total: 1 }))
+  await screen.findByText('김새내')
+  expect(screen.queryByRole('table')).toBeNull()
+  expect(screen.queryByRole('checkbox')).toBeNull()
+  expect(screen.queryByRole('region', { name: '일괄 처리' })).toBeNull()
+  cleanup()
+  setup(data({ total: 1 }))
+  expect(await screen.findByRole('checkbox', { name: '김새내 선택' })).toBeTruthy()
+})
+
+test('이름을 누르면 한 사람 보기에 휴대폰·답이 보인다', async () => {
+  const answers = [{ questionId: 'q1', title: '티셔츠 사이즈', values: ['M'] }]
+  setup(data({ canManage: false, applicants: [row({ phone: '010-1234-5678', answers })] }))
+  fireEvent.click(await screen.findByRole('button', { name: '김새내' }))
+  const panel = await screen.findByRole('dialog', { name: '김새내' })
+  expect(within(panel).getByText('010-1234-5678')).toBeTruthy()
+  expect(within(panel).getByText('티셔츠 사이즈')).toBeTruthy()
+  expect(within(panel).getByText('M')).toBeTruthy()
 })

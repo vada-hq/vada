@@ -21,7 +21,7 @@ function sources(dir: string): string[] {
 // 화면이 안 쓰는 것을 아직 고치지 않고 이유와 함께 허용하는 목록. 이유 없이 더하지 않는다.
 const ALLOWED_UNUSED: Record<string, string> = {
   'FORM_ACTIONS form.view_applicants':
-    '양식 카드의 양식별 신청자 목록은 탭에서 이미 숨겨 두었고(행사 참가자 명단이 맡음) 양식 카드를 시안대로 바꾸며 뺐다. 신청자 관리 화면(신청 양식 영역 셋째 화면)에서 다시 정한다',
+    '양식별 신청자 목록은 양식 카드에서 뺐고 행사 참가자 명단이 맡는다. 명단은 서버가 행사 단위로 같은 권한(form.view_applicants)을 판단해 준 canView만 본다(event-applicants.ts). 양식마다 이 동작을 다시 읽으면 웹이 권한을 다시 세는 셈이라 쓰지 않는다',
 }
 
 // 동작 이름은 권한 키(Action)와 떼어 둔다(기능 012 원칙, 012 조각 6 검토 I1): 같은 글자면 `view.permissions.includes('이름')`이

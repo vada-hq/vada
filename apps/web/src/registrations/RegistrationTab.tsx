@@ -200,6 +200,7 @@ function FormsView({ props, tab, read, ready, rows }: ViewProps) {
           key={`${councilId}/${props.eventId}`}
           councilId={councilId}
           eventId={props.eventId}
+          startsAt={props.event?.startsAt ?? null}
           changes={rows.changes}
           onChange={rows.apply}
           onLoaded={rows.forget}

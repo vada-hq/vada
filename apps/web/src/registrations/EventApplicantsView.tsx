@@ -1,29 +1,39 @@
-import type {
-  ApplicantChange,
-  BulkApplicantsResponse,
-  EventApplicantsQuery,
-  EventApplicantsResponse,
+import { useState, useSyncExternalStore } from 'react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
+import {
+  EVENT_APPLICANT_PAGE_SIZE,
+  koreanDateOf,
+  type ApplicantChange,
+  type BulkApplicantsResponse,
+  type EventApplicantsQuery,
+  type EventApplicantsResponse,
 } from '@vada/contracts'
-import { EVENT_APPLICANT_PAGE_SIZE } from '@vada/contracts'
-import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
+import { useNow } from '@/lib/use-now'
 import {
   applicantFailure,
-  eventApplicantTotal,
-  eventApplicantSelected,
-  eventApplicantCount,
-  bulkApplicantsSummary,
   EVENT_APPLICANTS,
+  eventApplicantCount,
 } from '@/lib/registration-messages'
-import { EventApplicantsFilters } from './EventApplicantsFilters'
-import { EventApplicantsTable } from './EventApplicantsTable'
+import { ApplicantPeek } from './ApplicantPeek'
+import { attentionFirst, eventStarted, isWhole, reasonOf } from './applicant-summary'
+import { sheet } from './doc-look'
+import { EventApplicantActions } from './EventApplicantActions'
+import { BulkBar, BulkResult, type BulkKind } from './EventApplicantsBulk'
+import { EventApplicantsHead } from './EventApplicantsHead'
+import { EventApplicantsList } from './EventApplicantsList'
+import { EventApplicantsTable, type ListProps, type RowModel } from './EventApplicantsTable'
+import { listSize, listType, sheetX } from './list-look'
 
 type Props = {
   councilId: string
   data: EventApplicantsResponse
+  // 행사 시작 시각(한국). 첫날부터 출석 기록 없음을 '불참'이라 한다. 모르면 null이다.
+  startsAt?: string | null
   query?: Partial<EventApplicantsQuery>
   selected?: ReadonlySet<string>
   result?: BulkApplicantsResponse | null
+  resultKind?: BulkKind
   resultNames?: ReadonlyMap<string, string>
   busy?: boolean
   submitting?: boolean
@@ -31,176 +41,230 @@ type Props = {
   onPage?: (page: number) => void
   onToggle?: (id: string) => void
   onTogglePage?: () => void
-  onBulk?: (kind: 'deposit' | 'attendance') => void
+  onUnselect?: () => void
+  onBulk?: (kind: BulkKind) => void
   onChange?: (change: ApplicantChange) => void
   onReload?: () => void
   onForbidden?: () => void
   onLost?: (message: string) => void
 }
 
+type Full = Required<Props>
 const noop = () => undefined
-const emptySelection: ReadonlySet<string> = new Set()
-
-function BulkResult({
-  data,
-  result,
-  names,
-}: {
-  data: EventApplicantsResponse
-  result: Props['result']
-  names: Props['resultNames']
-}) {
-  if (!result) return null
-  const failures = result.results.filter(item => item.error !== null)
-  return (
-    <div className="flex flex-col gap-1 text-sm" role="status">
-      <p>{bulkApplicantsSummary(result.results.length - failures.length, failures.length)}</p>
-      {failures.map(item => (
-        <p key={item.registrationId} className="text-destructive wrap-anywhere">
-          {names?.get(item.registrationId) ??
-            data.applicants.find(row => row.id === item.registrationId)?.name ??
-            EVENT_APPLICANTS.unknownApplicant}
-          : {applicantFailure(item.error!)}
-        </p>
-      ))}
-    </div>
-  )
+const DEFAULTS: Omit<Full, 'councilId' | 'data'> = {
+  startsAt: null,
+  query: {},
+  selected: new Set(),
+  result: null,
+  resultKind: 'deposit',
+  resultNames: new Map(),
+  busy: false,
+  submitting: false,
+  onQuery: noop,
+  onPage: noop,
+  onToggle: noop,
+  onTogglePage: noop,
+  onUnselect: noop,
+  onBulk: noop,
+  onChange: noop,
+  onReload: noop,
+  onForbidden: noop,
+  onLost: noop,
 }
 
-function BulkBar(props: Props) {
-  const count = props.selected?.size ?? 0
-  if (!props.data.canManage || count === 0)
-    return <BulkResult data={props.data} result={props.result} names={props.resultNames} />
-  return (
-    <div className="sticky bottom-0 flex flex-col gap-3 rounded-md border border-primary-border bg-primary-surface p-3">
-      <div className="flex flex-wrap items-center gap-2">
-        <p className="mr-auto text-sm font-medium tabular-nums">{eventApplicantSelected(count)}</p>
-        <Button
-          size="sm"
-          touch
-          busy={props.busy ?? false}
-          onClick={() => props.onBulk?.('deposit')}
-        >
-          {EVENT_APPLICANTS.bulkDeposit}
-        </Button>
-        <Button
-          size="sm"
-          variant="outline"
-          touch
-          busy={props.busy ?? false}
-          onClick={() => props.onBulk?.('attendance')}
-        >
-          {EVENT_APPLICANTS.bulkAttendance}
-        </Button>
-      </div>
-      <BulkResult data={props.data} result={props.result} names={props.resultNames} />
-    </div>
-  )
+// 표는 열 여덟까지라 단 폭 약 730px부터 그린다(Tailwind lg 창 − 옆 메뉴 − 여백). 그 아래는 두 줄 목록이다.
+// 폭을 모르면(matchMedia가 없는 환경) 표를 그린다.
+const WIDE = '(min-width: 64rem)'
+const media = () => (typeof window.matchMedia === 'function' ? window.matchMedia(WIDE) : null)
+function subscribe(change: () => void) {
+  const query = media()
+  query?.addEventListener('change', change)
+  return () => query?.removeEventListener('change', change)
 }
+const useWide = () => useSyncExternalStore(subscribe, () => media()?.matches ?? true)
 
-function Pagination({
+// 쪽: 표 아래 오른쪽 회색 '1 / 3 ‹ ›'(50줄씩). 끝 쪽에서는 그 방향 단추를 두지 않는다(끄지 않는다).
+function Pager({
   data,
   busy,
   onPage,
 }: {
   data: EventApplicantsResponse
-  busy: Props['busy']
-  onPage: Props['onPage']
+  busy: boolean
+  onPage: (page: number) => void
 }) {
   const pages = Math.max(1, Math.ceil(data.total / EVENT_APPLICANT_PAGE_SIZE))
+  const arrow = `${listSize.hit} rounded-lg p-0 text-fg-muted`
   return (
-    <nav aria-label={EVENT_APPLICANTS.pages} className="flex items-center justify-end gap-2">
-      {data.page > 1 && (
-        <Button
-          size="sm"
-          variant="outline"
-          touch
-          busy={busy ?? false}
-          onClick={() => onPage?.(data.page - 1)}
-        >
-          {EVENT_APPLICANTS.previousPage}
-        </Button>
-      )}
-      <span className="text-sm tabular-nums text-muted-foreground">
+    <nav
+      aria-label={EVENT_APPLICANTS.pages}
+      className={`flex items-center justify-end gap-1 ${sheetX} py-2`}
+    >
+      <span className={`${listType.small} ${listType.num} px-2 text-fg-muted`}>
         {data.page} / {pages}
       </span>
+      {data.page > 1 && (
+        <Button
+          type="button"
+          variant="ghost"
+          aria-label={EVENT_APPLICANTS.previousPage}
+          busy={busy}
+          onClick={() => onPage(data.page - 1)}
+          className={arrow}
+        >
+          <ChevronLeft aria-hidden />
+        </Button>
+      )}
       {data.page < pages && (
         <Button
-          size="sm"
-          variant="outline"
-          touch
-          busy={busy ?? false}
-          onClick={() => onPage?.(data.page + 1)}
+          type="button"
+          variant="ghost"
+          aria-label={EVENT_APPLICANTS.nextPage}
+          busy={busy}
+          onClick={() => onPage(data.page + 1)}
+          className={arrow}
         >
-          {EVENT_APPLICANTS.nextPage}
+          <ChevronRight aria-hidden />
         </Button>
       )}
     </nav>
   )
 }
 
-function tablePropsOf(props: Props) {
-  return {
-    councilId: props.councilId,
-    data: props.data,
-    selected: props.selected ?? emptySelection,
-    busy: props.busy ?? false,
-    onToggle: props.onToggle ?? noop,
-    onTogglePage: props.onTogglePage ?? noop,
-    onChange: props.onChange ?? noop,
-    onReload: props.onReload ?? noop,
-    onForbidden: props.onForbidden ?? noop,
-    onLost: props.onLost ?? noop,
-  }
+function Message({ children }: { children: string }) {
+  return (
+    <p
+      className={`border-t border-border-default ${sheetX} py-10 text-center ${listType.body} text-fg-muted`}
+    >
+      {children}
+    </p>
+  )
 }
 
-export function EventApplicantsView(props: Props) {
+function rowModels(props: Full): RowModel[] {
   const { data } = props
+  const results = new Map(props.result?.results.map(item => [item.registrationId, item.error]))
+  return attentionFirst(data.applicants).map(row => {
+    const error = results.get(row.id)
+    return {
+      row,
+      reason: reasonOf(row, data.applicants),
+      picked: props.selected.has(row.id),
+      result:
+        error === undefined
+          ? undefined
+          : { kind: props.resultKind, failure: error === null ? null : applicantFailure(error) },
+      actions: (
+        <EventApplicantActions
+          councilId={props.councilId}
+          applicant={row}
+          onChange={props.onChange}
+          onGone={props.onReload}
+          onForbidden={props.onForbidden}
+          onLost={props.onLost}
+        />
+      ),
+    }
+  })
+}
+
+// 개인정보 열람 권한이 없으면 수만 보인다(서버가 명단을 주지 않는다).
+function CountsOnly({ data }: { data: EventApplicantsResponse }) {
+  return (
+    <div className={`flex flex-wrap gap-4 ${sheetX} pb-5 ${listType.body} ${listType.num}`}>
+      <p>{eventApplicantCount('applicants', data.counts.applicants)}</p>
+      <p>{eventApplicantCount('attended', data.counts.attended)}</p>
+    </div>
+  )
+}
+
+function CountsOnlySheet({ data }: { data: EventApplicantsResponse }) {
   return (
     <section
       aria-label={EVENT_APPLICANTS.title}
-      className="@container flex min-w-0 flex-col gap-3 break-keep"
+      className={`flex min-w-0 flex-col break-keep ${sheet}`}
     >
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h2 className="text-base font-semibold">{EVENT_APPLICANTS.title}</h2>
-        {data.canView && (
-          <div className="flex items-center gap-2">
-            <p className="text-sm tabular-nums text-muted-foreground">
-              {eventApplicantTotal(data.total)}
-            </p>
-            <Button
-              variant="ghost"
-              size="sm"
-              touch
-              busy={props.busy ?? false}
-              onClick={props.onReload}
-            >
-              {EVENT_APPLICANTS.reload}
-            </Button>
-          </div>
-        )}
-      </div>
-      {!data.canView ? (
-        <div className="flex flex-wrap gap-4 text-sm tabular-nums">
-          <p>{eventApplicantCount('applicants', data.counts.applicants)}</p>
-          <p>{eventApplicantCount('attended', data.counts.attended)}</p>
-        </div>
-      ) : (
-        <>
-          <EventApplicantsFilters
-            query={props.query ?? {}}
-            onQuery={props.onQuery ?? noop}
-            busy={props.submitting ?? false}
-          />
-          {data.applicants.length === 0 ? (
-            <StateMessage kind="empty">{EVENT_APPLICANTS.empty}</StateMessage>
-          ) : (
-            <EventApplicantsTable {...tablePropsOf(props)} />
-          )}
-          <Pagination data={data} busy={props.busy ?? false} onPage={props.onPage} />
-          <BulkBar {...props} />
-        </>
-      )}
+      <h2 className={`${sheetX} pt-5 pb-3 sm:pt-6 ${listType.title} text-fg`}>
+        {EVENT_APPLICANTS.title}
+      </h2>
+      <CountsOnly data={data} />
     </section>
   )
+}
+
+function Rows({ props, list, wide }: { props: Full; list: ListProps; wide: boolean }) {
+  if (list.rows.length === 0)
+    return (
+      <Message>
+        {isWhole(props.data, props.query) ? EVENT_APPLICANTS.empty : EVENT_APPLICANTS.noMatch}
+      </Message>
+    )
+  return wide ? <EventApplicantsTable {...list} /> : <EventApplicantsList {...list} />
+}
+
+function Applicants({ props }: { props: Full }) {
+  const { data } = props
+  const wide = useWide()
+  const now = useNow()
+  const [peek, setPeek] = useState<string | null>(null)
+  const started = eventStarted(props.startsAt, koreanDateOf(now))
+  const rows = rowModels(props)
+  const list: ListProps = {
+    data,
+    rows,
+    started,
+    busy: props.busy,
+    onToggle: props.onToggle,
+    onTogglePage: props.onTogglePage,
+    onOpen: setPeek,
+  }
+  const peekRow = data.applicants.find(row => row.id === peek)
+  return (
+    <>
+      <section
+        aria-label={EVENT_APPLICANTS.title}
+        className={`flex min-w-0 flex-col break-keep ${sheet}`}
+      >
+        <EventApplicantsHead
+          data={data}
+          query={props.query}
+          busy={props.submitting}
+          reloading={props.busy}
+          onQuery={props.onQuery}
+          onReload={props.onReload}
+        />
+        <Rows props={props} list={list} wide={wide} />
+        <Pager data={data} busy={props.busy} onPage={props.onPage} />
+        <BulkResult data={data} result={props.result} names={props.resultNames} />
+      </section>
+      {data.canManage && (
+        <BulkBar
+          count={props.selected.size}
+          pageCount={rows.length}
+          allPicked={rows.length > 0 && rows.every(model => model.picked)}
+          busy={props.busy}
+          wide={wide}
+          onBulk={props.onBulk}
+          onUnselect={props.onUnselect}
+          onSelectPage={props.onTogglePage}
+        />
+      )}
+      <ApplicantPeek
+        row={peekRow}
+        reason={peekRow ? reasonOf(peekRow, data.applicants) : null}
+        showForm={data.showForm}
+        started={started}
+        now={now}
+        onClose={() => setPeek(null)}
+      />
+    </>
+  )
+}
+
+// 행사 참가자 명단(신청자 관리 화면, 10/30 확정 '문서 속 얇은 표 모양'): 위 양식 카드와 같은 흰 종이 한 장 안에 머리 줄 + 얇은 표.
+// 체크·일괄 띠는 서버의 canManage, 줄 동작은 그 줄의 actions로만 보인다(DEC-38). 읽기는 canView 아래 모두 보인다.
+export function EventApplicantsView(props: Props) {
+  const full: Full = { ...DEFAULTS, ...props }
+  if (!props.data.canView) return <CountsOnlySheet data={props.data} />
+  return <Applicants props={full} />
 }

@@ -14,6 +14,7 @@ import {
   EVENT_APPLICANTS,
   REGISTRATION_STAFF_ERRORS,
 } from '@/lib/registration-messages'
+import type { BulkKind } from './EventApplicantsBulk'
 import { EventApplicantsView } from './EventApplicantsView'
 import { eventApplicantsPath, useEventApplicants } from './useEventApplicants'
 import { useStaffPost } from './useStaffPost'
@@ -21,6 +22,8 @@ import { useStaffPost } from './useStaffPost'
 type Props = EventDialogHandlers & {
   councilId: string
   eventId: string
+  // 행사 시작 시각(한국). 첫날부터 출석 기록 없음을 '불참'이라 한다.
+  startsAt?: string | null
   changes?: ReadonlyMap<string, ApplicantChange>
   onChange?: (change: ApplicantChange) => void
   onLoaded?: (ids: string[]) => void
@@ -49,6 +52,7 @@ function useEventControls(props: Props, list: List) {
   const post = useStaffPost(props)
   const [selected, setSelected] = useState<ReadonlySet<string>>(new Set())
   const [result, setResult] = useState<BulkApplicantsResponse | null>(null)
+  const [resultKind, setResultKind] = useState<BulkKind>('deposit')
   const [resultNames, setResultNames] = useState<ReadonlyMap<string, string>>(new Map())
   const [problem, setProblem] = useState<string | null>(null)
   const loaded = useRef(props.onLoaded)
@@ -84,7 +88,7 @@ function useEventControls(props: Props, list: List) {
       else next.add(id)
       return next
     })
-  async function bulk(kind: 'deposit' | 'attendance') {
+  async function bulk(kind: BulkKind) {
     const parsed = BulkApplicantsSchema.safeParse({ registrationIds: [...selected] })
     if (!parsed.success) return setProblem(REGISTRATION_STAFF_ERRORS.INVALID_INPUT!)
     const names = new Map(
@@ -104,6 +108,7 @@ function useEventControls(props: Props, list: List) {
     }
     setProblem(null)
     setResult(response.data)
+    setResultKind(kind)
     setResultNames(names)
     setSelected(
       new Set(
@@ -112,13 +117,25 @@ function useEventControls(props: Props, list: List) {
     )
     await list.reload()
   }
-  return { post, selected, result, resultNames, problem, setQuery, toggle, bulk, setSelected }
+  return {
+    post,
+    selected,
+    result,
+    resultKind,
+    resultNames,
+    problem,
+    setQuery,
+    toggle,
+    bulk,
+    setSelected,
+  }
 }
 
 export function EventApplicants(props: Props) {
   const list = useEventApplicants(props.councilId, props.eventId, props)
+  const controls = useEventControls(props, list)
   const { post, selected, result, resultNames, problem, setQuery, toggle, bulk, setSelected } =
-    useEventControls(props, list)
+    controls
   if (list.state.kind === 'loading')
     return <StateMessage kind="loading">{EVENT_APPLICANTS.loading}</StateMessage>
   if (list.state.kind === 'failed')
@@ -145,9 +162,11 @@ export function EventApplicants(props: Props) {
       <EventApplicantsView
         councilId={props.councilId}
         data={data}
+        startsAt={props.startsAt ?? null}
         query={list.query}
         selected={selected}
         result={result}
+        resultKind={controls.resultKind}
         resultNames={resultNames}
         busy={post.busy || list.busy}
         submitting={post.busy}
@@ -155,6 +174,7 @@ export function EventApplicants(props: Props) {
         onPage={page => setQuery({ page })}
         onToggle={toggle}
         onTogglePage={togglePage}
+        onUnselect={() => setSelected(new Set())}
         onBulk={kind => void bulk(kind)}
         onReload={() => void list.reload()}
         onChange={change => {

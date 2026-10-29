@@ -1,41 +1,68 @@
-import { TriangleAlert } from 'lucide-react'
-import type { ApplicantChange, EventApplicant, EventApplicantsResponse } from '@vada/contracts'
-import { Badge } from '@/components/ui/badge'
-import { cardClass } from '@/components/ui/card'
+import type { ReactNode } from 'react'
+import type { EventApplicant, EventApplicantsResponse } from '@vada/contracts'
+import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import type { EventDialogHandlers } from '@/events/useEventSubmit'
-import { EventApplicantActions } from './EventApplicantActions'
-import { DEPOSIT_LABEL, EVENT_APPLICANTS, eventApplicantSelect } from '@/lib/registration-messages'
+import { EVENT_APPLICANTS, eventApplicantSelect } from '@/lib/registration-messages'
+import {
+  AttendanceMark,
+  AttentionMark,
+  DepositMark,
+  RegistrationMark,
+  ResultMark,
+} from './ApplicantMarks'
+import { col, listSize, listType } from './list-look'
 
-type Props = EventDialogHandlers & {
-  councilId: string
+// ② 1280 명단: 문서 속 얇은 표. 바깥 상자 없이 종이 안에 열 이름 줄(회색 12px, 아래 선 하나, 스크롤하면 위에 붙음)과
+// 40px 줄(줄 사이 가는 선, 줄무늬 없음, 올리면 연회색 면). 열 차례는 체크 → 이름 → 학번 → (소속) → (양식) → 신청 → 입금 → 참석 → ⋯.
+
+// 한 줄을 그릴 때 쓰는 값(표·줄 목록 같이)
+export type RowModel = {
+  row: EventApplicant
+  reason: string | null
+  picked: boolean
+  // 일괄 처리 뒤 이 줄의 결과(처리 = null, 실패 = 까닭). 이 줄을 보내지 않았으면 없다.
+  result: { kind: 'deposit' | 'attendance'; failure: string | null } | undefined
+  actions: ReactNode
+}
+
+export type ListProps = {
   data: EventApplicantsResponse
-  selected: ReadonlySet<string>
+  rows: RowModel[]
+  started: boolean
   busy: boolean
   onToggle: (id: string) => void
   onTogglePage: () => void
-  onChange: (change: ApplicantChange) => void
-  onReload: () => void
+  onOpen: (id: string) => void
 }
 
-function Check({
+const th = `${listSize.headRow} px-2 text-left ${listType.label} whitespace-nowrap text-fg-muted`
+// 체크 칸은 종이 왼쪽 여백 안에 둔다. 그래서 이름 열이 머리 '행사 참가자'와 같은 세로선에 선다.
+const edgeL = 'pl-4 sm:pl-8'
+const edgeR = 'pr-2 sm:pr-6'
+
+export function CheckBox({
   label,
   checked,
-  onChange,
+  mixed = false,
   busy,
+  onChange,
 }: {
   label: string
   checked: boolean
-  onChange: () => void
+  mixed?: boolean
   busy: boolean
+  onChange: () => void
 }) {
   return (
-    <label className="flex min-h-11 min-w-11 cursor-pointer items-center justify-center">
+    <label className={`inline-flex ${listSize.hit} cursor-pointer items-center justify-center`}>
       <input
         type="checkbox"
-        className="size-4 accent-primary-emphasis"
+        className="size-4 cursor-pointer accent-primary-emphasis"
         aria-label={label}
         checked={checked}
+        ref={element => {
+          if (element) element.indeterminate = mixed && !checked
+        }}
         disabled={busy}
         onChange={onChange}
       />
@@ -43,172 +70,147 @@ function Check({
   )
 }
 
-function StatusCells({ row }: { row: EventApplicant }) {
-  const deposited = row.deposit.status === 'confirmed'
+// 이름(누르면 한 사람 보기) + 확인 필요면 ⚠ 까닭 글을 같은 줄에.
+function NameButton({ name, onOpen }: { name: string; onOpen: () => void }) {
+  return (
+    <Button
+      type="button"
+      variant="ghost"
+      touch={false}
+      onClick={onOpen}
+      className={`h-auto min-h-0 shrink justify-start rounded-sm border-0 p-0 text-left ${listType.body} font-medium whitespace-normal text-fg wrap-anywhere hover:bg-transparent hover:text-fg hover:underline`}
+    >
+      {name}
+    </Button>
+  )
+}
+
+// 고른 줄은 파란 면(그 위 회색 글은 대비 4.5:1을 넘게 한 단 진하게), 확인 필요 줄은 노란 면, 나머지는 올리면 연회색.
+export function rowSurface(model: RowModel, rest = '') {
+  if (model.picked) return 'bg-primary-surface [&_.text-fg-muted]:text-fg-tertiary'
+  return model.row.needsAttention ? 'bg-attention-surface' : rest
+}
+
+// 줄을 보냈으면 그 칸 아래에 결과를 남긴다.
+function ResultFor({ model, kind }: { model: RowModel; kind: 'deposit' | 'attendance' }) {
+  return model.result?.kind === kind ? <ResultMark failure={model.result.failure} /> : null
+}
+
+function StatusCells({ model, started }: { model: RowModel; started: boolean }) {
+  const { row } = model
   return (
     <>
-      <td className="px-2 py-3">
-        <Badge tone={row.cancelled ? 'neutral' : 'success'}>
-          {row.cancelled ? EVENT_APPLICANTS.cancelled : EVENT_APPLICANTS.active}
-        </Badge>
+      <td className={`${col.registration} px-2`}>
+        <RegistrationMark row={row} />
       </td>
-      <td className="px-2 py-3">
-        <Badge
-          tone={
-            row.deposit.status === 'refund_pending' ? 'warning' : deposited ? 'success' : 'neutral'
-          }
-        >
-          {row.appliedFee === 0 && row.deposit.status === 'none'
-            ? EVENT_APPLICANTS.free
-            : DEPOSIT_LABEL[row.deposit.status]}
-        </Badge>
+      <td className={`${col.deposit} px-2 py-1`}>
+        <span className="flex flex-col items-start">
+          <DepositMark row={row} />
+          <ResultFor model={model} kind="deposit" />
+        </span>
       </td>
-      <td className="px-2 py-3">
-        <Badge tone={row.attended ? 'info' : 'neutral'}>
-          {row.attended ? EVENT_APPLICANTS.attended : EVENT_APPLICANTS.notAttended}
-        </Badge>
+      <td className={`${col.attendance} px-2 py-1`}>
+        <span className="flex flex-col items-start">
+          <AttendanceMark row={row} started={started} />
+          <ResultFor model={model} kind="attendance" />
+        </span>
       </td>
     </>
   )
 }
 
-// 그 신청의 답(질문마다 한 줄). 명단을 읽을 수 있는 사람은 모두 본다(서버가 열람 기록을 남긴 응답이다).
-function AnswerLines({ answers }: { answers: EventApplicant['answers'] }) {
-  if (!answers.length) return null
-  return (
-    <dl className="mt-1 flex flex-col gap-0.5 text-xs text-muted-foreground">
-      {answers.map(answer => (
-        <div key={answer.questionId} className="wrap-anywhere">
-          <dt className="inline">{answer.title}</dt>{' '}
-          <dd className="inline text-fg-secondary">{answer.values.join(', ') || '—'}</dd>
-        </div>
-      ))}
-    </dl>
-  )
-}
+const sideCell = `px-2 ${listType.small} text-fg-secondary wrap-anywhere`
 
-function ApplicantCells({ row, props }: { row: EventApplicant; props: Props }) {
+function Row({ model, props }: { model: RowModel; props: ListProps }) {
+  const { row, reason } = model
+  const { data } = props
   return (
-    <>
-      {props.data.canManage && (
-        <td className="w-11">
-          <Check
+    <tr
+      className={`${listSize.row} border-b border-border-subtle ${rowSurface(model, 'hover:bg-surface-subtle')}`}
+    >
+      {data.canManage && (
+        <td className={`${col.check} p-0`}>
+          <CheckBox
             label={eventApplicantSelect(row.name)}
-            checked={props.selected.has(row.id)}
-            onChange={() => props.onToggle(row.id)}
+            checked={model.picked}
             busy={props.busy}
+            onChange={() => props.onToggle(row.id)}
           />
         </td>
       )}
-      <td className="min-w-0 px-2 py-3 @max-2xl:basis-3/4 @max-2xl:grow">
-        <span className="flex min-w-0 items-start gap-1.5">
-          <span className="line-clamp-2 min-w-0 font-medium wrap-anywhere">{row.name}</span>
-          {row.needsAttention && (
-            <TriangleAlert
-              aria-label={EVENT_APPLICANTS.attention}
-              className="size-4 shrink-0 text-attention-icon"
-            />
-          )}
+      <td className={cn('py-2 pr-4 pl-2', !data.canManage && edgeL)}>
+        <span className="flex flex-wrap items-center gap-x-2.5">
+          <NameButton name={row.name} onOpen={() => props.onOpen(row.id)} />
+          {row.needsAttention && <AttentionMark reason={reason} />}
         </span>
-        <AnswerLines answers={row.answers} />
       </td>
-      <td className="px-2 py-3 tabular-nums wrap-anywhere @max-2xl:basis-1/2 @max-2xl:py-1">
-        <span className="hidden text-xs text-muted-foreground @max-2xl:inline">
-          {EVENT_APPLICANTS.studentId}{' '}
-        </span>
+      <td className={`${col.studentId} px-2 ${listType.small} ${listType.num} text-fg-muted`}>
         {row.studentId ?? '—'}
       </td>
-      {props.data.showAffiliation && (
-        <td className="max-w-40 px-2 py-3 wrap-anywhere @max-2xl:basis-1/2 @max-2xl:py-1">
-          {row.affiliation ?? '—'}
-        </td>
+      {data.showAffiliation && (
+        <td className={`${col.affiliation} ${sideCell}`}>{row.affiliation ?? '—'}</td>
       )}
-      {props.data.showForm && (
-        <td className="max-w-40 px-2 py-3 wrap-anywhere @max-2xl:basis-1/2 @max-2xl:py-1">
-          {row.formTitle}
-        </td>
-      )}
-      <StatusCells row={row} />
-      <td className="w-11 px-1 @max-2xl:ml-auto">
-        <EventApplicantActions
-          councilId={props.councilId}
-          applicant={row}
-          onChange={props.onChange}
-          onGone={props.onReload}
-          onForbidden={props.onForbidden}
-          onLost={props.onLost}
-        />
-      </td>
-    </>
+      {data.showForm && <td className={`${col.form} ${sideCell}`}>{row.formTitle}</td>}
+      <StatusCells model={model} started={props.started} />
+      <td className={`${col.more} ${edgeR} text-right`}>{model.actions}</td>
+    </tr>
   )
 }
 
-// 업무 표와 같은 카드·기본 표를 쓰고, 작은 컨테이너에서는 각 줄을 목록 모양으로 펼친다.
-export function EventApplicantsTable(props: Props) {
-  const { data, selected } = props
-  const all = data.applicants.length > 0 && data.applicants.every(row => selected.has(row.id))
+export function EventApplicantsTable(props: ListProps) {
+  const { data, rows } = props
+  const all = rows.length > 0 && rows.every(model => model.picked)
+  const some = rows.some(model => model.picked)
   return (
-    <div className={cn(cardClass, 'overflow-hidden')}>
-      <table
-        aria-label={EVENT_APPLICANTS.title}
-        className="w-full table-fixed border-collapse text-left text-sm @max-2xl:block"
-      >
-        <thead className="text-xs font-medium text-muted-foreground @max-2xl:hidden">
-          <tr>
-            {data.canManage && (
-              <th scope="col" className="w-11">
-                <Check
-                  label={EVENT_APPLICANTS.selectPage}
-                  checked={all}
-                  onChange={props.onTogglePage}
-                  busy={props.busy}
-                />
-              </th>
-            )}
-            <th scope="col" className="px-2 py-3">
-              {EVENT_APPLICANTS.name}
+    <table aria-label={EVENT_APPLICANTS.title} className="w-full table-fixed border-collapse">
+      <thead className="sticky top-0 z-10 bg-white">
+        <tr className="border-b border-border-default">
+          {data.canManage && (
+            <th scope="col" className={`${col.check} p-0`}>
+              <CheckBox
+                label={EVENT_APPLICANTS.selectPage}
+                checked={all}
+                mixed={some}
+                busy={props.busy}
+                onChange={props.onTogglePage}
+              />
             </th>
-            <th scope="col" className="w-28 px-2 py-3">
-              {EVENT_APPLICANTS.studentId}
+          )}
+          <th scope="col" className={cn(th, !data.canManage && edgeL)}>
+            {EVENT_APPLICANTS.name}
+          </th>
+          <th scope="col" className={`${th} ${col.studentId}`}>
+            {EVENT_APPLICANTS.studentId}
+          </th>
+          {data.showAffiliation && (
+            <th scope="col" className={`${th} ${col.affiliation}`}>
+              {EVENT_APPLICANTS.affiliation}
             </th>
-            {data.showAffiliation && (
-              <th scope="col" className="px-2 py-3">
-                {EVENT_APPLICANTS.affiliation}
-              </th>
-            )}
-            {data.showForm && (
-              <th scope="col" className="px-2 py-3">
-                {EVENT_APPLICANTS.form}
-              </th>
-            )}
-            <th scope="col" className="w-16 px-2 py-3">
-              {EVENT_APPLICANTS.active}
+          )}
+          {data.showForm && (
+            <th scope="col" className={`${th} ${col.form}`}>
+              {EVENT_APPLICANTS.form}
             </th>
-            <th scope="col" className="w-26 px-2 py-3">
-              {EVENT_APPLICANTS.depositColumn}
-            </th>
-            <th scope="col" className="w-20 px-2 py-3">
-              {EVENT_APPLICANTS.attended}
-            </th>
-            <th scope="col" className="w-11">
-              <span className="sr-only">{EVENT_APPLICANTS.actions}</span>
-            </th>
-          </tr>
-        </thead>
-        <tbody className="@max-2xl:block">
-          {data.applicants.map(row => (
-            <tr
-              key={row.id}
-              className={cn(
-                'border-t align-middle @max-2xl:flex @max-2xl:flex-wrap @max-2xl:items-center @max-2xl:p-2',
-                row.needsAttention && 'bg-attention-surface',
-              )}
-            >
-              <ApplicantCells row={row} props={props} />
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+          )}
+          <th scope="col" className={`${th} ${col.registration}`}>
+            {EVENT_APPLICANTS.registration}
+          </th>
+          <th scope="col" className={`${th} ${col.deposit}`}>
+            {EVENT_APPLICANTS.deposit}
+          </th>
+          <th scope="col" className={`${th} ${col.attendance}`}>
+            {EVENT_APPLICANTS.attendance}
+          </th>
+          <th scope="col" className={`${col.more} ${edgeR}`}>
+            <span className="sr-only">{EVENT_APPLICANTS.actions}</span>
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map(model => (
+          <Row key={model.row.id} model={model} props={props} />
+        ))}
+      </tbody>
+    </table>
   )
 }

@@ -229,7 +229,7 @@ const eventList: EventApplicantsResponse = {
   accessToken: null,
 }
 
-// 1280px·420px에서 표/줄 목록, 읽기 권한만 있음, 개인정보 권한 없음, 일괄 부분 실패를 맞대 본다.
+// 표(행사 전), 읽기 권한만 있음(행사 시작 뒤), 개인정보 권한 없음, 일괄 부분 실패를 맞대 본다.
 export function EventApplicantsSection() {
   const failedId = eventRows[1]!.id
   return (
@@ -238,6 +238,7 @@ export function EventApplicantsSection() {
         <EventApplicantsView councilId="c1" data={eventList} />
         <EventApplicantsView
           councilId="c1"
+          startsAt="2026-01-01T10:00"
           data={{
             ...eventList,
             canManage: false,
@@ -260,6 +261,7 @@ export function EventApplicantsSection() {
             councilId="c1"
             data={eventList}
             selected={new Set([failedId])}
+            resultKind="deposit"
             result={{
               results: [
                 { registrationId: eventRows[0]!.id, error: null },

@@ -166,7 +166,7 @@ test('목록을 서버에서 새로 읽으면 이 화면에서 바꾼 출석보�
   // 다른 운영진이 출석을 취소했다
   server.applicants = [applicant({ attended: false })]
   fireEvent.click(screen.getByRole('button', { name: '새로 읽기' }))
-  await within(row).findByText('미참석')
+  await within(row).findByText('참석 기록 없음')
   const menu = await openActions()
   expect(within(menu).getByRole('menuitem', { name: '출석' })).toBeTruthy()
   expect(within(menu).queryByRole('menuitem', { name: '출석 취소' })).toBeNull()
@@ -187,7 +187,7 @@ test('스캐너가 출석을 확인하면 열려 있는 신청자 목록에 바�
     })
   })
   const row = await openList()
-  expect(within(row).getByText('미참석')).toBeTruthy()
+  expect(within(row).getByText('참석 기록 없음')).toBeTruthy()
   fireEvent.click(screen.getByRole('button', { name: 'QR로 출석 확인' }))
   const scanner = await screen.findByRole('dialog', { name: 'QR로 출석 확인' })
   await within(scanner).findByText('참가자의 QR을 네모 안에 맞춰 주세요.')
