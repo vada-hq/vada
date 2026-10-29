@@ -12,7 +12,7 @@ VARIANTS = sys.argv[2:] or ["A", "B", "C"]
 BASE = "http://127.0.0.1:5291/home-s5.html"
 OUT = Path(f"C:/tmp/home-s5/r{ROUND}")
 OUT.mkdir(parents=True, exist_ok=True)
-MEASURE = Path("C:/tmp/home-s5/measure.js").read_text(encoding="utf8")
+MEASURE = Path(__file__).with_name("measure.js").read_text(encoding="utf8")
 CASES = [
     ("main", 1280),
     ("main", 1024),
