@@ -282,13 +282,13 @@ test('받은 것의 요청 줄을 누르면 그 요청이 열린다', async () =
   expect(screen.getByText('10월 20일 요청')).toBeTruthy()
 })
 
-test('받은 것이 잘렸으면 수에 +를 붙이고 모두 보기가 결재 대기 거르기로 재정 화면을 연다', async () => {
+test('받은 것이 잘렸으면 수에 +를 붙이고 모두 보기가 구매의 처리 단계를 연다', async () => {
   open(homeResponse({ received: { requests: [homeRequest('r1')], total: 50, truncated: true } }))
   const section = await screen.findByRole('region', { name: '받은 것' })
   expect(within(section).getByText('50+')).toBeTruthy()
   fireEvent.click(within(section).getByRole('button', { name: '모두 보기' }))
   // 받은 것 전체 보기는 구매 메뉴의 결재 대기를 연다.
-  expect(pathNow()).toBe('/purchases/c1?view=pending')
+  expect(pathNow()).toBe('/purchases/c1?board=process')
 })
 
 test('받은 것과 정산할 행사가 비면 한 줄로 말한다', async () => {

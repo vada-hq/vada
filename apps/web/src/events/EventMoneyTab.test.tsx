@@ -104,7 +104,7 @@ function openMoney(initial: EventDetail = event(), settlement = settlementOf()) 
 const button = (name: string) => screen.getByRole('button', { name })
 const posts = (api: ReturnType<typeof mockApi>) => api.calls.filter(call => call.method === 'POST')
 
-test('탭은 메시지, 개요, 업무, 회의, 구매, 인원 관리이고 구매 탭에 예산·실제·차이와 예산 항목이 보인다', async () => {
+test('탭은 메시지, 개요, 업무, 회의, 구매, 인원 관리이고 구매 탭에 예산 카드 넷과 예산 항목별 현황이 보인다', async () => {
   openMoney()
   expect(screen.getAllByRole('tab').map(tab => tab.textContent)).toEqual([
     '메시지',
@@ -114,14 +114,17 @@ test('탭은 메시지, 개요, 업무, 회의, 구매, 인원 관리이고 구�
     '구매',
     '인원 관리',
   ])
-  const text = (await screen.findByText('지출 예산')).closest('dl')?.textContent
-  expect(text).toContain('500,000원')
-  expect(text).toContain('36,000원')
-  expect(text).toContain('464,000원 남았어요')
-  expect(text).toContain('40,000원 · 입금 2건')
-  const items = screen.getByRole('region', { name: '예산 항목' })
+  const summary = await screen.findByRole('region', { name: '예산 요약' })
+  await within(summary).findByText('배정 예산')
+  const card = (label: string) => within(summary).getByText(label).parentElement?.textContent
+  expect(card('배정 예산')).toBe('배정 예산500,000원')
+  expect(card('지출 예정')).toBe('지출 예정14,000원')
+  expect(card('실제 지출')).toBe('실제 지출36,000원')
+  expect(card('사용 가능')).toBe('사용 가능450,000원')
+  expect(summary.textContent).toContain('참가비 40,000원 · 입금 2건')
+  const items = screen.getByRole('region', { name: '예산 항목별 현황' })
   expect(items.textContent).toContain('간식')
-  expect(within(items).getByText('배정 300,000원').closest('p')?.textContent).toBe(
+  expect(within(items).getByText(/^배정 300,000원/).textContent).toBe(
     '배정 300,000원 · 실제 지출 36,000원 · 지출 예정 14,000원',
   )
   expect(within(items).getByText('사용 가능 250,000원')).toBeTruthy()
@@ -158,7 +161,7 @@ test('남은 것의 지출과 요청은 그 기록의 주소로 열린다', asyn
 
 test('[완료]는 구매 탭 안이 아니라 행사 머리에 있다', async () => {
   openMoney()
-  await screen.findByText('지출 예산')
+  await screen.findByText('배정 예산')
   expect(within(screen.getByRole('tabpanel')).queryByRole('button', { name: '완료' })).toBeNull()
   const bar = screen.getByRole('group', { name: '행사 요약' })
   expect(within(bar).getByRole('button', { name: '완료' })).toBeTruthy()
@@ -166,7 +169,7 @@ test('[완료]는 구매 탭 안이 아니라 행사 머리에 있다', async ()
 
 test('actions에 event.complete가 없으면 [완료]가 없다', async () => {
   openMoney(event({}, []))
-  await screen.findByText('지출 예산')
+  await screen.findByText('배정 예산')
   expect(screen.queryByRole('button', { name: '완료' })).toBeNull()
 })
 
@@ -207,7 +210,7 @@ test('완료의 사유 칸은 적으면 그대로 보낸다', async () => {
 test('완료 뒤 정산을 다시 읽는다', async () => {
   const { api } = openMoney()
   api.on('POST', `${EVENT}/complete`, () => json({ event: event({ status: 'completed' }) }))
-  await screen.findByText('지출 예산')
+  await screen.findByText('배정 예산')
   const before = api.calls.filter(call => call.path === `${EVENT}/settlement`).length
   fireEvent.click(await screen.findByRole('button', { name: '완료' }))
   fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: '완료' }))
@@ -229,7 +232,7 @@ test.each([
   async code => {
     const { api } = openMoney()
     api.on('POST', `${EVENT}/complete`, () => json({ error: code }, 409))
-    await screen.findByText('지출 예산')
+    await screen.findByText('배정 예산')
     const reads = () => api.calls.filter(call => call.method === 'GET').length
     const before = reads()
     fireEvent.click(await screen.findByRole('button', { name: '완료' }))
@@ -307,7 +310,7 @@ test('확인을 열어 둔 사이 다른 사람이 완료하면 닫고 이미 �
 
 test('끝나기 전 행사의 완료 막힘은 머리에 까닭을 싣지 않고, 정산이 끝났어요도 없다', async () => {
   openMoney(event({ status: 'upcoming', blockers: { 'event.complete': 'EVENT_NOT_ENDED' } }, []))
-  await screen.findByText('지출 예산')
+  await screen.findByText('배정 예산')
   expect(screen.queryByRole('button', { name: '완료' })).toBeNull()
   expect(screen.queryByText(COMPLETION_ERRORS.EVENT_NOT_ENDED!)).toBeNull()
   expect(screen.queryByText('정산이 끝났어요')).toBeNull()
@@ -316,7 +319,7 @@ test('끝나기 전 행사의 완료 막힘은 머리에 까닭을 싣지 않고
 test('기간이 공개돼 막힌 완료 취소도 버튼 대신 이유 한 줄이 보인다', async () => {
   const blockers = { 'event.cancel_completion': 'PERIOD_CLOSED' } as const
   openMoney(event({ status: 'completed', blockers }, []))
-  await screen.findByText('지출 예산')
+  await screen.findByText('배정 예산')
   expect(screen.queryByRole('button', { name: '완료 취소' })).toBeNull()
   expect(screen.getByText(COMPLETION_BLOCKED.PERIOD_CLOSED!)).toBeTruthy()
 })
@@ -324,7 +327,7 @@ test('기간이 공개돼 막힌 완료 취소도 버튼 대신 이유 한 줄�
 test('거절 뒤 다시 읽은 행사에서 버튼이 사라져도 거절 문구는 남는다', async () => {
   const { api, serve } = openMoney()
   api.on('POST', `${EVENT}/complete`, () => json({ error: 'SETTLEMENT_PENDING' }, 409))
-  await screen.findByText('지출 예산')
+  await screen.findByText('배정 예산')
   fireEvent.click(await screen.findByRole('button', { name: '완료' }))
   serve(event({ blockers: { 'event.complete': 'SETTLEMENT_PENDING' } }, []))
   fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: '완료' }))
@@ -335,7 +338,7 @@ test('거절 뒤 다시 읽은 행사에서 버튼이 사라져도 거절 문구
 test('거절 뒤 막힘이 풀려 다시 읽은 행사에 버튼이 되살아나면 낡은 거절 문구를 지운다', async () => {
   const { api, serve } = openMoney()
   api.on('POST', `${EVENT}/complete`, () => json({ error: 'SETTLEMENT_PENDING' }, 409))
-  await screen.findByText('지출 예산')
+  await screen.findByText('배정 예산')
   fireEvent.click(await screen.findByRole('button', { name: '완료' }))
   serve(event({ blockers: { 'event.complete': 'SETTLEMENT_PENDING' } }, []))
   fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: '완료' }))
@@ -380,7 +383,7 @@ test('상태 옆에 마지막 완료·완료 취소 결재의 이름, 날짜, �
   )
   cleanup()
   openMoney(event({}, []))
-  await screen.findByText('지출 예산')
+  await screen.findByText('배정 예산')
   expect(screen.queryByLabelText('완료 사유')).toBeNull()
 })
 
@@ -405,7 +408,7 @@ test('정산을 불러오지 못하면 다시 시도할 수 있다', async () =>
   )
   fireEvent.click(screen.getByRole('tab', { name: '구매' }))
   fireEvent.click(await screen.findByRole('button', { name: '다시 시도' }))
-  expect(await screen.findByText('지출 예산')).toBeTruthy()
+  expect(await screen.findByText('배정 예산')).toBeTruthy()
   expect(button('완료')).toBeTruthy()
 })
 
@@ -427,7 +430,7 @@ test('완료와 완료 취소가 끝나면 부모에게 알려 행사 목록을 
 
 test('정산은 화면이 다시 보일 때 다시 읽는다', async () => {
   const { api } = openMoney()
-  await screen.findByText('지출 예산')
+  await screen.findByText('배정 예산')
   const before = reads(api, `${EVENT}/settlement`)
   document.dispatchEvent(new Event('visibilitychange'))
   await waitFor(() => expect(reads(api, `${EVENT}/settlement`)).toBeGreaterThan(before))
@@ -442,7 +445,7 @@ const startCancel = async (api: ReturnType<typeof mockApi>, status: number, erro
 
 test('완료 취소가 409 EVENT_NOT_COMPLETED이면 창을 닫고 문구를 보이며 다시 읽는다', async () => {
   const { api } = openMoney(event({ status: 'completed' }))
-  await screen.findByText('지출 예산')
+  await screen.findByText('배정 예산')
   const before = reads(api, `${EVENT}/settlement`)
   await startCancel(api, 409, 'EVENT_NOT_COMPLETED')
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
@@ -486,7 +489,7 @@ test('구매 탭에서 연 요청, 예산 항목, 지출은 행사 칸이 이 �
     await waitFor(() => expect(field.disabled).toBe(false))
     return field
   }
-  fireEvent.click(await screen.findByRole('button', { name: '구매 요청 내기' }))
+  fireEvent.click(await screen.findByRole('button', { name: '새 구매 요청' }))
   expect((await select()).value).toBe('e1')
   fireEvent.click(screen.getByRole('button', { name: '취소' }))
   await screen.findByRole('button', { name: '예산 편성' })
@@ -503,7 +506,7 @@ test('구매 탭에서 연 요청, 예산 항목, 지출은 행사 칸이 이 �
 
 test('완료한 행사의 구매 탭에는 더하기 버튼이 없다', async () => {
   openMoney(event({ status: 'completed' }, []))
-  await screen.findByText('지출 예산')
+  await screen.findByText('배정 예산')
   expect(screen.queryByRole('button', { name: '지출 적기' })).toBeNull()
   expect(screen.queryByRole('button', { name: '예산 편성' })).toBeNull()
 })

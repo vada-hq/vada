@@ -56,6 +56,19 @@ test(
         estimate: { subtotal: null, total: null },
         bodyPreview: null,
         progress: { decided: false, paid: false, partlyPaid: false, hasShipment: false },
+        itemBriefs: [
+          {
+            id: d.items[0]!.id,
+            name: ITEM.name,
+            quantity: ITEM.quantity,
+            estimate: null,
+            amount: null,
+            status: 'pending',
+            paid: false,
+            shipped: false,
+          },
+        ],
+        requesterDepartments: [],
         createdAt: undefined,
       },
     )

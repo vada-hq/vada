@@ -30,6 +30,22 @@ const X1 = '0199d1a0-0000-7000-8000-00000000b101'
 const GONE = '0199d1a0-0000-7000-8000-00000000bfff'
 const pathNow = () => window.location.pathname + window.location.search
 const requestsOf = (view: string) => `${base}/purchase-requests?view=${view}`
+// 구매 칸반은 품목 카드의 이름을 눌러 요청을 연다.
+const withItem = (id: string) =>
+  purchaseSummary(id, {
+    itemBriefs: [
+      {
+        id: `${id}-item`,
+        name: `요청 ${id}`,
+        quantity: 1,
+        estimate: null,
+        amount: null,
+        status: 'pending',
+        paid: false,
+        shipped: false,
+      },
+    ],
+  })
 
 let api: ReturnType<typeof mockApi>
 
@@ -55,9 +71,7 @@ function setup(startPage: Page, permissions: Action[] = FINANCE_PERMISSIONS, hom
     )
   api.on('GET', `${base}/accounts`, () => json(accountsResponse()))
   for (const view of ['mine', 'pending', 'all'])
-    api.on('GET', requestsOf(view), () =>
-      json({ requests: [purchaseSummary(R1)], truncated: false }),
-    )
+    api.on('GET', requestsOf(view), () => json({ requests: [withItem(R1)], truncated: false }))
   api.on('GET', `${base}/purchase-requests/${R1}`, () =>
     json({
       request: purchaseDetail(R1, {
@@ -235,16 +249,16 @@ test('옛 행사 정산 주소를 결산으로 바꿔 쓰고 행사에서 뒤로
   expect(pathNow()).toBe(`/finance/${COUNCIL_ID}?tab=closing`)
 })
 
-test('역할별 기본값과 관계없이 고른 요청 보기를 주소에 남긴다', async () => {
-  startAt(`/purchases/${COUNCIL_ID}?view=all`)
+test('고른 요청 범위와 보드를 주소에 남긴다', async () => {
+  startAt(`/purchases/${COUNCIL_ID}?board=items`)
   const pressed = async (name: string) =>
     (await screen.findByRole('button', { name })).getAttribute('aria-pressed')
   expect(await pressed('전체 요청')).toBe('true')
-  fireEvent.click(screen.getByRole('button', { name: '결재 대기' }))
-  await waitFor(() => expect(pathNow()).toBe(`/purchases/${COUNCIL_ID}?view=pending`))
-  expect(await pressed('결재 대기')).toBe('true')
   fireEvent.click(screen.getByRole('button', { name: '내 요청' }))
-  await waitFor(() => expect(pathNow()).toBe(`/purchases/${COUNCIL_ID}?view=mine`))
+  await waitFor(() => expect(pathNow()).toBe(`/purchases/${COUNCIL_ID}?view=mine&board=items`))
+  expect(await pressed('내 요청')).toBe('true')
+  fireEvent.click(screen.getByRole('tab', { name: '처리 단계' }))
+  await waitFor(() => expect(pathNow()).toBe(`/purchases/${COUNCIL_ID}?view=mine&board=process`))
 })
 
 test('회계 기간이 주소에 남고 새로 고침해도 같은 기간이 열린다', async () => {
@@ -280,7 +294,7 @@ test('납부자 명단 권한이 없으면 옛 재정 탭 주소는 조직 첫 �
 })
 
 test('요청을 열면 /purchases 주소로 한 칸 쌓이고, 닫으면 같은 거르기의 목록으로 돌아간다', async () => {
-  startAt(`/purchases/${COUNCIL_ID}?view=all`)
+  startAt(`/purchases/${COUNCIL_ID}?view=all&board=items`)
   const push = vi.spyOn(window.history, 'pushState')
   fireEvent.click(await screen.findByRole('button', { name: `요청 ${R1}` }))
   await requestPage()
@@ -293,12 +307,12 @@ test('요청을 열면 /purchases 주소로 한 칸 쌓이고, 닫으면 같은 
   expect(screen.getByRole('button', { name: '전체 요청' }).getAttribute('aria-pressed')).toBe(
     'true',
   )
-  expect(pathNow()).toBe(`/purchases/${COUNCIL_ID}?view=all`)
+  expect(pathNow()).toBe(`/purchases/${COUNCIL_ID}?view=all&board=items`)
   expect(screen.queryByRole('tab', { name: '구매 요청' })).toBeNull()
 })
 
 test('요청에서 연 지출을 닫으면 그 요청으로 돌아가고, 한 번 더 닫으면 목록이다', async () => {
-  startAt(`/purchases/${COUNCIL_ID}`)
+  startAt(`/purchases/${COUNCIL_ID}?board=items`)
   fireEvent.click(await screen.findByRole('button', { name: `요청 ${R1}` }))
   const request = await requestPage()
   fireEvent.click(await within(request).findByRole('button', { name: /인쇄소/ }))
@@ -309,7 +323,7 @@ test('요청에서 연 지출을 닫으면 그 요청으로 돌아가고, 한 �
   await requestPage()
   await screen.findByRole('heading', { level: 1, name: '행사 포스터 인쇄' })
   await backFromRequest()
-  expect(pathNow()).toBe(`/purchases/${COUNCIL_ID}`)
+  expect(pathNow()).toBe(`/purchases/${COUNCIL_ID}?board=items`)
 })
 
 test('지출 상세의 행사는 행사 주소로 가는 링크이고, 뒤로 가면 그 지출이다', async () => {
@@ -325,7 +339,7 @@ test('지출 상세의 행사는 행사 주소로 가는 링크이고, 뒤로 �
   expect(pathNow()).toBe(`/expenses/${COUNCIL_ID}/${X1}`)
 })
 
-test('홈의 받은 것 모두 보기는 결재 대기 거르기로 구매를 연다', async () => {
+test('홈의 받은 것 모두 보기는 처리 단계의 요청 검토로 구매를 연다', async () => {
   window.history.replaceState(null, '', `/home/${COUNCIL_ID}`)
   setup(
     'home',
@@ -337,9 +351,9 @@ test('홈의 받은 것 모두 보기는 결재 대기 거르기로 구매를 �
   const section = await screen.findByRole('region', { name: '받은 것' })
   fireEvent.click(within(section).getByRole('button', { name: '모두 보기' }))
   expect(
-    (await screen.findByRole('button', { name: '결재 대기' })).getAttribute('aria-pressed'),
+    (await screen.findByRole('button', { name: /^요청 검토/ })).getAttribute('aria-pressed'),
   ).toBe('true')
-  expect(pathNow()).toBe(`/purchases/${COUNCIL_ID}?view=pending`)
+  expect(pathNow()).toBe(`/purchases/${COUNCIL_ID}?board=process`)
 })
 
 test('행사 돈 탭에서 연 요청에는 예산 탭으로 가는 길이 있고, 닫으면 그 행사의 돈 탭이다', async () => {
@@ -392,17 +406,15 @@ test('행사 돈 탭에서 연 요청에는 예산 탭으로 가는 길이 있�
 })
 
 test('열려던 요청이 없거나 다른 학생회의 것이면(서버가 404) 같은 안내를 보이고 보던 목록으로 돌아갈 수 있다', async () => {
-  startAt(`/purchases/${COUNCIL_ID}?view=all`)
-  api.on('GET', requestsOf('all'), () =>
-    json({ requests: [purchaseSummary(GONE)], truncated: false }),
-  )
+  startAt(`/purchases/${COUNCIL_ID}?view=all&board=items`)
+  api.on('GET', requestsOf('all'), () => json({ requests: [withItem(GONE)], truncated: false }))
   api.on('GET', `${base}/purchase-requests/${GONE}`, () => json({ error: 'NOT_FOUND' }, 404))
   fireEvent.click(await screen.findByRole('button', { name: `요청 ${GONE}` }))
   expect((await screen.findByRole('alert')).textContent).toBe(PURCHASE_LOST)
   expect(pathNow()).toBe(`/purchases/${COUNCIL_ID}/${GONE}`)
   expect(screen.queryByRole('region', { name: '구매 요청 상세' })).toBeNull()
   await backFromRequest()
-  expect(pathNow()).toBe(`/purchases/${COUNCIL_ID}?view=all`)
+  expect(pathNow()).toBe(`/purchases/${COUNCIL_ID}?view=all&board=items`)
   expect(
     (await screen.findByRole('button', { name: '전체 요청' })).getAttribute('aria-pressed'),
   ).toBe('true')
@@ -443,7 +455,7 @@ test('구매 메뉴는 모두에게 열리고 목록·상세·작성 경로에 �
   const nav = within(screen.getByRole('navigation', { name: '학생회 메뉴' }))
   expect(nav.getByRole('button', { name: '구매' }).getAttribute('aria-current')).toBe('page')
   expect(screen.queryByRole('tab', { name: '구매 요청' })).toBeNull()
-  fireEvent.click(screen.getByRole('button', { name: '구매 요청 내기' }))
+  fireEvent.click(screen.getByRole('button', { name: '새 구매 요청' }))
   await screen.findByRole('form', { name: '구매 요청 내기' })
   expect(pathNow()).toBe(`/purchases/${COUNCIL_ID}/new`)
   expect(screen.getByLabelText('경로').textContent).toContain('구매')

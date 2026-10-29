@@ -76,7 +76,7 @@ function useTaskOpeners(councilId: string, home: HomeResponse) {
 // 구매 보기는 역할별 기본값이 바뀌어도 보던 대상을 유지하도록 명시한다.
 const requestOpeners = (councilId: string) => ({
   openRequest: (requestId: string) => openRecord('purchases', councilId, requestId),
-  seeReceived: () => openMenu('purchases', councilId, { view: 'pending' }),
+  seeReceived: () => openMenu('purchases', councilId, { board: 'process' }),
   seeMine: () => openMenu('purchases', councilId, { view: 'mine' }),
   // 정산할 행사 모두 보기는 같은 셈의 결산 탭 위쪽 '행사 정산' 구역이다(설계 안 B).
   seeSettling: () => openMenu('finance', councilId, { tab: 'closing' }),

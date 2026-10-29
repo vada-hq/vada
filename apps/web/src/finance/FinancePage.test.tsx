@@ -173,14 +173,15 @@ test.each(['기간 결산', '행사 정산'])('%s 불러오기가 실패해도 �
   api.assertNoUnexpectedRequests()
 })
 
+// 구매 칸반(품목 현황)의 내 요청에서 시작한다. 재정부의 기본 보드는 처리 단계라 보드를 주소로 고른다.
 function show(view = councilView(COUNCIL_ID, { permissions: FINANCE_PERMISSIONS })) {
-  window.history.replaceState(null, '', `/purchases/${COUNCIL_ID}?view=mine`)
+  window.history.replaceState(null, '', `/purchases/${COUNCIL_ID}?view=mine&board=items`)
   const handlers = { onForbidden: vi.fn() }
   render(<PurchasesAt view={view} {...handlers} />)
   return handlers
 }
 
-test('카드에 제목, 상태, 요청한 사람, 필요한 때, 품목 수가 보인다', async () => {
+test('품목 카드에 품목 이름과 진행 상태가 보이고 긴 이름이 칸을 밀어내지 않는다', async () => {
   const api = mockApi()
   api.on('GET', listPath('mine'), () =>
     list([
@@ -189,17 +190,10 @@ test('카드에 제목, 상태, 요청한 사람, 필요한 때, 품목 수가 �
     ]),
   )
   show()
-  const card = (await screen.findByRole('heading', { name: '요청 a' })).closest(
-    'div',
-  )!.parentElement!
-  expect(within(card).getByText('일부 승인')).toBeTruthy()
-  expect(card.textContent).toContain('김회장')
-  expect(card.textContent).toContain('10월 25일까지 필요')
-  expect(card.textContent).toContain('품목 2개')
-  const second = screen.getByRole('heading', { name: '요청 b' }).closest('div')!.parentElement!
-  expect(second.textContent).not.toContain('필요한 때 없음')
+  const card = (await screen.findByRole('heading', { name: '요청 a' })).closest('article')!
+  expect(within(card).getByText('구매 준비')).toBeTruthy()
+  const second = screen.getByRole('heading', { name: '요청 b' }).closest('article')!
   expect(within(second).getByText('취소')).toBeTruthy()
-  // 긴 제목이 칸을 밀어내지 않는다.
   expect(screen.getByRole('button', { name: '요청 a' }).className).toContain('wrap-anywhere')
 })
 
@@ -207,8 +201,9 @@ test('구매 목록에는 재정 탭이 없다', async () => {
   const api = mockApi()
   api.on('GET', listPath('mine'), () => list([]))
   show()
-  await screen.findByText('구매 요청 없음')
-  expect(screen.queryAllByRole('tab')).toEqual([])
+  expect((await screen.findAllByText('품목 없음')).length).toBeGreaterThan(0)
+  expect(screen.queryByRole('tab', { name: '예산 현황' })).toBeNull()
+  expect(screen.queryByRole('tab', { name: '사용 내역' })).toBeNull()
   expect(window.location.pathname).toBe(`/purchases/${COUNCIL_ID}`)
 })
 
@@ -236,20 +231,17 @@ test('사용 내역의 지출·수입 구분은 주소에 남고 해당 목록�
   expect(push).not.toHaveBeenCalled()
 })
 
-test('거르기 셋이 있고 바꾸면 그 보기를 읽는다', async () => {
+test('요청 범위는 전체 요청과 내 요청이고 바꾸면 그 보기를 읽는다', async () => {
   const api = mockApi()
   api.on('GET', listPath('mine'), () => list([]))
-  api.on('GET', listPath('pending'), () => list([]))
   api.on('GET', listPath('all'), () => list([purchaseSummary('z')]))
   show()
-  const group = await screen.findByRole('group', { name: '구매 요청 거르기' })
+  const group = await screen.findByRole('group', { name: '요청 범위' })
   expect(
     within(group)
       .getAllByRole('button')
       .map(button => button.textContent),
-  ).toEqual(['전체 요청', '내 요청', '결재 대기'])
-  fireEvent.click(screen.getByRole('button', { name: '결재 대기' }))
-  expect(await screen.findByText('구매 요청 없음')).toBeTruthy()
+  ).toEqual(['전체 요청', '내 요청'])
   fireEvent.click(screen.getByRole('button', { name: '전체 요청' }))
   expect(await screen.findByRole('heading', { name: '요청 z' })).toBeTruthy()
 })
@@ -258,66 +250,18 @@ test('넘침과 불러오기 실패 문구가 있고 다시 시도로 다시 읽
   const api = mockApi()
   let reads = 0
   api.on('GET', listPath('mine'), () => list([purchaseSummary('a')], true))
-  api.on('GET', listPath('pending'), () => {
+  api.on('GET', listPath('all'), () => {
     reads += 1
-    return reads === 1 ? json({ error: 'INTERNAL' }, 500) : list([])
+    return reads === 1 ? json({ error: 'INTERNAL' }, 500) : list([purchaseSummary('b')])
   })
   show()
-  expect(await screen.findByText('요청이 많아서 100개만 보여요.')).toBeTruthy()
-  fireEvent.click(screen.getByRole('button', { name: '결재 대기' }))
+  expect(await screen.findByText('요청이 많아서 최근 100개만 보여요.')).toBeTruthy()
+  fireEvent.click(screen.getByRole('button', { name: '전체 요청' }))
   expect(
     await screen.findByText('구매 요청을 불러오지 못했어요. 연결을 확인해 주세요.'),
   ).toBeTruthy()
   fireEvent.click(screen.getByRole('button', { name: '다시 시도' }))
-  expect(await screen.findByText('구매 요청 없음')).toBeTruthy()
-})
-
-test('결재 대기가 넘치면 300개라고 알린다', async () => {
-  const api = mockApi()
-  api.on('GET', listPath('mine'), () => list([]))
-  api.on('GET', listPath('pending'), () => list([purchaseSummary('a')], true))
-  show()
-  fireEvent.click(await screen.findByRole('button', { name: '결재 대기' }))
-  expect(await screen.findByText('요청이 많아서 300개만 보여요.')).toBeTruthy()
-})
-
-test('결재 대기에서 필요한 때가 3일 안이면 임박(노랑), 이미 지났으면 지남(빨강)이다', async () => {
-  // 한국 10월 25일 오전. 시각만 고정하고 타이머는 그대로 둔다.
-  vi.useFakeTimers({ toFake: ['Date'] })
-  vi.setSystemTime(new Date('2026-10-24T23:30:00Z'))
-  try {
-    const api = mockApi()
-    const requests = [
-      purchaseSummary('어제', { neededBy: '2026-10-24' }),
-      purchaseSummary('오늘', { neededBy: '2026-10-25' }),
-      purchaseSummary('3일 뒤', { neededBy: '2026-10-28' }),
-      purchaseSummary('4일 뒤', { neededBy: '2026-10-29' }),
-      purchaseSummary('없음', { neededBy: null }),
-    ]
-    api.on('GET', listPath('mine'), () => list(requests))
-    api.on('GET', listPath('pending'), () => list(requests))
-    show()
-    const markOf = (id: string) => {
-      const card = screen
-        .getByRole('heading', { name: `요청 ${id}` })
-        .closest('div')!.parentElement!
-      const badge = within(card).queryByText(/^(임박|지남)$/)
-      return badge
-        ? `${badge.textContent} ${badge.className.includes('warning') ? '노랑' : '빨강'}`
-        : null
-    }
-    // 내 요청에는 표시가 없다(재정 역할 부서의 결재 목록에만).
-    await screen.findByRole('heading', { name: '요청 3일 뒤' })
-    expect(markOf('3일 뒤')).toBeNull()
-    fireEvent.click(screen.getByRole('button', { name: '결재 대기' }))
-    await waitFor(() => expect(markOf('3일 뒤')).toBe('임박 노랑'))
-    expect(markOf('오늘')).toBe('임박 노랑')
-    expect(markOf('어제')).toBe('지남 빨강')
-    expect(markOf('4일 뒤')).toBeNull()
-    expect(markOf('없음')).toBeNull()
-  } finally {
-    vi.useRealTimers()
-  }
+  expect(await screen.findByRole('heading', { name: '요청 b' })).toBeTruthy()
 })
 
 test('보기를 바꾸면 이전 보기의 늦은 응답은 버린다', async () => {
@@ -333,34 +277,12 @@ test('보기를 바꾸면 이전 보기의 늦은 응답은 버린다', async ()
   expect(screen.queryByRole('heading', { name: '요청 내것' })).toBeNull()
 })
 
-test('권한 목록에 purchase.request가 없으면 [구매 요청 내기]가 없다', async () => {
+test('권한 목록에 purchase.request가 없으면 [새 구매 요청]이 없다', async () => {
   const api = mockApi()
   api.on('GET', listPath('mine'), () => list([]))
   show(councilView(COUNCIL_ID, { permissions: ['council.view'] }))
-  await screen.findByText('구매 요청 없음')
-  expect(screen.queryByRole('button', { name: '구매 요청 내기' })).toBeNull()
-})
-
-test('내 부서 거르기는 서버 권한만 보고 직급으로 다시 가르지 않는다', async () => {
-  mockApi().on('GET', listPath('mine'), () => list([]))
-  show(
-    councilView(COUNCIL_ID, {
-      permissions: [...MEMBER_PERMISSIONS, 'purchase.view_department'],
-      councilRank: null,
-    }),
-  )
-  await screen.findByText('구매 요청 없음')
-  expect(screen.getByRole('button', { name: '내 부서' })).toBeTruthy()
-  cleanup()
-  show(
-    councilView(COUNCIL_ID, {
-      permissions: MEMBER_PERMISSIONS,
-      councilRank: null,
-      departments: [{ id: 'd1', name: '기획부', role: null, rank: 'head' }],
-    }),
-  )
-  await screen.findByText('구매 요청 없음')
-  expect(screen.queryByRole('button', { name: '내 부서' })).toBeNull()
+  await screen.findAllByText('품목 없음')
+  expect(screen.queryByRole('button', { name: '새 구매 요청' })).toBeNull()
 })
 
 test('목록을 읽다 403이면 학생회를 다시 읽게 한다', async () => {

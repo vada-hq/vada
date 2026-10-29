@@ -1,10 +1,12 @@
 import { statusOf, type SettlementResponse } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
-import { SettlementBudget } from '@/events/SettlementSummary'
+import { cardClass } from '@/components/ui/card'
 import { eventPath } from '@/events/event-api'
 import { openMenu } from '@/lib/go-to'
 import { usePolledRead } from '@/lib/use-polled-read'
+import { cn } from '@/lib/utils'
+import { PurchaseBudgetSummary } from './PurchaseBudgetSummary'
 
 export function PurchaseBudget({
   councilId,
@@ -15,16 +17,20 @@ export function PurchaseBudget({
   scope: string | undefined
   onForbidden: () => void
 }) {
+  // 전체·상시는 예산을 합산하지 않는다. 학생회 전체 예산은 재정의 예산 현황에 있다(와이어프레임 PUR-00 02).
   if (!scope || scope === 'none')
     return (
-      <Button
-        touch
-        variant="link"
-        className="self-start"
-        onClick={() => openMenu('finance', councilId)}
-      >
-        예산 현황
-      </Button>
+      <p className={cn(cardClass, 'px-4 py-3 text-sm text-fg-muted shadow-none')}>
+        학생회 전체 예산은{' '}
+        <Button
+          variant="link"
+          className="h-auto p-0 text-sm"
+          onClick={() => openMenu('finance', councilId)}
+        >
+          재정 › 예산 현황
+        </Button>
+        에서 봐요.
+      </p>
     )
   return <EventBudget key={scope} councilId={councilId} eventId={scope} onForbidden={onForbidden} />
 }
@@ -56,5 +62,5 @@ function EventBudget({
       </div>
     )
   const { settlement } = read.state.data
-  return <SettlementBudget settlement={settlement} />
+  return <PurchaseBudgetSummary settlement={settlement} />
 }

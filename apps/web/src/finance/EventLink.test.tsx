@@ -28,7 +28,7 @@ const DONE = '00000000-0000-4000-8000-0000000000e2'
 function setup(tab: string, budget = budgetWithPeriod()) {
   const api = mockApi()
   api.on('GET', `${ORG}/members`, () => json({ members: [], departments: [] }))
-  api.on('GET', `${ORG}/purchase-requests?view=pending`, () =>
+  api.on('GET', `${ORG}/purchase-requests?view=all`, () =>
     json({ requests: [purchaseSummary('0199d1a0-0000-7000-8000-00000000a001')], truncated: false }),
   )
   api.on('GET', `${ORG}/purchase-requests/0199d1a0-0000-7000-8000-00000000a001`, () =>
@@ -94,7 +94,7 @@ const posted = (api: ReturnType<typeof mockApi>) =>
 test('요청 내기: 행사는 없음과 완료하지 않은 행사만 고르고, 고르면 eventId를 보낸다', async () => {
   const api = setup('requests')
   api.on('POST', `${ORG}/purchase-requests`, () => json({ request: purchaseDetail() }, 201))
-  fireEvent.click(await screen.findByRole('button', { name: '구매 요청 내기' }))
+  fireEvent.click(await screen.findByRole('button', { name: '새 구매 요청' }))
   const select = await eventSelect()
   expect(
     within(select)
@@ -161,7 +161,7 @@ test('요청 내기가 409면 그 창 안에 문구가 보이고, 보내는 동�
   const api = setup('requests')
   const slow = deferredResponse()
   api.on('POST', `${ORG}/purchase-requests`, () => slow.promise)
-  fireEvent.click(await screen.findByRole('button', { name: '구매 요청 내기' }))
+  fireEvent.click(await screen.findByRole('button', { name: '새 구매 요청' }))
   fireEvent.change(await eventSelect(), { target: { value: SPRING } })
   fireEvent.change(screen.getByLabelText('제목'), { target: { value: '포스터' } })
   fireEvent.change(screen.getByLabelText('품목 1 이름'), { target: { value: 'A2' } })

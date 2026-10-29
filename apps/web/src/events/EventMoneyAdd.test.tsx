@@ -8,7 +8,8 @@ import { budgetWithPeriod } from '@/test-support/budget-fixtures'
 import { councilView } from '@/test-support/council-fixtures'
 import { eventDetail } from '@/test-support/event-fixtures'
 import { json, mockApi } from '@/test-support/mock-api'
-import { EventMoneyAdd } from './EventMoneyAdd'
+import { Button } from '@/components/ui/button'
+import { useEventMoneyAdd } from './EventMoneyAdd'
 
 afterEach(async () => {
   cleanup()
@@ -19,6 +20,18 @@ afterEach(async () => {
 const ORG = '/api/organizations/c1'
 const ALL: Action[] = ['council.view', 'finance.manage', 'purchase.request']
 
+// 훅이 주는 여는 함수·재정 버튼·창을 한자리에 그린다(실제 화면은 머리글과 예산 카드 옆에 나눠 둔다).
+function Adds(props: Parameters<typeof useEventMoneyAdd>[0]) {
+  const add = useEventMoneyAdd(props)
+  return (
+    <>
+      {add.createRequest && <Button onClick={add.createRequest}>새 구매 요청</Button>}
+      {add.financeActions}
+      {add.dialogs}
+    </>
+  )
+}
+
 function setup() {
   const api = mockApi()
   api.on('GET', `${ORG}/events`, () => json({ events: [], truncated: false }))
@@ -27,7 +40,7 @@ function setup() {
   const handlers = { onLost: vi.fn(), onForbidden: vi.fn(), onAdded: vi.fn() }
   const ui = (permissions: Action[], status: 'upcoming' | 'completed') => (
     <PurchaseRoute view={councilView('c1', { permissions })} onForbidden={handlers.onForbidden}>
-      <EventMoneyAdd
+      <Adds
         view={councilView('c1', { permissions })}
         event={eventDetail({ id: 'e1', status })}
         budgetNames={[]}
@@ -51,7 +64,7 @@ test('열어 둔 사이 재정 권한을 잃으면 창이 닫히고, 권한이 �
 
 test('열어 둔 사이 요청 권한을 잃으면 요청 창이 닫힌다', async () => {
   const { rerender, ui } = setup()
-  fireEvent.click(screen.getByRole('button', { name: '구매 요청 내기' }))
+  fireEvent.click(screen.getByRole('button', { name: '새 구매 요청' }))
   await screen.findByRole('form', { name: '구매 요청 내기' })
   rerender(ui(['council.view', 'finance.manage'], 'upcoming'))
   await waitFor(() => expect(screen.queryByRole('form', { name: '구매 요청 내기' })).toBeNull())

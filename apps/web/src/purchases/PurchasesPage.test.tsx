@@ -1,11 +1,11 @@
 // @vitest-environment jsdom
 import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import type { PurchaseItemBrief } from '@vada/contracts'
 import { resetAddress } from '@/test-support/address-reset'
 import {
   councilView,
   FINANCE_PERMISSIONS,
-  HEAD_PERMISSIONS,
   MEMBER_PERMISSIONS,
 } from '@/test-support/council-fixtures'
 import { COUNCIL_ID, PurchasesAt } from '@/test-support/finance-at'
@@ -20,221 +20,130 @@ afterEach(async () => {
   vi.unstubAllGlobals()
 })
 const base = `/api/organizations/${COUNCIL_ID}`
-const list = (
-  requests = [purchaseSummary('a')],
-  truncated = false,
-  stageCounts?: { pending: number; unpaid: number; paid: number; closed: number },
-) => json({ requests, truncated, stageCounts })
-const show = (view = councilView(COUNCIL_ID)) => {
-  const onForbidden = vi.fn()
-  render(<PurchasesAt view={view} onForbidden={onForbidden} />)
-  return onForbidden
+const R1 = '0199d1a0-0000-7000-8000-00000000a001'
+const brief = (name: string, extra: Partial<PurchaseItemBrief> = {}): PurchaseItemBrief => ({
+  id: `item-${name}`,
+  name,
+  quantity: 2,
+  estimate: 10000,
+  amount: null,
+  status: 'pending',
+  paid: false,
+  shipped: false,
+  ...extra,
+})
+// 품목 다섯: 검토 중, 반려(확인 필요), 구매 준비, 송장(진행 중), 결제(처리 완료).
+const sample = () =>
+  purchaseSummary(R1, {
+    title: '체육대회 물품',
+    status: 'partial',
+    requesterDepartments: ['운영부'],
+    itemBriefs: [
+      brief('생수'),
+      brief('현수막', { status: 'rejected', amount: 50000 }),
+      brief('네임펜', { status: 'approved', amount: 12000 }),
+      brief('조끼', { status: 'approved', amount: 90000, shipped: true }),
+      brief('테이블', { status: 'approved', amount: 90000, paid: true }),
+    ],
+  })
+const list = (requests = [sample()]) => json({ requests, truncated: false })
+const member = () => councilView(COUNCIL_ID, { councilRank: null, permissions: MEMBER_PERMISSIONS })
+const show = (view = member()) => {
+  render(<PurchasesAt view={view} onForbidden={vi.fn()} />)
 }
+const lane = (name: string) => screen.getByRole('region', { name })
 
-test.each([
-  ['부원', councilView(COUNCIL_ID, { councilRank: null }), 'all'],
-  ['회장', councilView(COUNCIL_ID), 'all'],
-  ['부서장', councilView(COUNCIL_ID, { councilRank: null, permissions: HEAD_PERMISSIONS }), 'all'],
-  [
-    '재정부',
-    councilView(COUNCIL_ID, { councilRank: null, permissions: FINANCE_PERMISSIONS }),
-    'pending',
-  ],
-])('%s 기본 보기와 모두에게 열린 결재 대기', async (_, view, filter) => {
-  const api = mockApi()
-  api.on('GET', `${base}/purchase-requests?view=${filter}`, () => list())
-  api.on('GET', `${base}/purchase-requests?view=pending`, () => list())
-  show(view)
-  await screen.findByRole('heading', { name: '요청 a' })
-  const group = screen.getByRole('group', { name: '구매 요청 거르기' })
+test('운영진은 품목 현황 칸반을 보고, 품목은 진행 단계 열에 한 장씩 놓인다', async () => {
+  mockApi().on('GET', `${base}/purchase-requests?view=all`, () => list())
+  show()
+  await screen.findByRole('button', { name: '생수' })
+  expect(screen.queryByRole('tab', { name: '처리 단계' })).toBeNull()
+  expect(within(lane('검토 중')).getByRole('button', { name: '생수' })).toBeTruthy()
+  expect(within(lane('확인 필요')).getByText('반려')).toBeTruthy()
+  expect(within(lane('구매 준비')).getByRole('button', { name: '네임펜' })).toBeTruthy()
+  expect(within(lane('진행 중')).getByText('배송 중')).toBeTruthy()
+  expect(within(lane('처리 완료')).getByRole('button', { name: '테이블' })).toBeTruthy()
+  expect(within(lane('동의 대기')).getByText('품목 없음')).toBeTruthy()
+  const chips = screen.getByRole('list', { name: '진행 단계' })
+  expect(within(chips).getByRole('button', { name: /^구매 준비\s*1$/ })).toBeTruthy()
+  expect(screen.getByText('품목 5건')).toBeTruthy()
+  expect(within(lane('검토 중')).getByText('운영부')).toBeTruthy()
+  fireEvent.click(screen.getByRole('button', { name: '네임펜' }))
+  await waitFor(() => expect(window.location.pathname).toBe(`/purchases/${COUNCIL_ID}/${R1}`))
+})
+
+test('재정부는 처리 단계가 기본이고, 업무 영역과 요청 기록 표를 오간다', async () => {
+  mockApi().on('GET', `${base}/purchase-requests?view=all`, () => list())
+  show(councilView(COUNCIL_ID, { councilRank: null, permissions: FINANCE_PERMISSIONS }))
+  const areas = await screen.findByRole('group', { name: '업무 영역' })
+  await within(lane('검토 대기')).findByText('생수')
   expect(
-    within(group)
-      .getByRole('button', { name: filter === 'all' ? '전체 요청' : '결재 대기' })
+    within(areas)
+      .getByRole('button', { name: /^요청 검토\s*1$/ })
       .getAttribute('aria-pressed'),
   ).toBe('true')
-  fireEvent.click(within(group).getByRole('button', { name: '결재 대기' }))
-  await waitFor(() =>
-    expect(api.calls.some(call => call.path.endsWith('?view=pending'))).toBe(true),
-  )
+  fireEvent.click(within(areas).getByRole('button', { name: /^물품 배송·수령\s*1$/ }))
+  await waitFor(() => expect(window.location.search).toContain('area=goods'))
+  expect(within(lane('배송 중')).getByText('조끼')).toBeTruthy()
+  fireEvent.click(screen.getByRole('tab', { name: /^구매 요청\s*1$/ }))
+  const row = (await screen.findByRole('button', { name: '체육대회 물품' })).closest('tr')
+  expect(row?.textContent).toContain('운영부')
+  expect(window.location.search).toContain('board=records')
 })
 
-test('명시한 내 요청과 내 부서 보기는 기본값보다 먼저 적용한다', async () => {
-  window.history.replaceState(null, '', `/purchases/${COUNCIL_ID}?view=mine`)
-  const api = mockApi()
-  api.on('GET', `${base}/purchase-requests?view=mine`, () => list())
-  api.on('GET', `${base}/purchase-requests?view=department`, () => list([]))
-  show(
-    councilView(COUNCIL_ID, {
-      permissions: [...MEMBER_PERMISSIONS, 'purchase.view_department'],
-      departments: [{ id: EVENT_ID, name: '기획부', role: null, rank: 'head' }],
-    }),
-  )
-  await screen.findByRole('heading', { name: '요청 a' })
-  fireEvent.click(screen.getByRole('button', { name: '내 부서' }))
-  await waitFor(() =>
-    expect(api.calls.some(call => call.path.endsWith('?view=department'))).toBe(true),
-  )
-})
-
-test.each([
-  ['권한 있음·직급 없음', true, []],
-  ['권한 없음·부서장', false, [{ id: EVENT_ID, name: '기획부', role: null, rank: 'head' }]],
-  ['권한 없음·부원', false, [{ id: EVENT_ID, name: '기획부', role: null, rank: null }]],
-] as const)('내 부서 칩은 서버 권한으로만 표시한다: %s', async (_, allowed, departments) => {
+test('내 요청 전환은 서버에서 내 요청만 읽고, [내 구매 요청]은 상태별 수와 표를 연다', async () => {
   const api = mockApi()
   api.on('GET', `${base}/purchase-requests?view=all`, () => list())
-  api.on('GET', `${base}/purchase-requests?view=department`, () => list([]))
-  show(
-    councilView(COUNCIL_ID, {
-      councilRank: null,
-      permissions: allowed
-        ? [...MEMBER_PERMISSIONS, 'purchase.view_department']
-        : MEMBER_PERMISSIONS,
-      departments: [...departments],
-    }),
+  api.on('GET', `${base}/purchase-requests?view=mine`, () =>
+    list([purchaseSummary('mine', { title: '반려된 요청', status: 'rejected', itemBriefs: [] })]),
   )
-  await screen.findByRole('heading', { name: '요청 a' })
-  const chip = screen.queryByRole('button', { name: '내 부서' })
-  expect(chip !== null).toBe(allowed)
-  if (chip) {
-    fireEvent.click(chip)
-    await waitFor(() =>
-      expect(api.calls.some(call => call.path.endsWith('?view=department'))).toBe(true),
-    )
-  }
+  show()
+  await screen.findByRole('button', { name: '생수' })
+  fireEvent.click(screen.getByRole('button', { name: '내 요청' }))
+  await waitFor(() => expect(window.location.search).toContain('view=mine'))
+  fireEvent.click(screen.getByRole('button', { name: '내 구매 요청' }))
+  const page = await screen.findByRole('region', { name: '내 구매 요청' })
+  await within(page).findByRole('button', { name: '반려된 요청' })
+  expect(within(page).getByText('반려·취소').nextSibling?.textContent).toBe('1')
+  expect(window.location.search).toContain('page=mine')
+  fireEvent.click(within(page).getByRole('button', { name: '구매로 돌아가기' }))
+  await waitFor(() => expect(window.location.search).not.toContain('page=mine'))
 })
 
-test('권한이 없어도 이미 고른 내 부서 보기는 남긴다', async () => {
-  window.history.replaceState(null, '', `/purchases/${COUNCIL_ID}?view=department`)
-  mockApi().on('GET', `${base}/purchase-requests?view=department`, () => list([]))
-  show(councilView(COUNCIL_ID, { permissions: MEMBER_PERMISSIONS }))
-  await screen.findByText('구매 요청 없음')
-  expect(screen.getByRole('button', { name: '내 부서' }).getAttribute('aria-pressed')).toBe('true')
-})
-
-test('부원도 서버가 돌려준 다른 사람의 요청을 본다', async () => {
-  const api = mockApi()
-  api.on('GET', `${base}/purchase-requests?view=all`, () =>
-    list([purchaseSummary('다른 사람', { requestedBy: { id: 'other-member', name: '이요청' } })]),
-  )
-  show(councilView(COUNCIL_ID, { councilRank: null }))
-  expect(await screen.findByRole('heading', { name: '요청 다른 사람' })).toBeTruthy()
-})
-
-test('상시·행사 범위는 서버 질의와 주소에 남고 행사 요약과 새 요청에도 이어진다', async () => {
+test('범위 칩은 상시·행사를 서버 질의와 주소에 남기고, 행사면 예산 요약과 새 요청에 이어진다', async () => {
   const api = mockApi()
   api.on('GET', `${base}/purchase-requests?view=all`, () => list())
   api.on('GET', `${base}/purchase-requests?view=all&event=none`, () =>
-    list([purchaseSummary('상시')]),
+    list([purchaseSummary('none', { itemBriefs: [brief('상시 품목')] })]),
   )
   api.on('GET', `${base}/purchase-requests?view=all&event=${EVENT_ID}`, () =>
-    list([purchaseSummary('행사')]),
+    list([purchaseSummary('event', { itemBriefs: [brief('행사 품목')] })]),
   )
   api.on('GET', `${base}/events`, () => json({ events: [eventSummary()], truncated: false }))
   api.on('GET', `${base}/events/${EVENT_ID}/settlement`, () => json(settlementOf()))
-  show(councilView(COUNCIL_ID, { councilRank: null }))
-  await screen.findByRole('heading', { name: '요청 a' })
-  expect(screen.getByRole('button', { name: '예산 현황' })).toBeTruthy()
-  fireEvent.click(screen.getByRole('button', { name: '상시' }))
-  await screen.findByRole('heading', { name: '요청 상시' })
+  show()
+  await screen.findByRole('button', { name: '생수' })
+  expect(screen.getByRole('button', { name: '재정 › 예산 현황' })).toBeTruthy()
+  const scope = screen.getByRole('group', { name: '구매 범위' })
+  fireEvent.click(within(scope).getByRole('button', { name: '상시' }))
+  await screen.findByRole('button', { name: '상시 품목' })
   expect(window.location.search).toContain('scope=none')
-  fireEvent.click(screen.getByRole('button', { name: '행사별' }))
-  fireEvent.change(await screen.findByRole('combobox', { name: '행사' }), {
-    target: { value: EVENT_ID },
-  })
-  await screen.findByRole('heading', { name: '요청 행사' })
+  fireEvent.click(await within(scope).findByRole('button', { name: '신입생 환영회' }))
+  await screen.findByRole('button', { name: '행사 품목' })
   expect(window.location.search).toContain(`scope=${EVENT_ID}`)
-  expect(await screen.findByText('500,000원')).toBeTruthy()
-  fireEvent.click(screen.getByRole('button', { name: '구매 요청 내기' }))
+  const summary = await screen.findByRole('region', { name: '예산 요약' })
+  expect(within(summary).getByText('500,000원')).toBeTruthy()
+  fireEvent.click(screen.getByRole('button', { name: '새 구매 요청' }))
   const eventField = await screen.findByRole('combobox', { name: /행사/ })
   expect((eventField as HTMLSelectElement).value).toBe(EVENT_ID)
 })
 
-test('단계 수는 서버 집계를 쓰고 단계 선택은 상한 밖 요청도 서버에서 찾는다', async () => {
-  const api = mockApi()
-  api.on('GET', `${base}/purchase-requests?view=all`, () =>
-    list(
-      [
-        purchaseSummary('대기'),
-        purchaseSummary('결제전', {
-          status: 'approved',
-          progress: { decided: true, paid: false, partlyPaid: true, hasShipment: false },
-        }),
-        purchaseSummary('결제함', {
-          status: 'partial',
-          progress: { decided: true, paid: true, partlyPaid: false, hasShipment: true },
-        }),
-        purchaseSummary('반려', { status: 'rejected' }),
-        purchaseSummary('취소', { status: 'cancelled' }),
-      ],
-      true,
-      { pending: 101, unpaid: 1, paid: 1, closed: 2 },
-    ),
-  )
-  api.on('GET', `${base}/purchase-requests?view=all&stage=closed`, () =>
-    list(
-      [
-        purchaseSummary('반려', { status: 'rejected' }),
-        purchaseSummary('취소', { status: 'cancelled' }),
-      ],
-      false,
-      { pending: 101, unpaid: 1, paid: 1, closed: 2 },
-    ),
-  )
-  api.on('GET', `${base}/purchase-requests?view=all&stage=paid`, () =>
-    list(
-      [
-        purchaseSummary('상한 밖', {
-          status: 'partial',
-          progress: { decided: true, paid: true, partlyPaid: false, hasShipment: true },
-        }),
-      ],
-      false,
-      { pending: 101, unpaid: 1, paid: 1, closed: 2 },
-    ),
-  )
-  show()
-  const stages = await screen.findByRole('group', { name: '구매 단계 거르기' })
-  await waitFor(() =>
-    expect(within(stages).getByRole('button', { name: '결제 전 1건' })).toBeTruthy(),
-  )
-  expect(within(stages).getByRole('button', { name: '결재 대기 101건' })).toBeTruthy()
-  expect(within(stages).getByRole('button', { name: '결제함 1건' })).toBeTruthy()
-  fireEvent.click(within(stages).getByRole('button', { name: '반려·취소 2건' }))
-  await screen.findByRole('heading', { name: '요청 반려' })
-  expect(screen.queryByRole('heading', { name: '요청 대기' })).toBeNull()
-  expect(screen.getByRole('heading', { name: '요청 취소' })).toBeTruthy()
-  expect(screen.queryByText('요청이 많아서 100개만 보여요.')).toBeNull()
-  fireEvent.click(within(stages).getByRole('button', { name: '결제함 1건' }))
-  await screen.findByRole('heading', { name: '요청 상한 밖' })
-  expect(window.location.search).toContain('stage=paid')
-  expect(screen.getByRole('list', { name: '구매 요청 진행' }).textContent).toContain('송장 등록됨')
-  fireEvent.click(within(stages).getByRole('button', { name: '결제함 1건' }))
-  await screen.findByRole('heading', { name: '요청 대기' })
-  expect(window.location.search).not.toContain('stage=')
-})
-
-test('읽기 전·실패는 집계 전, 빈 목록은 0건이다', async () => {
+test('읽기에 실패하면 다시 시도할 수 있다', async () => {
   const api = mockApi()
   api.on('GET', `${base}/purchase-requests?view=all`, () => json({ error: 'INTERNAL' }, 500))
   show()
-  const stages = screen.getByRole('group', { name: '구매 단계 거르기' })
-  expect(within(stages).getAllByText('집계 전')).toHaveLength(4)
-  await screen.findByRole('button', { name: '다시 시도' })
-  expect(within(stages).getAllByText('집계 전')).toHaveLength(4)
-  api.on('GET', `${base}/purchase-requests?view=all`, () =>
-    list([], false, { pending: 0, unpaid: 0, paid: 0, closed: 0 }),
-  )
-  fireEvent.click(screen.getByRole('button', { name: '다시 시도' }))
-  await waitFor(() => expect(within(stages).getAllByText('0건')).toHaveLength(4))
-})
-
-test('집계 없는 잘린 응답은 목록으로 수나 0건을 지어내지 않는다', async () => {
-  mockApi().on('GET', `${base}/purchase-requests?view=all`, () =>
-    list([purchaseSummary('a')], true),
-  )
-  show()
-  await screen.findByRole('heading', { name: '요청 a' })
-  const stages = screen.getByRole('group', { name: '구매 단계 거르기' })
-  expect(within(stages).getAllByText('집계 전')).toHaveLength(4)
+  const retry = await screen.findByRole('button', { name: '다시 시도' })
+  api.on('GET', `${base}/purchase-requests?view=all`, () => list())
+  fireEvent.click(retry)
+  expect(await screen.findByRole('button', { name: '생수' })).toBeTruthy()
 })
