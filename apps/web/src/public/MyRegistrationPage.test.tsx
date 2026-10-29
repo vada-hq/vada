@@ -69,7 +69,7 @@ test('참가비가 없으면 계좌·입금 상태가 없고, 출석했으면 QR
   expect(await screen.findByText('참가비 무료')).toBeTruthy()
   expect(screen.queryByRole('region', { name: '입금 계좌' })).toBeNull()
   expect(screen.queryByText(/은행/)).toBeNull()
-  expect(screen.queryByText('입금 전')).toBeNull()
+  expect(screen.queryByText('입금 확인 전')).toBeNull()
   expect(screen.queryByRole('button', { name: '신청 취소' })).toBeNull()
   fireEvent.click(screen.getByRole('button', { name: /^입장 QR/ }))
   const dialog = await screen.findByRole('dialog')
@@ -82,7 +82,8 @@ test('QR 판에는 이름과 행사명만 있고 입금 상태·학번은 없으
   const qr = await openQr()
   const plate = qr.closest<HTMLElement>('[data-plate]')!
   expect(within(plate).getByText('김새내 · 신입생 환영회')).toBeTruthy()
-  for (const text of ['20260001', '입금 전']) expect(within(plate).queryByText(text)).toBeNull()
+  for (const text of ['20260001', '입금 확인 전'])
+    expect(within(plate).queryByText(text)).toBeNull()
   // QR의 matrix 안 여백 2모듈에 흰 네모 안쪽 여백(p-3)을 더한다.
   expect(qr.parentElement?.className).toContain('p-3')
   expect(qr.parentElement?.className).toContain('bg-white')
@@ -96,13 +97,13 @@ test('QR 판에는 이름과 행사명만 있고 입금 상태·학번은 없으
 
 test('개인 링크를 다시 읽으면 확인됨과 확인 취소 상태가 바뀐다', async () => {
   const api = setup()
-  expect(await screen.findByText('입금 전')).toBeTruthy()
+  expect(await screen.findByText('입금 확인 전')).toBeTruthy()
   api.on('POST', LOOKUP_PATH, () => json({ ...myRegistration(), depositConfirmed: true }))
   document.dispatchEvent(new Event('visibilitychange'))
   expect(await screen.findByText('입금 확인됨')).toBeTruthy()
   api.on('POST', LOOKUP_PATH, () => json({ ...myRegistration(), depositConfirmed: false }))
   document.dispatchEvent(new Event('visibilitychange'))
-  expect(await screen.findByText('입금 전')).toBeTruthy()
+  expect(await screen.findByText('입금 확인 전')).toBeTruthy()
 })
 
 test('모르는 토큰이면 찾을 수 없다고 하고 기억한 토큰을 지운다', async () => {
@@ -194,7 +195,7 @@ test('차례: 완료 → 참가비 → 계좌 → 입장 QR → 행사 정보·�
   setupSaved()
   const title = await screen.findByRole('heading', { name: '신청 완료', level: 1 })
   const account = screen.getByRole('region', { name: '입금 계좌' })
-  expect(within(account).getByText('입금 전')).toBeTruthy()
+  expect(within(account).getByText('입금 확인 전')).toBeTruthy()
   const purge = await screen.findByText('신청 정보는 2027년 10월 24일에 지워져요.')
   const ordered = [
     title,
@@ -232,7 +233,7 @@ test('입금 상태는 서버의 입금 확인 값이고 계좌 면에 한 번�
   const account = await screen.findByRole('region', { name: '입금 계좌' })
   expect(within(account).getByText('입금 확인됨')).toBeTruthy()
   expect(screen.getAllByText('입금 확인됨')).toHaveLength(1)
-  expect(screen.queryByText('입금 전')).toBeNull()
+  expect(screen.queryByText('입금 확인 전')).toBeNull()
 })
 
 test('질문이 있는 양식이면 내 답이 질문마다 보이고 답하지 않은 질문은 답 없음이다', async () => {
@@ -290,4 +291,13 @@ test('행사 전날과 다음 날에는 입장 QR이 접혀 있다', async () =>
     cleanup()
     window.localStorage.clear()
   }
+})
+
+test('내 신청을 다시 읽을 때 행사 일시·장소도 다시 읽는다(운영진이 장소를 바꾼 뒤)', async () => {
+  const api = setupSaved()
+  expect(await screen.findByText('대강당')).toBeTruthy()
+  const form = publicForm()
+  api.on('GET', FORM_PATH, () => json({ ...form, event: { ...form.event, place: '소강당' } }))
+  document.dispatchEvent(new Event('visibilitychange'))
+  expect(await screen.findByText('소강당')).toBeTruthy()
 })

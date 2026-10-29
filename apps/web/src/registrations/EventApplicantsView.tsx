@@ -1,4 +1,4 @@
-import { useState, useSyncExternalStore } from 'react'
+import { useEffect, useRef, useState, useSyncExternalStore, type RefObject } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import {
   EVENT_APPLICANT_PAGE_SIZE,
@@ -72,8 +72,9 @@ const DEFAULTS: Omit<Full, 'councilId' | 'data'> = {
   onLost: noop,
 }
 
-// 표는 열 여덟까지라 단 폭 약 730px부터 그린다(Tailwind lg 창 − 옆 메뉴 − 여백). 그 아래는 두 줄 목록이다.
-// 폭을 모르면(matchMedia가 없는 환경) 표를 그린다.
+// 표는 데스크톱 창(Tailwind lg)에서, 명단 종이 폭이 열을 다 담을 때만 그린다. 그 밖은 두 줄 목록이다.
+// 창 폭만 보면 1024px 창(단 약 736px)에 양식 열이 더해지거나 옆 1:1 칸이 열렸을 때 이름 열이 무너진다(Codex 검토).
+// 폭을 모르면(matchMedia·ResizeObserver가 없는 환경) 표를 그린다.
 const WIDE = '(min-width: 64rem)'
 const media = () => (typeof window.matchMedia === 'function' ? window.matchMedia(WIDE) : null)
 function subscribe(change: () => void) {
@@ -81,7 +82,31 @@ function subscribe(change: () => void) {
   query?.addEventListener('change', change)
   return () => query?.removeEventListener('change', change)
 }
-const useWide = () => useSyncExternalStore(subscribe, () => media()?.matches ?? true)
+const useWideWindow = () => useSyncExternalStore(subscribe, () => media()?.matches ?? true)
+
+// 고정 열 합(px, list-look col): 체크 32 · 학번 112 · 신청 88 · 입금 192 · 참석 80 · ⋯ 48 + 이름 최소 160. 양식·소속 열은 128씩.
+const TABLE_BASE_PX = 712
+const SIDE_COLUMN_PX = 128
+
+function useBoxWidth(box: RefObject<HTMLElement | null>) {
+  const [width, setWidth] = useState<number | null>(null)
+  useEffect(() => {
+    const element = box.current
+    if (!element || typeof ResizeObserver !== 'function') return
+    const observer = new ResizeObserver(([entry]) => setWidth(entry?.contentRect.width ?? null))
+    observer.observe(element)
+    return () => observer.disconnect()
+  }, [box])
+  return width
+}
+
+function useWide(box: RefObject<HTMLElement | null>, data: EventApplicantsResponse) {
+  const wideWindow = useWideWindow()
+  const width = useBoxWidth(box)
+  const need =
+    TABLE_BASE_PX + (Number(data.showForm) + Number(data.showAffiliation)) * SIDE_COLUMN_PX
+  return wideWindow && (width === null || width >= need)
+}
 
 // 쪽: 표 아래 오른쪽 회색 '1 / 3 ‹ ›'(50줄씩). 끝 쪽에서는 그 방향 단추를 두지 않는다(끄지 않는다).
 function Pager({
@@ -204,7 +229,8 @@ function Rows({ props, list, wide }: { props: Full; list: ListProps; wide: boole
 
 function Applicants({ props }: { props: Full }) {
   const { data } = props
-  const wide = useWide()
+  const box = useRef<HTMLElement>(null)
+  const wide = useWide(box, data)
   const now = useNow()
   const [peek, setPeek] = useState<string | null>(null)
   const started = eventStarted(props.startsAt, koreanDateOf(now))
@@ -222,6 +248,7 @@ function Applicants({ props }: { props: Full }) {
   return (
     <>
       <section
+        ref={box}
         aria-label={EVENT_APPLICANTS.title}
         className={`flex min-w-0 flex-col break-keep ${sheet}`}
       >

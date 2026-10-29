@@ -348,3 +348,27 @@ test('이름을 누르면 한 사람 보기에 휴대폰·답이 보인다', asy
   expect(within(panel).getByText('티셔츠 사이즈')).toBeTruthy()
   expect(within(panel).getByText('M')).toBeTruthy()
 })
+
+test('데스크톱 창이어도 명단 종이가 열을 다 담지 못하면(양식 열이 더해진 1024px) 두 줄 목록이다', async () => {
+  navigationWidth(1024)
+  vi.stubGlobal(
+    'ResizeObserver',
+    class {
+      constructor(private readonly report: ResizeObserverCallback) {}
+      observe() {
+        this.report(
+          [{ contentRect: { width: 736 } } as ResizeObserverEntry],
+          this as unknown as ResizeObserver,
+        )
+      }
+      disconnect() {}
+    },
+  )
+  setup(data({ total: 1, showForm: true }))
+  await screen.findByText('김새내')
+  await waitFor(() => expect(screen.queryByRole('table')).toBeNull())
+  expect(screen.getByRole('list', { name: '행사 참가자' })).toBeTruthy()
+  cleanup()
+  setup(data({ total: 1 }))
+  expect(await screen.findByRole('table')).toBeTruthy()
+})

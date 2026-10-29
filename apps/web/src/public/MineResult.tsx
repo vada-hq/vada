@@ -51,7 +51,8 @@ export function DayResult({ mine }: { mine: MyRegistration }) {
   )
 }
 
-// 입금 상태는 서버의 입금 확인 값이다. '입금 전'은 미납이라는 객관적 사실이라 주황으로 보인다(내용: 정보 기준).
+// 입금 상태는 서버의 입금 확인 값이다. 운영진이 아직 확인하지 않았다는 뜻이지 보내지 않았다는 뜻이 아니라 '입금 확인 전'이다(DEC-93).
+// 이미 보낸 학생이 '입금 전'을 보고 다시 보내지 않게 한다. 확인을 기다리는 상태라 주황으로 보인다.
 function DepositPill({ confirmed }: { confirmed: boolean }) {
   return (
     <span
@@ -61,7 +62,7 @@ function DepositPill({ confirmed }: { confirmed: boolean }) {
       )}
     >
       {confirmed && <Check aria-hidden="true" className="size-3.5" strokeWidth={3} />}
-      {confirmed ? '입금 확인됨' : '입금 전'}
+      {confirmed ? '입금 확인됨' : '입금 확인 전'}
     </span>
   )
 }

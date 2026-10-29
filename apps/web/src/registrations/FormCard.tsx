@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
 import {
+  AlignLeft,
   CalendarDays,
   Clock,
   Eye,
@@ -155,6 +156,12 @@ function SettingRows({ form, event, actions, draft }: RowsProps) {
       <PropRow icon={ListChecks} label="받는 항목">
         <CollectedValue form={form} />
       </PropRow>
+      {/* 안내는 미리보기에도 있지만 미리보기는 inert라 화면 읽기가 못 읽고, 행사를 못 읽으면 미리보기 자체가 없다. 카드에서도 읽게 둔다. */}
+      {form.notice && (
+        <PropRow icon={AlignLeft} label="안내">
+          <span className="line-clamp-3 whitespace-pre-line wrap-anywhere">{form.notice}</span>
+        </PropRow>
+      )}
     </div>
   )
 }

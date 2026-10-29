@@ -211,31 +211,34 @@ export function FormEditor(props: Props) {
             void editor.submit()
           }}
         >
-          <EditorTitle
-            id={ids.name}
-            value={values.name}
-            error={errors.name}
-            onChange={name => change({ name })}
-          />
-          <SettingRows
-            ids={ids}
-            values={values}
-            errors={errors}
-            account={account}
-            event={props.event}
-            onChange={change}
-            onPick={setChosen}
-            onEditEvent={props.onEditEvent}
-          />
-          {post.problem && <StateMessage kind="error">{post.problem}</StateMessage>}
-          <div className="pt-4">
-            <CollectSection
-              values={values}
-              locked={(props.form?.applicantCount ?? 0) > 0}
-              errors={errors}
-              onChange={change}
+          {/* 보내는 동안 칸을 잠근다. 보낸 뒤 고친 값은 저장되지 않고 성공하면 편집기가 닫혀 사라진다. */}
+          <fieldset disabled={saving} className="contents">
+            <EditorTitle
+              id={ids.name}
+              value={values.name}
+              error={errors.name}
+              onChange={name => change({ name })}
             />
-          </div>
+            <SettingRows
+              ids={ids}
+              values={values}
+              errors={errors}
+              account={account}
+              event={props.event}
+              onChange={change}
+              onPick={setChosen}
+              onEditEvent={props.onEditEvent}
+            />
+            {post.problem && <StateMessage kind="error">{post.problem}</StateMessage>}
+            <div className="pt-4">
+              <CollectSection
+                values={values}
+                locked={(props.form?.applicantCount ?? 0) > 0}
+                errors={errors}
+                onChange={change}
+              />
+            </div>
+          </fieldset>
         </form>
         {preview && (
           <div className="sticky top-20 hidden shrink-0 @4xl:block">

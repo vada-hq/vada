@@ -237,9 +237,16 @@ test('받는 중 카드는 상태와 큰 신청 수 옆에 링크·QR을 두고,
   expect(screen.queryByRole('button', { name: '설문 링크 활성화' })).toBeNull()
 })
 
-test('수정·명단 열람 동작이 없어도 양식별 신청·출석 수는 읽을 수 있다', async () => {
-  setup({ forms: [staffForm({ actions: [], applicantCount: 7, attendedCount: 2 })], actions: [] })
+test('수정·명단 열람 동작이 없어도 양식별 신청·출석 수와 안내는 읽을 수 있다', async () => {
+  setup({
+    forms: [
+      staffForm({ actions: [], applicantCount: 7, attendedCount: 2, notice: '회비 납부자 우선' }),
+    ],
+    actions: [],
+    event: null,
+  })
   await screen.findByRole('heading', { name: '환영회 참가 신청' })
+  expect(within(card()).getByText('회비 납부자 우선')).toBeTruthy()
   expect(card().textContent).toContain('신청 7 / 50명')
   expect(card().textContent).toContain('출석 2명')
   expect(screen.queryByRole('button', { name: '설문 링크 활성화' })).toBeNull()
@@ -460,6 +467,9 @@ test('만들기: 납부자 금액이 다르면 두 참가비를 받고 학번은
     questions: [],
   })
   expect(submit()).toHaveProperty('disabled', true)
+  // 보내는 동안 칸을 고치면 보낸 값과 달라지므로 잠근다.
+  expect(within(form).getByLabelText('납부자').matches(':disabled')).toBe(true)
+  expect(within(form).getByLabelText('양식 이름').matches(':disabled')).toBe(true)
   forms.push(draftForm({ name: '환영회 신청' }))
   pending.resolve(json({ form: forms[0] }, 201))
   expect(await screen.findByRole('heading', { name: '환영회 신청' })).toBeTruthy()
