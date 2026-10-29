@@ -26,7 +26,7 @@ import { FormCardBand } from './FormCardBand'
 import { CollectedValue, Missing } from './FormCardValues'
 import { PreviewDialog } from './FormPreview'
 import { previewOf, valuesOfForm } from './registration-form'
-import { periodLabel } from './registration-view'
+import { periodRow } from './registration-view'
 import { useFormCardActions, type EditorFocus, type FormCardActions } from './useFormCardActions'
 
 type Props = EventDialogHandlers & {
@@ -116,7 +116,7 @@ function DeadlineValue({ form, actions }: Pick<RowsProps, 'form' | 'actions'>) {
     return <Missing label="신청 마감" onFill={actions.fills.closes_at} />
   return (
     <span className="flex flex-wrap items-center gap-x-2">
-      {periodLabel(form)}
+      {periodRow(form).value}
       {actions.missing.includes('registration_period') && (
         <>
           <span className="text-danger">신청 시작보다 이름</span>
@@ -135,7 +135,11 @@ function SettingRows({ form, event, actions, draft }: RowsProps) {
   return (
     <div className="flex flex-col gap-1 sm:gap-0">
       {draft && <EventRow event={event} actions={actions} />}
-      <PropRow icon={Clock} label="신청 마감">
+      {/* 마감이 비면 채울 값이 마감이라 라벨도 '신청 마감'이다. */}
+      <PropRow
+        icon={Clock}
+        label={actions.missing.includes('closes_at') ? '신청 마감' : periodRow(form).label}
+      >
         <DeadlineValue form={form} actions={actions} />
       </PropRow>
       <PropRow icon={Wallet} label="참가비">

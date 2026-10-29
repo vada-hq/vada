@@ -3,7 +3,7 @@ import { Check } from 'lucide-react'
 import type { FormQuestion } from '@vada/contracts'
 import { cn } from '@/lib/utils'
 import { ErrorLine, LabelText, RequiredMark } from './FilledField'
-import { control, radius, type } from './public-look'
+import { field, fieldFrame, radius, type } from './public-look'
 
 // 짧은 선택지(4개 이하, 모두 3자 이하: S/M/L/XL)는 한 줄 타일, 아니면 세로 줄이다.
 const TILE_MAX_CHOICES = 4
@@ -13,15 +13,16 @@ const asTiles = (question: FormQuestion) =>
   question.choices.length <= TILE_MAX_CHOICES &&
   question.choices.every(choice => choice.label.length <= TILE_MAX_LABEL)
 
-// 줄 전체가 누르는 면(56px)이다. 고르면 파란 옅은 면 + 파란 고리 + 굵은 글(Typeform 큰 선택지).
+// 줄 전체가 누르는 면이고 입력칸과 같은 높이(48px)·테두리다. 고르면 파란 테두리 + 옅은 파란 면 + 굵은 글.
 // 색만으로 말하지 않게 왼쪽 표시가 함께 찬다.
 const ROW = cn(
   'relative flex cursor-pointer items-center transition-colors',
-  control,
-  radius.control,
+  fieldFrame,
+  field,
+  radius.field,
   type.body,
-  'bg-surface-muted text-fg-body active:bg-muted-strong has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-primary-emphasis',
-  'data-checked:bg-primary-surface data-checked:font-semibold data-checked:text-primary-strong data-checked:ring-2 data-checked:ring-primary-border-selected data-checked:ring-inset',
+  'text-fg-body active:bg-surface-subtle has-[:focus-visible]:ring-3 has-[:focus-visible]:ring-primary-border',
+  'data-checked:border-primary-emphasis data-checked:bg-primary-surface data-checked:font-semibold data-checked:text-primary-strong',
 )
 
 // 고르는 표시는 늘 왼쪽에 있다: 하나 고르기는 동그라미, 여럿 고르기는 네모. 무엇을 몇 개 고르는지 바로 보인다.
@@ -34,15 +35,15 @@ function Mark({ on, multiple }: { on: boolean; multiple: boolean }) {
       aria-hidden="true"
       data-mark={multiple ? 'checkbox' : 'radio'}
       className={cn(
-        'flex size-6 shrink-0 items-center justify-center',
+        'flex size-5 shrink-0 items-center justify-center',
         multiple ? 'rounded-md' : 'rounded-full',
         look,
       )}
     >
       {multiple ? (
-        <Check className="size-4" strokeWidth={3} />
+        <Check className="size-3.5" strokeWidth={3} />
       ) : (
-        <span className={cn('size-2.5 rounded-full', on ? 'bg-white' : 'bg-transparent')} />
+        <span className={cn('size-2 rounded-full', on ? 'bg-white' : 'bg-transparent')} />
       )}
     </span>
   )
@@ -63,7 +64,7 @@ function ChoiceRow({ name, label, on, multiple, tile, disabled, onPick }: Row) {
   return (
     <label
       data-checked={on || undefined}
-      className={cn(ROW, tile ? 'justify-center gap-2 px-3' : 'gap-3 px-4 py-3')}
+      className={cn(ROW, tile ? 'justify-center gap-2 px-3' : 'gap-3 px-4 py-2.5')}
     >
       <input
         type={multiple ? 'checkbox' : 'radio'}

@@ -17,7 +17,7 @@ import { collectsStudentId, type FormValues } from './registration-form'
 
 // 받는 항목 = 설정 모양: 이름·학번·휴대폰 한 줄씩과 질문 목록, [질문 추가](누르면 종류 알약 셋).
 // 이름은 늘 받는다. 학번은 납부자 금액이 다르면 꼭 받는다(납부자 명단과 맞춘다, DEC-67). 휴대폰은 받을 때만(DEC-75).
-// 신청이 있으면 질문만 잠긴다(서버 409). 학번·휴대폰 받기는 서버가 바꾸게 두므로 화면도 막지 않는다.
+// 신청이 있으면 질문만 잠긴다(서버 409). 잠기면 [질문 추가] 자리에 까닭이 남는다. 학번·휴대폰 받기는 서버가 바꾸게 두므로 화면도 막지 않는다.
 
 const BASIC_TEXT = `${type.body} font-semibold`
 
@@ -102,12 +102,9 @@ export function CollectSection({
   const remove = (at: number) => setQuestions(questions.filter((_, index) => index !== at))
   return (
     <section aria-label="받는 항목" className="flex flex-col gap-5">
-      <div className="flex flex-col gap-2">
-        <div className="flex items-center gap-3">
-          <h3 className={`${type.small} font-semibold text-fg-muted`}>받는 항목</h3>
-          <div aria-hidden="true" className="h-px flex-1 bg-border-default" />
-        </div>
-        {locked && questions.length > 0 && <LockNote>신청이 있어 질문은 바꿀 수 없어요</LockNote>}
+      <div className="flex items-center gap-3">
+        <h3 className={`${type.small} font-semibold text-fg-muted`}>받는 항목</h3>
+        <div aria-hidden="true" className="h-px flex-1 bg-border-default" />
       </div>
       <div className="flex flex-col">
         <BasicItem label="이름" on lock="늘 받음" />
@@ -136,8 +133,17 @@ export function CollectSection({
           remove={remove}
         />
       ))}
-      {!locked && questions.length < FORM_QUESTION_MAX && (
-        <AddQuestion onAdd={kind => setQuestions([...questions, newDraft(kind)])} />
+      {/* 잠기면 [질문 추가]를 말없이 빼지 않고 그 자리에 까닭을 둔다(질문이 0개면 기능이 빠진 것처럼 보였다). */}
+      {locked ? (
+        <LockNote>
+          {questions.length > 0
+            ? '신청이 있어 질문을 바꾸거나 더할 수 없어요'
+            : '신청이 있어 질문을 더할 수 없어요'}
+        </LockNote>
+      ) : (
+        questions.length < FORM_QUESTION_MAX && (
+          <AddQuestion onAdd={kind => setQuestions([...questions, newDraft(kind)])} />
+        )
       )}
     </section>
   )

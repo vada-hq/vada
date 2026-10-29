@@ -8,13 +8,9 @@ import { EntryQrHero, EntryQrRow } from './EntryQr'
 import { useEventDay } from './event-day'
 import { MineFooter, type Cancel } from './MineFooter'
 import { AccountPanel, DayResult, Result } from './MineResult'
+import { Band } from './PageParts'
 import { useMineForm } from './useMineForm'
 import { useMyRegistration } from './useMyRegistration'
-
-// 상자 대신 단 폭 끝까지 가는 회색 띠로 구역을 가른다(앱 목록 화면의 굵은 구분 띠).
-function Band() {
-  return <div aria-hidden="true" className="-mx-6 h-2 bg-surface-muted" />
-}
 
 // 신청 직후·내 신청. 차례: 완료 → 참가비·계좌 → 입장 QR → 행사 정보·문의 → 다시 열기 → 취소 → 지우는 날(내용 ④).
 // 행사 당일(day)에는 입장 QR이 맨 위로 오고, 낼 돈이 남지 않았으면 완료와 계좌를 두 줄로 접는다.

@@ -1,11 +1,15 @@
 import type { Applicant, RegistrationForm } from '@vada/contracts'
 import { momentLabel } from '@/events/event-view'
 
-// '10월 24일 (토) 14:00 ~ 10월 25일 (일) 18:00'. 시작이 없으면 마감만 적는다.
-export const periodLabel = (form: Pick<RegistrationForm, 'opensAt' | 'closesAt'>) =>
+// 카드의 신청 기간 줄. 라벨이 값과 같은 것을 말하게 한다: 시작이 있으면 '신청 기간' + '시작 ~ 마감',
+// 없으면 '신청 마감' + 마감 시각만(라벨에 마감이 있어 '까지'를 붙이지 않는다).
+export const periodRow = (form: Pick<RegistrationForm, 'opensAt' | 'closesAt'>) =>
   form.opensAt === null
-    ? `${momentLabel(form.closesAt)}까지`
-    : `${momentLabel(form.opensAt)} ~ ${momentLabel(form.closesAt)}`
+    ? { label: '신청 마감', value: momentLabel(form.closesAt) }
+    : {
+        label: '신청 기간',
+        value: `${momentLabel(form.opensAt)} ~ ${momentLabel(form.closesAt)}`,
+      }
 
 // 학생이 여는 공개 링크. 카톡방에 올리고 포스터 QR로 찍는다.
 export const applyUrl = (publicCode: string) => `${window.location.origin}/apply/${publicCode}`

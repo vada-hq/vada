@@ -37,7 +37,8 @@ test('받는 중이면 학교·행사·참가비·안내와 칸이 보이고, �
   setup()
   expect(await screen.findByText('신입생 환영회')).toBeTruthy()
   expect(screen.getByText('소프트웨어학부 학생회')).toBeTruthy()
-  expect(screen.getByText('학생회비 납부자 5,000원 · 미납자 10,000원')).toBeTruthy()
+  expect(screen.getByText('학생회비 납부자 5,000원')).toBeTruthy()
+  expect(screen.getByText('미납자 10,000원')).toBeTruthy()
   expect(screen.getByText('10월 24일 (토) 14:00 ~ 18:00')).toBeTruthy()
   expect(screen.getByText('대강당')).toBeTruthy()
   expect(screen.getByText(publicForm().form.notice!)).toBeTruthy()
@@ -89,6 +90,44 @@ test('받는 중이면 신청 마감이 보이고, 마감된 양식에는 없다
   setup(publicForm({ status: 'closed' }))
   await screen.findByText('신청이 마감됐어요.')
   expect(screen.queryByText(/18:00까지/)).toBeNull()
+})
+
+// 가운뎃점으로 이은 회색 덩어리 대신 한 줄에 하나씩(Luma 행사 페이지의 아이콘 줄). 차례는 마감 → 일시 → 장소 → 참가비.
+test('머리 정보는 한 줄에 하나씩 마감·일시·장소·참가비 차례이고, 참가비가 둘이면 두 줄이다', async () => {
+  setup()
+  const facts = await screen.findByRole('list', { name: '행사 정보' })
+  expect(
+    within(facts)
+      .getAllByRole('listitem')
+      .map(item => item.textContent),
+  ).toEqual([
+    '10월 23일 (금) 18:00까지 신청',
+    '10월 24일 (토) 14:00 ~ 18:00',
+    '대강당',
+    '학생회비 납부자 5,000원미납자 10,000원',
+  ])
+  cleanup()
+  setup(publicForm({ status: 'closed', event: { ...publicForm().event, place: null } }))
+  const closed = await screen.findByRole('list', { name: '행사 정보' })
+  expect(
+    within(closed)
+      .getAllByRole('listitem')
+      .map(item => item.textContent),
+  ).toEqual(['10월 24일 (토) 14:00 ~ 18:00', '장소 미정', '학생회비 납부자 5,000원미납자 10,000원'])
+})
+
+// 강조는 객관적 사실에만 준다(정보 기준): 마감 날이 오늘·내일일 때만 '오늘 마감'·'내일 마감'이 붙는다(한국 날짜).
+test.each([
+  ['2026-10-23T09:00:00+09:00', '오늘 마감'],
+  ['2026-10-22T23:30:00+09:00', '내일 마감'],
+  ['2026-10-21T12:00:00+09:00', null],
+])('지금이 %s이면 마감 줄의 강조는 %s', async (now, mark) => {
+  vi.useFakeTimers({ toFake: ['Date'] })
+  vi.setSystemTime(new Date(now))
+  setup()
+  await screen.findByText('10월 23일 (금) 18:00까지 신청')
+  if (mark) expect(await screen.findByText(mark)).toBeTruthy()
+  expect(screen.queryByText(/오늘 마감|내일 마감/)).toBe(mark ? screen.getByText(mark) : null)
 })
 
 test('참가비가 같으면 학번 칸이 없고 휴대폰을 받으면 칸이 생긴다', async () => {

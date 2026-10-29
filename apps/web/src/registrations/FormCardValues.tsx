@@ -43,10 +43,11 @@ export function Missing({ label, onFill }: { label: string; onFill?: (() => void
   )
 }
 
-// 받는 항목 한 줄 요약 + 펼치기. 신청이 있으면 질문은 바꿀 수 없다(서버 409, DEC-93).
+// 받는 항목 한 줄 요약 + 펼치기. 신청이 있으면 질문은 바꾸거나 더할 수 없다(서버 409, DEC-93).
+// 질문이 없어도 더하기가 막혀 있으니 잠김을 보인다(편집기의 [질문 추가] 자리 안내와 같은 규칙).
 export function CollectedValue({ form }: { form: RegistrationForm }) {
   const [open, setOpen] = useState(false)
-  const locked = form.applicantCount > 0 && form.questions.length > 0
+  const locked = form.applicantCount > 0
   return (
     <>
       <span className="flex flex-wrap items-center gap-x-3">

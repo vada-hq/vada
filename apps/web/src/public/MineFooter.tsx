@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from 'react'
+import { CalendarDays, MapPin, Megaphone, MessageCircle } from 'lucide-react'
 import type { MyRegistration, PublicRegistrationForm } from '@vada/contracts'
 import { whenLabel } from '@/events/event-view'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
@@ -7,31 +8,40 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { CopyFailed, type Copy } from './copy-toast'
 import { phoneView } from './phone-view'
+import { Fact, FactList } from './PageParts'
 import { focusRing, type } from './public-look'
 import { dateText, inquiryText } from './registration-text'
 
 export type Cancel = { busy: boolean; problem: string; run: () => Promise<void> }
 
-function InfoRow({ label, children }: { label: string; children: ReactNode }) {
-  return (
-    <div className="flex gap-4">
-      <dt className={`w-10 shrink-0 ${type.label} text-fg-muted`}>{label}</dt>
-      <dd className={`min-w-0 flex-1 ${type.label} whitespace-pre-wrap text-fg-body wrap-anywhere`}>
-        {children}
-      </dd>
-    </div>
-  )
+function Value({ children }: { children: ReactNode }) {
+  return <span className="whitespace-pre-wrap wrap-anywhere">{children}</span>
 }
 
-// 행사 정보(늘 최신)·안내·문의. 일시·장소는 이 기기에 신청 코드가 있어 공개 양식을 읽었을 때만 있다.
+// 행사 정보(늘 최신)·안내·문의. 신청 화면 머리와 같은 아이콘 줄이다.
+// 일시·장소는 이 기기에 신청 코드가 있어 공개 양식을 읽었을 때만 있다.
 function EventInfo({ mine, form }: { mine: MyRegistration; form: PublicRegistrationForm | null }) {
   return (
-    <dl className="flex flex-col gap-3">
-      {form && <InfoRow label="일시">{whenLabel(form.event)}</InfoRow>}
-      {form && <InfoRow label="장소">{form.event.place ?? '장소 미정'}</InfoRow>}
-      {mine.form.notice && <InfoRow label="안내">{mine.form.notice}</InfoRow>}
-      <InfoRow label="문의">{inquiryText(mine.form.notice)}</InfoRow>
-    </dl>
+    <FactList>
+      {form && (
+        <Fact icon={CalendarDays}>
+          <Value>{whenLabel(form.event)}</Value>
+        </Fact>
+      )}
+      {form && (
+        <Fact icon={MapPin}>
+          <Value>{form.event.place ?? '장소 미정'}</Value>
+        </Fact>
+      )}
+      {mine.form.notice && (
+        <Fact icon={Megaphone}>
+          <Value>{mine.form.notice}</Value>
+        </Fact>
+      )}
+      <Fact icon={MessageCircle}>
+        <Value>{inquiryText(mine.form.notice)}</Value>
+      </Fact>
+    </FactList>
   )
 }
 

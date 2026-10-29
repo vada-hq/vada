@@ -1,4 +1,10 @@
-import type { PublicRegistrationForm, RegistrationStatus } from '@vada/contracts'
+import {
+  DAY_MS,
+  KOREAN_DATE_LENGTH,
+  koreanDateOf,
+  type PublicRegistrationForm,
+  type RegistrationStatus,
+} from '@vada/contracts'
 import { momentLabel } from '@/events/event-view'
 import { monthDay } from '@/lib/korean-date-text'
 
@@ -13,12 +19,24 @@ export const STATUS_LABEL: Record<RegistrationStatus, string> = {
 export const won = (amount: number) =>
   amount === 0 ? '무료' : `${amount.toLocaleString('ko-KR')}원`
 
-// 신청 전에는 참가비 두 값만 보인다(어느 쪽인지는 학번을 낸 뒤 정해진다).
-export function feeText(form: Pick<PublicRegistrationForm, 'payerFee' | 'nonPayerFee'>) {
-  const { payerFee, nonPayerFee } = form
-  if (payerFee === null || nonPayerFee === null) return '무료'
-  if (payerFee === nonPayerFee) return won(payerFee)
-  return `학생회비 납부자 ${won(payerFee)} · 미납자 ${won(nonPayerFee)}`
+type Fees = Pick<PublicRegistrationForm, 'payerFee' | 'nonPayerFee'>
+
+// 참가비 줄. 납부자 금액이 다르면 두 줄이다(신청 화면 머리는 한 줄에 하나씩 쌓는다).
+// 신청 전에는 두 값만 보인다(어느 쪽인지는 학번을 낸 뒤 정해진다).
+export function feeLines({ payerFee, nonPayerFee }: Fees) {
+  if (payerFee === null || nonPayerFee === null) return ['무료']
+  if (payerFee === nonPayerFee) return [won(payerFee)]
+  return [`학생회비 납부자 ${won(payerFee)}`, `미납자 ${won(nonPayerFee)}`]
+}
+
+export const feeText = (form: Fees) => feeLines(form).join(' · ')
+
+// 마감이 가까울 때만 붙는 표시. 강조는 객관적 사실(마감 날이 오늘·내일, 한국 날짜)에만 준다(내용: 정보 기준).
+export function deadlineMark(closesAt: string, now: Date) {
+  const day = closesAt.slice(0, KOREAN_DATE_LENGTH)
+  if (day === koreanDateOf(now)) return '오늘 마감'
+  if (day === koreanDateOf(new Date(now.getTime() + DAY_MS))) return '내일 마감'
+  return null
 }
 
 // 신청 화면 고지의 목적. 입금 대조는 참가비가 있는 양식에만 생겨 그때만 입금 확인을 붙인다(DEC-93).

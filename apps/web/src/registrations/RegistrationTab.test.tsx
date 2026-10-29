@@ -279,9 +279,18 @@ test('카드에 이름(긴 글은 줄바꿈), 기간, 정원, 상태가 보인�
   const heading = await screen.findByRole('heading', { name: '가'.repeat(60) })
   expect(heading.className).toContain('wrap-anywhere')
   const sheet = card('가'.repeat(60))
-  expect(sheet.textContent).toContain('10월 23일 (금) 18:00까지')
+  expect(sheet.textContent).toContain('신청 마감10월 23일 (금) 18:00')
+  expect(sheet.textContent).not.toContain('18:00까지')
   expect(sheet.textContent).toContain('50명')
   expect(sheet.textContent).toContain('활성')
+})
+
+// 라벨과 값이 같은 것을 말한다: 시작이 있으면 '신청 기간'에 기간, 없으면 '신청 마감'에 마감만.
+test('신청 시작이 있는 카드는 신청 기간 줄에 시작 ~ 마감을 보인다', async () => {
+  setup({ forms: [staffForm({ opensAt: '2026-10-20T09:00' })] })
+  await screen.findByRole('heading', { name: '환영회 참가 신청' })
+  expect(card().textContent).toContain('신청 기간10월 20일 (화) 09:00 ~ 10월 23일 (금) 18:00')
+  expect(card().textContent).not.toContain('신청 마감')
 })
 
 test('고치기·멈추기·다시 받기는 actions가 있을 때만, 멈춘 양식은 [다시 받기]가 보인다', async () => {
@@ -929,10 +938,21 @@ test('신청이 있는 양식은 질문이 잠겨 고칠 수 없고 더하기·�
   setup({ forms: [staffForm({ applicantCount: 3, questions })] })
   fireEvent.click(await screen.findByRole('button', { name: '고치기' }))
   const form = await screen.findByRole('form', { name: '신청 양식 고치기' })
-  expect(within(form).getByText('신청이 있어 질문은 바꿀 수 없어요')).toBeTruthy()
+  expect(within(form).getByText('신청이 있어 질문을 바꾸거나 더할 수 없어요')).toBeTruthy()
   expect(within(form).getByLabelText('1번 질문')).toHaveProperty('readOnly', true)
   expect(within(form).queryByRole('button', { name: '질문 추가' })).toBeNull()
   expect(within(form).queryByRole('button', { name: '1번 질문 설정' })).toBeNull()
+})
+
+// 질문이 0개여도 [질문 추가]가 말없이 사라지지 않는다(대표 지적 10/30: 기능이 빠진 것으로 보임). 서버는 409로 막는다.
+test('신청이 있는 양식은 질문이 없어도 [질문 추가] 자리에 잠긴 까닭이 보이고, 카드에도 잠김이 보인다', async () => {
+  setup({ forms: [staffForm({ applicantCount: 1, questions: [] })] })
+  await screen.findByRole('heading', { name: '환영회 참가 신청' })
+  expect(card().textContent).toContain('신청 있어 질문 잠김')
+  fireEvent.click(screen.getByRole('button', { name: '고치기' }))
+  const form = await screen.findByRole('form', { name: '신청 양식 고치기' })
+  expect(within(form).getByText('신청이 있어 질문을 더할 수 없어요')).toBeTruthy()
+  expect(within(form).queryByRole('button', { name: '질문 추가' })).toBeNull()
 })
 
 test('카드의 받는 항목을 펼치면 질문이 종류·필수와 함께 차례대로 보인다(고치기 권한이 없어도)', async () => {

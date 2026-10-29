@@ -2,7 +2,7 @@ import { useId, type ComponentProps } from 'react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
-import { control, radius, type } from './public-look'
+import { field, fieldFrame, radius, type } from './public-look'
 
 const LABEL = `${type.label} font-semibold text-fg-secondary wrap-anywhere`
 
@@ -34,17 +34,18 @@ export function ErrorLine({ id, error }: { id: string; error: string | undefined
   )
 }
 
-// 회색 채운 칸(테두리 없음, 56px, 글자 17px). 초점이면 흰 면 + 파란 고리, 틀리면 빨간 고리 + 칸 아래 빨간 한 줄.
+// 흰 바탕 + 옅은 테두리 칸(48px, 글자 17px). 초점이면 파란 테두리 + 옅은 파란 고리, 틀리면 빨간 테두리 + 칸 아래 빨간 한 줄.
 const FILLED = cn(
-  'border-0 bg-surface-muted px-4 py-3 text-fg-body sm:text-row-title',
-  control,
-  radius.control,
+  'px-4 py-2.5 text-fg-body sm:text-row-title',
+  fieldFrame,
+  field,
+  radius.field,
   type.body,
-  'ring-inset focus-visible:bg-white focus-visible:ring-2 focus-visible:ring-primary-emphasis',
-  'aria-invalid:ring-2 aria-invalid:ring-danger-emphasis disabled:bg-surface-muted',
+  'focus-visible:border-primary-emphasis focus-visible:ring-3 focus-visible:ring-primary-border',
+  'aria-invalid:border-danger-emphasis aria-invalid:focus-visible:ring-danger-border disabled:bg-surface-subtle',
 )
 
-// 이름표가 위에 있는 채운 칸 하나(NN/g placeholder: 이름표는 칸 밖 위).
+// 이름표가 위에 있는 칸 하나(NN/g placeholder: 이름표는 칸 밖 위).
 export function FilledField({
   label,
   required,

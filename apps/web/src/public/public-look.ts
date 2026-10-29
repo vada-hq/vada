@@ -11,11 +11,18 @@ export const type = {
   small: 'text-xs/5',
 }
 
-// 채운 칸·선택 줄·주 버튼의 높이 56px(TDS 큰 크기)
+// 주 버튼의 높이 56px(TDS FixedBottomCTA 큰 크기)
 export const control = 'min-h-14 max-sm:min-h-14'
 
-// 채운 칸·선택 줄·주 버튼의 모서리, 계좌 면·QR 판의 모서리
-export const radius = { control: 'rounded-2xl', panel: 'rounded-3xl' }
+// 입력칸·선택 줄의 높이 48px. 56px 회색 면을 칸마다 깔면 화면이 무겁다는 대표 지적(10/30)으로 줄였다.
+// 누르는 높이 44px(WCAG 2.5.5, Apple HIG) 위이고, Material 3 outlined field·Luma 신청 칸과 같은 높이대다.
+export const field = 'min-h-12 max-sm:min-h-12'
+
+// 입력칸·선택 줄은 흰 바탕 + 옅은 테두리 + 초점 고리(Luma·Stripe Checkout 칸). 회색 면은 계좌 면 하나에만 남긴다.
+export const fieldFrame = 'border border-border-strong bg-white hover:border-border-strong-hover'
+
+// 주 버튼·입력칸·선택 줄의 모서리, 계좌 면·QR 판의 모서리
+export const radius = { control: 'rounded-2xl', field: 'rounded-xl', panel: 'rounded-3xl' }
 
 // 키보드 초점 고리. 회색 면 위에서도 보이게 강조색이다.
 export const focusRing =

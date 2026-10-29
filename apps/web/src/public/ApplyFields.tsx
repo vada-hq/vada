@@ -4,6 +4,7 @@ import { useFormCheck, type FieldErrors } from '@/lib/use-form-check'
 import { useReveal } from '@/lib/use-reveal'
 import { BigButton, BottomBar } from './BottomBar'
 import { FilledField } from './FilledField'
+import { Band } from './PageParts'
 import { phoneView } from './phone-view'
 import { type } from './public-look'
 import { collectedItems, dateText, inquiryText, noticePurpose } from './registration-text'
@@ -83,8 +84,8 @@ function BasicFields(props: {
   )
 }
 
-// 받는 중일 때만 쓰는 칸과 버튼. 칸은 간격으로만 나누고(상자 없음), [신청하기]는 휴대폰에서 화면 아래에 붙는다.
-// 거절 문구는 버튼 바로 위에 보인다.
+// 받는 중일 때만 쓰는 칸과 버튼. 머리(행사 정보)와 칸 사이는 단 폭 띠로 가르고(내 신청 화면과 같은 띠),
+// 칸끼리는 간격으로만 나눈다(상자 없음). [신청하기]는 휴대폰에서 화면 아래에 붙는다. 거절 문구는 버튼 바로 위에 보인다.
 export default function ApplyFields({
   data,
   values,
@@ -102,13 +103,14 @@ export default function ApplyFields({
       ref={formRef}
       noValidate
       aria-label="참가 신청"
-      className="mt-10 flex flex-1 flex-col"
+      className="mt-8 flex flex-1 flex-col"
       onSubmit={event => {
         event.preventDefault()
         if (attempt()) onSubmit()
       }}
     >
-      <div className="flex flex-col gap-6">
+      <Band />
+      <div className="mt-8 flex flex-col gap-6">
         <BasicFields data={data} values={values} busy={busy} errors={errors} set={set} />
         <QuestionFields
           questions={data.questions}
