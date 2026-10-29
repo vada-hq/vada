@@ -10,6 +10,7 @@ import { useRecordDialogs } from '@/lib/use-record-dialogs'
 import type { RoomListState } from '../chat/useRoomList'
 import { NewEventDialog } from '../events/EventCreateDialog'
 import { canCreateEvent } from '../events/event-view'
+import { taskDirectOf } from '../tasks/TaskAssigneeName'
 import HomeBody, { type HomeOpeners } from './HomeBody'
 import HomeTaskPanel from './HomeTaskPanel'
 import { awaitingDepartment } from './member-view'
@@ -79,6 +80,7 @@ export default function HomePage({ view, rooms, taskId, onForbidden, ...openers 
         awaitingDepartment={awaitingDepartment(view.me)}
         rooms={rooms}
         onForbidden={onForbidden}
+        direct={taskDirectOf(view)}
         onNewEvent={canCreateEvent(view) ? dialogs.startCreate : undefined}
         {...openers}
       />

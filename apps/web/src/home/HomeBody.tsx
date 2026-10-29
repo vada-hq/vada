@@ -3,6 +3,7 @@ import type { AppQuery, EventTab, HomeResponse, HomeDepartmentBoard } from '@vad
 import { openMenu, openMessageRoom, openRecord } from '@/lib/go-to'
 import { rememberDepartment } from '@/lib/menu-memory'
 import type { RoomListState } from '../chat/useRoomList'
+import type { TaskDirect } from '../tasks/TaskAssigneeName'
 import { PushBandSlot } from '../push/push-band-slot'
 import type { Page } from '../workspace/pages'
 import AttentionTiles from './AttentionTiles'
@@ -44,6 +45,8 @@ type Props = HomeOpeners & {
   // 작업 공간이 옆 메뉴 배지와 같이 읽는 대화 목록(DEC-90 홈 메시지함). 같은 응답이라 칩과 배지가 어긋나지 않는다.
   rooms: RoomListState
   onForbidden: () => void
+  // 회장단·부장 홈의 '…에게 묻기'가 1:1을 여는 데 쓴다.
+  direct?: TaskDirect | undefined
 }
 type Parts = HomeOpeners & {
   home: HomeResponse
@@ -216,7 +219,7 @@ const isDepartmentHome = (
 
 export default function HomeBody({ name, awaitingDepartment = false, ...props }: Props) {
   const setPushSlot = useContext(PushBandSlot)
-  const { home, councilId, rooms, onOpenEvent, onOpenPage, onNewEvent } = props
+  const { home, councilId, rooms, direct, onOpenEvent, onOpenPage, onNewEvent } = props
   const { finance, switcher } = useFinanceView(home, councilId)
   // 작업 공간의 알림 꺼짐 띠가 새 홈 틀의 이 자리에 그려진다. 띠가 없으면 자리도 없다.
   const pushBand = setPushSlot && <div ref={setPushSlot} className="empty:hidden" />
@@ -229,6 +232,7 @@ export default function HomeBody({ name, awaitingDepartment = false, ...props }:
         councilId={councilId}
         name={name}
         pushBand={pushBand}
+        direct={direct}
         {...opens}
       />
     )
@@ -256,6 +260,7 @@ export default function HomeBody({ name, awaitingDepartment = false, ...props }:
           councilId={councilId}
           name={name}
           pushBand={pushBand}
+          direct={direct}
           {...opens}
         />
       </>

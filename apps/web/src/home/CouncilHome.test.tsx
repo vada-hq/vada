@@ -1,9 +1,9 @@
 // @vitest-environment jsdom
 import { afterEach, expect, test, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import type { CouncilView, HomeResponse } from '@vada/contracts'
 import { councilView } from '@/test-support/council-fixtures'
-import { menuPath } from '@vada/contracts'
+import { chatRoomUrl, menuPath } from '@vada/contracts'
 import { councilHome, emptyOps, eventLane, noRooms, opsRow } from '@/test-support/home-fixtures'
 import { mockApi, json } from '@/test-support/mock-api'
 import { settle } from '@/test-support/settle'
@@ -149,7 +149,7 @@ const head = (name: string, department = '기획부') => ({
   tint: 1,
 })
 
-test('① 줄: 아이콘 원 · 제목 · 사실(지남·오늘만 위험 색) · 행사, 연락할 사람에게 묻기는 누르는 곳이 아니고 제목은 업무·요청을 연다', async () => {
+test('① 줄: 아이콘 원 · 제목 · 사실(지남·오늘만 위험 색) · 행사, 제목은 업무·요청을 열고 묻기는 그 사람과의 1:1을 연다', async () => {
   const rows = [
     opsRow('t1', 'late', {
       title: '체험 부스 구성안 확정',
@@ -164,7 +164,7 @@ test('① 줄: 아이콘 원 · 제목 · 사실(지남·오늘만 위험 색) �
     }),
     opsRow('r1', 'approval', { title: '다과 구매', days: 3, contact: head('정하늘', '재정부') }),
   ]
-  open(
+  const { api } = open(
     councilHome({
       ops: emptyOps({ rows, counts: { late: 1, today: 0, tomorrow: 1, approval: 1 }, total: 3 }),
     }),
@@ -180,13 +180,37 @@ test('① 줄: 아이콘 원 · 제목 · 사실(지남·오늘만 위험 색) �
   expect(within(tomorrow!).getByText('이서연 담당자에게 묻기')).toBeTruthy()
   expect(within(approval!).getByText('결재 대기 D-3')).toBeTruthy()
   expect(within(approval!).getByText('정하늘 재정부장에게 묻기')).toBeTruthy()
-  // 묻기는 시연 뒤라 단추가 아니다.
-  expect(within(ops).queryByRole('button', { name: /묻기/ })).toBeNull()
   fireEvent.click(within(late!).getByRole('button', { name: '체험 부스 구성안 확정' }))
   expect(pathNow()).toBe('/tasks/c1/t1')
   fireEvent.click(within(approval!).getByRole('button', { name: '다과 구매' }))
   expect(pathNow()).toBe('/purchases/c1/r1')
   expect(screen.queryByRole('button', { name: /전체 \d+건 보기/ })).toBeNull()
+  // 묻기는 업무가 아니라 그 사람과의 1:1을 연다(메시지 화면 오른쪽 1:1 칸).
+  api.on('POST', '/api/organizations/c1/direct', () => json({ roomId: 'd1' }))
+  fireEvent.click(within(late!).getByRole('button', { name: /김민준 기획부장에게 묻기/ }))
+  await waitFor(() => expect(pathNow()).toBe(chatRoomUrl('c1', 'd1')))
+  expect(api.calls.filter(call => call.path.endsWith('/direct')).map(call => call.body)).toEqual([
+    { memberId: 'm-김민준' },
+  ])
+})
+
+test('1:1 권한이 없거나 나에게 묻는 줄이면 묻기는 글로만 보인다', async () => {
+  const me = { memberId: 'm1', name: '김회장', role: { kind: 'assignee' as const }, tint: 0 }
+  const rows = [
+    opsRow('t1', 'late', { days: 2, contact: head('김민준') }),
+    opsRow('t2', 'late', { days: 2, contact: me }),
+  ]
+  const home = councilHome({
+    ops: emptyOps({ rows, counts: { ...emptyOps().counts, late: 2 }, total: 2 }),
+  })
+  open(home, councilView('c1', { permissions: [] }))
+  const ops = await card('확인이 필요한 운영 상황')
+  expect(within(ops).getByText('김민준 기획부장에게 묻기')).toBeTruthy()
+  expect(within(ops).queryByRole('button', { name: /묻기/ })).toBeNull()
+  cleanup()
+  open(home)
+  const again = await card('확인이 필요한 운영 상황')
+  expect(within(again).getAllByRole('button', { name: /묻기/ })).toHaveLength(1)
 })
 
 test('배정할 일이 있으면 일 줄은 4줄이고 배정 줄이 맨 아래, 전체 보기는 숨은 갈래를 세고 누르면 홈 안에서 펼친다', async () => {

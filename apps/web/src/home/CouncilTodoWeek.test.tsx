@@ -94,7 +94,8 @@ test('③ 줄: 회의록·행사 정리는 확인하기로 원래 화면을 열�
   )
   expect(within(e!).getByText('업무 남음 1 · 정산 남음 1 · 끝난 지 15일')).toBeTruthy()
   expect(within(e!).getByText('정하늘 재정부장에게 묻기')).toBeTruthy()
-  expect(within(todo).queryByRole('button', { name: /묻기/ })).toBeNull()
+  // 재정부장에게 묻기는 그 사람과의 1:1을 여는 단추다(묻기 하나뿐).
+  expect(within(todo).getAllByRole('button', { name: /묻기/ })).toHaveLength(1)
   expect(within(l!).getByText('1일 지남').className).toContain('text-danger')
   expect(within(d!).getByText('오늘 마감').className).toContain('text-danger')
   expect(within(d!).getByText('이도윤 부회장')).toBeTruthy()

@@ -12,11 +12,14 @@ import { rememberDepartment } from '@/lib/menu-memory'
 import { meetingMinutesPath } from '../meetings/minutes-path'
 import { navigate } from '@/lib/app-location'
 import { departmentFocus } from '@/lib/org-focus'
+import StateMessage from '@/components/StateMessage'
+import type { TaskDirect } from '../tasks/TaskAssigneeName'
 import type { Page } from '../workspace/pages'
 import EventLanesCard from './EventLanesCard'
 import { CouncilHead, CouncilSplit } from './CouncilHomeLayout'
 import OpsCard from './OpsCard'
 import TodoCard from './TodoCard'
+import { useAsk, type AskOf } from './use-ask'
 import WeekCard from './WeekCard'
 
 // 회장단 홈과 부장 홈이 같이 쓰는 구역 데이터(①②③⑤). 어느 역할의 데이터인지는 서버가 정했다(DEC-38).
@@ -35,6 +38,8 @@ type Props = {
   onNewEvent?: (() => void) | undefined
   // 오른쪽 단 맨 아래 돈 한 줄(회장단: 사용 가능, 부장: 우리 부서가 맡은 예산). 없으면 자리도 없다.
   money?: ReactNode
+  // '…에게 묻기'로 1:1을 여는 데 쓰는 내 정보와 1:1 권한. 없으면 묻기는 글로만 보인다.
+  direct?: TaskDirect | undefined
 }
 
 // 오른쪽 단(③ 내가 할 일 · ⑤ 이번 주 · 돈 한 줄, c35 확정). 줄은 원래 화면을 연다.
@@ -44,7 +49,8 @@ function rightColumn({
   name,
   money,
   onOpenEvent,
-}: Pick<Props, 'board' | 'councilId' | 'name' | 'money' | 'onOpenEvent'>) {
+  askOf,
+}: Pick<Props, 'board' | 'councilId' | 'name' | 'money' | 'onOpenEvent'> & { askOf: AskOf }) {
   const openMinutes = (meetingId: string) => navigate(meetingMinutesPath(councilId, meetingId))
   return {
     right: [
@@ -52,6 +58,7 @@ function rightColumn({
         key="todo"
         todo={board.todo}
         name={name}
+        askOf={askOf}
         onOpen={row => {
           if (row.kind === 'minutes') openMinutes(row.meeting.id)
           else if (row.kind === 'event_tidy')
@@ -101,17 +108,21 @@ export default function BoardHome({
   name,
   pushBand,
   money,
+  direct,
   ...open
 }: Props) {
   const openTask = (taskId: string) => openRecord('tasks', councilId, taskId, { behind: 'home' })
   const calm = board.ops.total === 0
+  const ask = useAsk(councilId, direct)
   return (
     <div className="@container flex flex-col gap-4 @2xl:gap-6">
       {pushBand}
       <CouncilHead today={home.today} name={name} calm={calm} />
+      {ask.error && <StateMessage kind="error">{ask.error}</StateMessage>}
       {!calm && (
         <OpsCard
           ops={board.ops}
+          askOf={ask.askOf}
           onOpen={target =>
             target.kind === 'task'
               ? openTask(target.id)
@@ -146,7 +157,14 @@ export default function BoardHome({
             onNewEvent={open.onNewEvent}
           />
         }
-        {...rightColumn({ board, councilId, name, money, onOpenEvent: open.onOpenEvent })}
+        {...rightColumn({
+          board,
+          councilId,
+          name,
+          money,
+          onOpenEvent: open.onOpenEvent,
+          askOf: ask.askOf,
+        })}
       />
     </div>
   )

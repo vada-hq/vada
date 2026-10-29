@@ -8,6 +8,7 @@ import SeeAllButton from '@/components/SeeAllButton'
 import TwoColumnRow from '@/components/TwoColumnRow'
 import { Tray, TrayGroup, TrayHead } from '@/components/Tray'
 import PersonText from './PersonText'
+import type { AskOf } from './use-ask'
 import {
   TODO_ICON,
   TODO_TITLE,
@@ -23,19 +24,25 @@ type Props = {
   // 머리 얼굴의 이름(나)
   name: string
   onOpen: (row: HomeTodoRow) => void
+  // 재정부장에게 묻기를 누르면 그 사람과의 1:1을 연다. 없으면 글로만 보인다.
+  askOf?: AskOf | undefined
 }
 
-// 누구 칸: 회장단 업무의 담당자(사람만), 정산이 남은 행사 정리의 재정부장('…에게 묻기' 글, 누르는 곳 아님)
-function Who({ row }: { row: HomeTodoRow }) {
+// 누구 칸: 회장단 업무의 담당자(사람만), 정산이 남은 행사 정리의 재정부장('…에게 묻기', 누르면 1:1)
+function Who({ row, askOf }: { row: HomeTodoRow; askOf: Props['askOf'] }) {
   if (row.kind === 'event_tidy')
-    return row.settlementContact && <PersonText person={row.settlementContact} ask />
+    return (
+      row.settlementContact && (
+        <PersonText person={row.settlementContact} ask onAsk={askOf?.(row.settlementContact)} />
+      )
+    )
   if (row.kind === 'minutes' || !row.owner) return null
   return <PersonText person={row.owner} />
 }
 
 // ③ 내가 할 일(c35 확정 시안): ①과 같은 쟁반·흰 묶음·두 칸 줄이고, 머리에 내 얼굴, 줄 끝에 '확인하기' 알약을 둔다.
 // 확인할 것(회의록·행사 정리)은 알약으로 원래 화면을 열고, 업무 줄은 줄 전체가 업무를 연다(꺾쇠).
-export default function TodoCard({ todo, name, onOpen }: Props) {
+export default function TodoCard({ todo, name, onOpen, askOf }: Props) {
   const headId = useId()
   const [expanded, setExpanded] = useState(false)
   if (todo.total === 0) return <QuietBand id={headId}>{`${TODO_TITLE} 없음`}</QuietBand>
@@ -58,7 +65,7 @@ export default function TodoCard({ todo, name, onOpen }: Props) {
             fact={todoFact(row)}
             danger={isTodoDanger(row)}
             wrapFact
-            who={<Who row={row} />}
+            who={<Who row={row} askOf={askOf} />}
             trailing={
               row.kind === 'minutes' || row.kind === 'event_tidy' ? (
                 <ActionPill onClick={() => onOpen(row)}>확인하기</ActionPill>

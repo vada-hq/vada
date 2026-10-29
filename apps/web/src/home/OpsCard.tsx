@@ -8,6 +8,7 @@ import SeeAllButton from '@/components/SeeAllButton'
 import TwoColumnRow from '@/components/TwoColumnRow'
 import { Tray, TrayGroup, TrayHead } from '@/components/Tray'
 import PersonText from './PersonText'
+import type { AskOf } from './use-ask'
 import {
   ASSIGN_TITLE,
   OPS_ICON,
@@ -27,11 +28,21 @@ type Props = {
   onSeeFinance: () => void
   // 부장 없는 부서의 '부장 정하기': 조직 화면의 그 부서
   onSetHead: (departmentId: string) => void
+  // '…에게 묻기'를 누르면 그 사람과의 1:1을 연다. 없으면 글로만 보인다.
+  askOf?: AskOf | undefined
 }
 
-// 누구: 얼굴 + '…에게 묻기'. 묻기는 아직 없어(시연 뒤) 같은 모양의 글로 두고 누르는 곳이 아니다.
+// 누구: 얼굴 + '…에게 묻기'(누르면 그 사람과의 1:1).
 // 연락할 부장이 없으면 '기획부 · 부장 없음'과 [부장 정하기](조직의 그 부서, 재정 담당 없음과 같은 꼴)를 둔다.
-function Contact({ row, onSetHead }: { row: HomeOpsRow; onSetHead: Props['onSetHead'] }) {
+function Contact({
+  row,
+  onSetHead,
+  askOf,
+}: {
+  row: HomeOpsRow
+  onSetHead: Props['onSetHead']
+  askOf: Props['askOf']
+}) {
   if (row.noHead) {
     const { id, name } = row.noHead
     return (
@@ -44,7 +55,7 @@ function Contact({ row, onSetHead }: { row: HomeOpsRow; onSetHead: Props['onSetH
       </span>
     )
   }
-  return row.contact && <PersonText person={row.contact} ask />
+  return row.contact && <PersonText person={row.contact} ask onAsk={askOf?.(row.contact)} />
 }
 
 function assignLinks(ops: HomeOps, props: Props): AssignLink[] {
@@ -84,7 +95,7 @@ export default function OpsCard(props: Props) {
             fact={factText(row)}
             danger={isDanger(row)}
             detail={row.event?.name}
-            who={<Contact row={row} onSetHead={props.onSetHead} />}
+            who={<Contact row={row} onSetHead={props.onSetHead} askOf={props.askOf} />}
             onOpen={() => onOpen(row.target)}
           />
         ))}
