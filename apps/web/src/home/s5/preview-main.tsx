@@ -13,6 +13,8 @@ import C1Preview from '../c1/C1Preview'
 import type { C1DataName } from '../c1/c1-view'
 import C1rPreview, { C1R_VARIANTS, type C1rVariant } from '../c1r/C1rPreview'
 import { C1R_DATA_NAMES, type C1rDataName } from '../c1r/c1r-data'
+import C2Preview, { C2_VARIANTS, type C2Variant } from '../c2/C2Preview'
+import { C2_DATA_NAMES, type C2DataName } from '../c2/c2-data'
 import ThemeTile from '../c1r/themes/ThemeTile'
 import { applyTheme, themeOf } from '../c1r/themes/theme'
 import { councilHomeSample } from '../../ui-gallery/CouncilHomeSections'
@@ -144,18 +146,27 @@ function Workspace() {
 // 내용 높이에서 끊겼다(S6 검토). 미리보기는 페이지 전체를 찍어야 해서 h-dvh 대신 min-h-dvh로 같은 높이를 채운다.
 // C1: ① 컴포넌트 하나만 띄운다(작업 공간 없음). /home-s5.html?component=c1&variant=A|B&data=main|many|normal
 // C1R: ① 컴포넌트 시안 절차(P3~)의 판. /home-s5.html?component=c1r&variant=0|1|2|3|f1..f8&data=main|many|assign|normal|empty[&theme=base|a|b|c]
+// C2: ② 행사 구역 시안. /home-s5.html?component=c2&variant=e1..e6&data=main|quiet|one|empty|long(테마는 base 고정)
 // 스타일 타일: 한 테마의 색·글자·부품 견본과 ① v3·v1. /home-s5.html?component=tile&theme=base|a|b|c
 const c1 = params.get('component') === 'c1'
 const c1r = params.get('component') === 'c1r'
+const c2 = params.get('component') === 'c2'
 const tile = params.get('component') === 'tile'
 const theme = themeOf(params.get('theme'))
 if (c1r || tile || realHome) applyTheme(theme)
+if (c2) applyTheme('base')
 const c1rVariant = (Object.keys(C1R_VARIANTS).includes(params.get('variant') ?? '') ? params.get('variant') : '0') as C1rVariant
 const c1rData = (C1R_DATA_NAMES.includes(params.get('data') as C1rDataName) ? params.get('data') : 'main') as C1rDataName
+const c2Variant = (Object.keys(C2_VARIANTS).includes(params.get('variant') ?? '') ? params.get('variant') : 'e1') as C2Variant
+const c2Data = (C2_DATA_NAMES.includes(params.get('data') as C2DataName) ? params.get('data') : 'main') as C2DataName
 createRoot(document.getElementById('root')!).render(
   tile ? (
     <StrictMode>
       <ThemeTile theme={theme} />
+    </StrictMode>
+  ) : c2 ? (
+    <StrictMode>
+      <C2Preview variant={c2Variant} data={c2Data} />
     </StrictMode>
   ) : c1r ? (
     <StrictMode>
