@@ -16,13 +16,16 @@ import {
 type Reader = Pick<Db, 'select'>
 
 // 완료한 행사의 완료 처리 시각: 마지막 완료 결재의 시각. 완료한 행사의 마지막 결재는 완료이므로 완료 결재 시각의 가장 늦은 것이다.
-async function completedAtByEvent(db: Reader, eventIds: string[]) {
+// 결재 기록도 이 학생회 것만 본다.
+export async function completedAtByEvent(db: Reader, councilId: string, eventIds: string[]) {
   if (!eventIds.length) return new Map<string, Date>()
   const rows = await db
     .select({ id: approval.targetId, at: max(approval.actedAt) })
     .from(approval)
+    .innerJoin(record, eq(record.id, approval.id))
     .where(
       and(
+        eq(record.councilId, councilId),
         eq(approval.targetKind, 'event'),
         inArray(approval.targetId, eventIds),
         eq(approval.outcome, 'completed'),
@@ -45,10 +48,11 @@ async function completedOrderOf(db: Reader, actor: Actor) {
       all.map(row => row.id),
     )),
   ]
-  const at = await completedAtByEvent(db, completed)
-  const time = (id: string) => at.get(id)?.getTime() ?? 0
+  const at = await completedAtByEvent(db, actor.councilId, completed)
+  // 이 학생회의 완료 결재가 없는 행사는 빼 둔다(완료 시각 없이 카드를 만들지 않는다).
+  const time = (id: string) => at.get(id)!.getTime()
   return {
-    ids: completed.sort((a, b) => time(b) - time(a) || a.localeCompare(b)),
+    ids: completed.filter(id => at.has(id)).sort((a, b) => time(b) - time(a) || a.localeCompare(b)),
     at,
   }
 }

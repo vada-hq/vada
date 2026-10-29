@@ -61,7 +61,9 @@ async function meetingLinesOf(db: Reader, councilId: string, eventId: string) {
   }))
 }
 
-const kindRank = (entry: RecordTimelineEntry) => RECORD_TIMELINE_KINDS.indexOf(entry.kind)
+// 완료와 완료 취소는 같은 차례로 두어, 같은 시각이면 결재 차례(acted_at, id)를 그대로 둔다(취소 → 다시 완료가 뒤집히지 않게).
+const kindRank = (entry: RecordTimelineEntry) =>
+  RECORD_TIMELINE_KINDS.indexOf(entry.kind === 'completion_cancelled' ? 'completed' : entry.kind)
 
 // 행사 기록의 타임라인: 만듦, 정보 변경(events/history.ts eventHistoryOf), 회의, 완료와 완료 취소(completionApprovalsOf).
 // 시각은 모두 ISO라 글자 순서가 시간 순서다. 같은 시각이면 종류 차례, 그다음 들어온 차례다(정렬은 안정적이다).

@@ -67,7 +67,7 @@ export const RECORD_TIMELINE_KINDS = [
 ] as const
 export type RecordTimelineKind = (typeof RECORD_TIMELINE_KINDS)[number]
 
-// 시각(ISO)순, 같으면 RECORD_TIMELINE_KINDS 차례다. recordId는 줄이 가리키는 기록(회의)이고, 없으면 null이다.
+// 시각(ISO)순, 같으면 RECORD_TIMELINE_KINDS 차례다(완료·완료 취소끼리는 결재 차례). recordId는 줄이 가리키는 기록(회의)이고, 없으면 null이다.
 export interface RecordTimelineEntry {
   kind: RecordTimelineKind
   at: string

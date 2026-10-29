@@ -1,4 +1,5 @@
 import { and, eq, exists, inArray, isNull, sql } from 'drizzle-orm'
+import { alias } from 'drizzle-orm/pg-core'
 import {
   attendance,
   budgetItem,
@@ -15,7 +16,10 @@ import { countAll, sumOf } from '../db/sums.js'
 import type { Db } from '../db/types.js'
 
 // 기록 메뉴의 셈을 행사 여럿에 한 번씩 묶어 센다(목록이 행사마다 다시 묻지 않게). 상세는 행사 하나로 부른다.
-// 줄마다 그 기록의 학생회로 거른다. 행사 번호는 부르는 쪽이 이 학생회 것만 넘긴다.
+// 줄마다 그 기록의 학생회로 거른다. 행사 번호는 부르는 쪽이 이 학생회 것만 넘긴다. 기록 모듈(records/same-council.ts)이
+// 다른 학생회 기록을 가리키지 못하게 막지만, 이 셈은 가리킨 쪽의 학생회도 다시 본다(이름·수가 새지 않게).
+const attendanceRecord = alias(record, 'record_attendance')
+const formRecord = alias(record, 'record_form')
 
 type Reader = Pick<Db, 'select'>
 export type RecordScope = { councilId: string; eventIds: string[] }
@@ -39,7 +43,14 @@ export async function registrationCountsByEvent(db: Reader, scope: RecordScope) 
     db
       .select({ one: sql`1` })
       .from(attendance)
-      .where(and(eq(attendance.registrationId, registration.id), isNull(attendance.cancelledAt))),
+      .innerJoin(attendanceRecord, eq(attendanceRecord.id, attendance.id))
+      .where(
+        and(
+          eq(attendance.registrationId, registration.id),
+          isNull(attendance.cancelledAt),
+          eq(attendanceRecord.councilId, scope.councilId),
+        ),
+      ),
   )
   const rows = await db
     .select({
@@ -57,8 +68,13 @@ export async function registrationCountsByEvent(db: Reader, scope: RecordScope) 
     .from(registration)
     .innerJoin(registrationForm, eq(registrationForm.id, registration.formId))
     .innerJoin(record, eq(record.id, registration.id))
+    .innerJoin(formRecord, eq(formRecord.id, registrationForm.id))
     .where(
-      and(eq(record.councilId, scope.councilId), inArray(registrationForm.eventId, scope.eventIds)),
+      and(
+        eq(record.councilId, scope.councilId),
+        eq(formRecord.councilId, scope.councilId),
+        inArray(registrationForm.eventId, scope.eventIds),
+      ),
     )
     .groupBy(registrationForm.eventId)
   return byEvent<RegistrationCounts>(rows)
@@ -108,7 +124,10 @@ export async function departmentsByEvent(db: Reader, scope: RecordScope) {
     .select({ eventId: task.eventId, name: department.name })
     .from(task)
     .innerJoin(record, eq(record.id, task.id))
-    .innerJoin(department, eq(department.id, task.departmentId))
+    .innerJoin(
+      department,
+      and(eq(department.id, task.departmentId), eq(department.councilId, scope.councilId)),
+    )
     .where(
       and(
         eq(record.councilId, scope.councilId),

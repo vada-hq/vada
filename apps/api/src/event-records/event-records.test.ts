@@ -336,3 +336,67 @@ test(
     })
   }),
 )
+
+test(
+  '같은 시각의 완료 → 완료 취소 → 다시 완료는 결재 차례대로 보인다',
+  withSettlement(async t => {
+    const ev = await t.event()
+    const at = new Date(Date.now() + HOUR)
+    await t.completion(ev, 'completed', at)
+    await t.completion(ev, 'completion_cancelled', at, '고침')
+    await t.completion(ev, 'completed', at)
+    const { timeline } = await recordOf(t, ev)
+    assert.deepEqual(
+      timeline.slice(-3).map(line => line.kind),
+      ['completed', 'completion_cancelled', 'completed'],
+    )
+  }),
+)
+
+test(
+  '기록 모듈을 거치지 않고 다른 학생회 부서·출석·결재가 우리 기록을 가리켜도 이름·수·완료가 새지 않는다',
+  withSettlement(async t => {
+    const ev = await t.event({ name: '우리 행사' })
+    const job = await task(t, {
+      eventId: ev,
+      status: 'done',
+      departmentId: t.council.departments.planning,
+    })
+    const ours = await t.registration(await t.form(ev))
+    const theirEvent = await t.event({ name: '그쪽 행사' }, t.other)
+    const theirReg = await t.registration(await t.form(theirEvent, t.other), {}, t.other)
+    const theirAttendance = await t.make(t.other, 'attendance', {
+      registrationId: theirReg,
+      confirmedAt: clockNow,
+      method: 'qr',
+    })
+    const theirCompletion = await t.completionOfOther(theirEvent)
+    await t.pg.query('UPDATE department SET name = $1 WHERE id = $2', [
+      '그쪽 부서',
+      t.other.departments.planning,
+    ])
+    await t.pg.query('UPDATE task SET department_id = $1 WHERE id = $2', [
+      t.other.departments.planning,
+      job,
+    ])
+    await t.pg.query('UPDATE attendance SET registration_id = $1 WHERE id = $2', [
+      ours,
+      theirAttendance,
+    ])
+    // 우리 행사는 완료하지 않았고, 그쪽 결재만 우리 행사를 가리킨다
+    const quiet = await t.event({ name: '완료 안 함' })
+    await t.pg.query('UPDATE approval SET target_id = $1 WHERE id = $2', [quiet, theirCompletion])
+    await complete(t, ev)
+    const list = await listOf(t)
+    assert.deepEqual(
+      list.events.map(item => item.name),
+      ['우리 행사'],
+    )
+    assert.deepEqual(list.events[0]!.departments, [])
+    assert.equal(list.events[0]!.chips.attended, 0)
+    const record = await recordOf(t, ev)
+    assert.deepEqual(record.overview.departments, [])
+    assert.equal(record.outcome.registrations.attended, 0)
+    assert.equal((await readRecord(t, quiet)).status, 404)
+  }),
+)

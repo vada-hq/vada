@@ -12,6 +12,7 @@ import {
   registrationCountsByEvent,
   sourceCountsByEvent,
 } from './counts.js'
+import { completedAtByEvent } from './list.js'
 import { timelineOf } from './timeline.js'
 
 type Reader = Pick<Db, 'select'>
@@ -22,7 +23,9 @@ async function completedEventOf(db: Reader, actor: Actor, eventId: string) {
   const approvals = await completionApprovalsOf(db, eventId)
   const last = approvals.at(-1)
   const completed = (await completedEventIdsAmong(db, [eventId])).has(eventId)
-  if (!completed || last?.outcome !== 'completed') throw new ApiError('NOT_FOUND')
+  // 이 학생회의 완료 결재가 있어야 한다(목록과 같은 조건).
+  const ours = (await completedAtByEvent(db, actor.councilId, [eventId])).has(eventId)
+  if (!completed || !ours || last?.outcome !== 'completed') throw new ApiError('NOT_FOUND')
   return { row, approvals, last }
 }
 
