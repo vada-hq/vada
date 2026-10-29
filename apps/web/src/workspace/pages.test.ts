@@ -6,27 +6,23 @@ const COUNCIL = '컴퓨터학부 학생회'
 const labels = (page: Page, deeper: PageTrail | null = null) =>
   trailOf(page, COUNCIL, deeper).crumbs.map(crumb => crumb.label)
 
+// 넓은 모니터에서도 칸이 길어지지 않게 모든 화면이 1280px 틀이고, 설정만 768px이다(DEC-117 초안, DEC-101 고침).
 test.each([
   ['home', 'default'],
-  ['chat', 'full'],
-  ['council', 'full'],
+  ['chat', 'default'],
+  ['council', 'default'],
   ['events', 'default'],
-  ['tasks', 'full'],
+  ['tasks', 'default'],
   ['meetings', 'default'],
-  ['calendar', 'full'],
+  ['calendar', 'default'],
   ['purchases', 'default'],
   ['finance', 'default'],
   ['people', 'default'],
   ['departments', 'default'],
+  ['records', 'default'],
   ['settings', 'narrow'],
-] as const)('%s의 폭은 %s이다(DEC-101)', (page, width) => {
+] as const)('%s의 폭은 %s이다', (page, width) => {
   expect(pageWidthOf(page)).toBe(width)
-})
-
-test('행사 목록은 기본 폭이고 행사 기록은 탭과 관계없이 끝까지다', () => {
-  expect(pageWidthOf('events')).toBe('default')
-  expect(pageWidthOf('events', 'events')).toBe('full')
-  expect(pageWidthOf('home', 'events')).toBe('default')
 })
 
 // 경로 줄 맨 앞은 학생회 이름이고, 칸은 DEC-96 그대로다.

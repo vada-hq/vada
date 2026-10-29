@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react'
 import { ChevronLeft, Ellipsis, Plus } from 'lucide-react'
-import type { EventDetail, RecordKind } from '@vada/contracts'
+import type { EventDetail } from '@vada/contracts'
 import PageActions, { PageActionsProvider } from '@/components/PageActions'
 import PageColumn from '@/components/PageColumn'
 import { pageFrameClass } from '@/components/page-width'
@@ -26,7 +26,6 @@ type Sample = {
   key: string
   page: Page
   council: string
-  record?: RecordKind
   // 화면이 넘길 더 깊은 칸. 본문(body)이 PageHeading으로 넘기면 그것이 먼저다.
   deeper?: PageTrail
   action?: ReactNode
@@ -39,7 +38,7 @@ function SampleHeader({ sample }: { sample: Sample }) {
   const [slot, setSlot] = useState<HTMLDivElement | null>(null)
   const [sent, setSent] = useState<PageTrail | null>(null)
   const trail = trailOf(sample.page, sample.council, sent ?? sample.deeper ?? null)
-  const width = pageWidthOf(sample.page, sample.record)
+  const width = pageWidthOf(sample.page)
   return (
     <div className="flex flex-col border bg-surface-subtle">
       <WorkspaceHeader
@@ -122,7 +121,6 @@ const SAMPLES: Sample[] = [
   {
     key: '행사 업무 탭',
     page: 'events',
-    record: 'events',
     council: COUNCIL,
     deeper: eventTrail(SPORTS_DAY, '업무'),
     action: history,
@@ -131,7 +129,6 @@ const SAMPLES: Sample[] = [
   {
     key: '긴 학생회 이름과 긴 행사명',
     page: 'events',
-    record: 'events',
     council: LONG_COUNCIL,
     deeper: eventTrail(longName, '인원 관리'),
     action: history,
@@ -150,7 +147,6 @@ const SAMPLES: Sample[] = [
   {
     key: '실제 행사 화면 · 후속 정리 중(완료 가능)',
     page: 'events',
-    record: 'events',
     council: COUNCIL,
     body: (
       <EventPageBody
@@ -169,7 +165,6 @@ const SAMPLES: Sample[] = [
   {
     key: '실제 행사 화면 · 완료(완료 사유)',
     page: 'events',
-    record: 'events',
     council: COUNCIL,
     body: (
       <EventPageBody
@@ -196,7 +191,6 @@ const SAMPLES: Sample[] = [
   {
     key: '행사 메시지 탭',
     page: 'events',
-    record: 'events',
     council: COUNCIL,
     deeper: eventTrail(SPORTS_DAY, '메시지'),
     action: history,
