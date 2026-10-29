@@ -22,7 +22,6 @@ export function peopleSlots({ people, team, view }: Context) {
         member.departments.some(item => item.id === department.id)
       return (
         <HeadPicker
-          departmentName={department.name}
           headTitle={view.council.titles.head}
           candidates={[...assignable.filter(inside), ...assignable.filter(m => !inside(m))]}
           saving={team.saving}

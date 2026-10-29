@@ -103,9 +103,8 @@ function LeadOrg({ renaming = false, adding = false }: { renaming?: boolean; add
       unassignedFirst
       person={row(true)}
       invite={<InviteButton onClick={noop} />}
-      headPicker={department => (
+      headPicker={() => (
         <HeadPicker
-          departmentName={department.name}
           headTitle={titles.head}
           candidates={members}
           saving={false}

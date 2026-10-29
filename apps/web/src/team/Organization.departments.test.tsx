@@ -680,8 +680,8 @@ test('부서 카드는 부장 칸과 부원 칸으로 나뉘고, 부장이 없�
     '이재정',
   )
   expect(within(group('재정부')).getByText('부원 0명')).toBeTruthy()
-  expect(within(group('재정부')).queryByRole('button', { name: '재정부 부장 지정' })).toBeNull()
-  fireEvent.keyDown(within(group('기획부')).getByRole('button', { name: '기획부 부장 지정' }), {
+  expect(within(group('재정부')).queryByRole('button', { name: '부장 지정' })).toBeNull()
+  fireEvent.keyDown(within(group('기획부')).getByRole('button', { name: '부장 지정' }), {
     key: 'Enter',
   })
   fireEvent.click(within(await screen.findByRole('menu')).getByRole('menuitem', { name: '박새내' }))
@@ -696,7 +696,7 @@ test('직급 없는 운영진도 부서 카드의 부장·부원을 다 보고, 
     '이재정',
   )
   expect(within(group('기획부')).getByText('부원 0명')).toBeTruthy()
-  expect(screen.queryByRole('button', { name: '기획부 부장 지정' })).toBeNull()
+  expect(screen.queryByRole('button', { name: '부장 지정' })).toBeNull()
   expect(screen.queryByRole('button', { name: '구성원 초대' })).toBeNull()
 })
 
@@ -707,7 +707,7 @@ test('[부장 지정]으로 부장을 정하고 창을 닫으면 초점이 부�
   api.on('POST', '/api/organizations/c1/members/m3/departments', () => json(assigned))
   render(<Harness permissions={LEADER_PERMISSIONS} />)
   await loaded()
-  fireEvent.keyDown(within(group('기획부')).getByRole('button', { name: '기획부 부장 지정' }), {
+  fireEvent.keyDown(within(group('기획부')).getByRole('button', { name: '부장 지정' }), {
     key: 'Enter',
   })
   fireEvent.click(within(await screen.findByRole('menu')).getByRole('menuitem', { name: '박새내' }))

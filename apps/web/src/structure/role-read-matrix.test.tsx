@@ -70,6 +70,7 @@ const ACTION_LABELS = new Set<string>([
   '회계 기간 만들기',
   '구성원 초대',
   '부서 추가',
+  '부장 지정',
 ])
 // 같은 읽기 링크인데 역할마다 이름만 다른 것: 총예산 카드의 예산 탭 링크는 재정부에게 '편성'이다(와이어프레임 FIN-00).
 const SAME_LINK: Record<string, string> = { 편성: '내역' }
