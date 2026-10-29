@@ -28,6 +28,8 @@ import {
   previewOf,
   valuesOfForm,
 } from './registration-form'
+import { QuestionEditor } from './QuestionEditor'
+import { questionErrors } from './question-draft'
 import { useStaffPost } from './useStaffPost'
 
 type Props = EventDialogHandlers & {
@@ -108,6 +110,7 @@ function useFormEditor(props: Props) {
     withContract(
       {
         ...formErrors(values),
+        ...questionErrors(values.questions),
         account: accountError(form, values, account.pick.id),
       },
       parsed,
@@ -160,6 +163,13 @@ function EditorFields({ editor, props }: { editor: Editor; props: Props }) {
       </FormSection>
       <FormSection title="받는 항목">
         <CollectFields {...fields} />
+        <QuestionEditor
+          questions={values.questions}
+          locked={(props.form?.applicantCount ?? 0) > 0}
+          disabled={saving}
+          errors={errors}
+          onChange={questions => setValues({ ...values, questions })}
+        />
       </FormSection>
       {post.problem && <StateMessage kind="error">{post.problem}</StateMessage>}
       <div className="flex flex-wrap items-center justify-end gap-2">

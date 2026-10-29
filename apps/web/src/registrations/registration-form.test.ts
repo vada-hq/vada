@@ -25,6 +25,7 @@ test('처음 값: 이름은 참가 신청, 무료, 학번은 받는다. 비운 �
     payerFee: null,
     nonPayerFee: null,
     feeAccountId: null,
+    questions: [],
   })
 })
 

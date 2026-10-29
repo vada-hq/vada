@@ -72,6 +72,21 @@ function StatusCells({ row }: { row: EventApplicant }) {
   )
 }
 
+// 그 신청의 답(질문마다 한 줄). 명단을 읽을 수 있는 사람은 모두 본다(서버가 열람 기록을 남긴 응답이다).
+function AnswerLines({ answers }: { answers: EventApplicant['answers'] }) {
+  if (!answers.length) return null
+  return (
+    <dl className="mt-1 flex flex-col gap-0.5 text-xs text-muted-foreground">
+      {answers.map(answer => (
+        <div key={answer.questionId} className="wrap-anywhere">
+          <dt className="inline">{answer.title}</dt>{' '}
+          <dd className="inline text-gray-700">{answer.values.join(', ') || '—'}</dd>
+        </div>
+      ))}
+    </dl>
+  )
+}
+
 function ApplicantCells({ row, props }: { row: EventApplicant; props: Props }) {
   return (
     <>
@@ -95,6 +110,7 @@ function ApplicantCells({ row, props }: { row: EventApplicant; props: Props }) {
             />
           )}
         </span>
+        <AnswerLines answers={row.answers} />
       </td>
       <td className="px-2 py-3 tabular-nums wrap-anywhere @max-2xl:basis-1/2 @max-2xl:py-1">
         <span className="hidden text-xs text-muted-foreground @max-2xl:inline">

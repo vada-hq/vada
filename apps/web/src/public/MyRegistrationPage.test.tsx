@@ -192,3 +192,19 @@ test('확인한 참가비도 완료 화면 참가비 칸에 한 번만 보인다
   expect(screen.getAllByText('입금 확인됨')).toHaveLength(1)
   expect(screen.queryByText('입금 확인 전')).toBeNull()
 })
+
+test('질문이 있는 양식이면 내 답이 질문마다 보이고 답하지 않은 질문은 답 없음이다', async () => {
+  setup(
+    myRegistration({
+      answers: [
+        { questionId: 'q1', title: '티셔츠 사이즈', values: ['M'] },
+        { questionId: 'q2', title: '참가 종목', values: ['축구', '농구'] },
+        { questionId: 'q3', title: '하고 싶은 말', values: [] },
+      ],
+    }),
+  )
+  const answers = await screen.findByRole('region', { name: '내 답' })
+  expect(within(answers).getByText('티셔츠 사이즈')).toBeTruthy()
+  expect(within(answers).getByText('축구, 농구')).toBeTruthy()
+  expect(within(answers).getByText('답 없음')).toBeTruthy()
+})

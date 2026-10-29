@@ -63,6 +63,7 @@ function setup() {
         formId: staffForm().id,
         formTitle: staffForm().name,
         affiliation: null,
+        answers: [],
         needsAttention: false,
       })),
       counts: {

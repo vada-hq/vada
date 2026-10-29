@@ -64,6 +64,7 @@ import { DepartmentHomeSection } from './DepartmentHomeSections'
 import { FinanceHomeSection, HomeFinanceSummarySection } from './FinanceHomeSections'
 import { HomeEventStatusSection } from './HomeEventStatusSections'
 import { ApplyNoticeSection, PublicSection } from './PublicSections'
+import { QuestionEditorSection } from './QuestionSections'
 import {
   ApplicantRowSection,
   EventApplicantsSection,
@@ -153,6 +154,7 @@ export const gallerySections = [
   PublicSection,
   ApplyNoticeSection,
   RegistrationSection,
+  QuestionEditorSection,
   RegistrationReceptionSection,
   ScanVerdictSection,
   ApplicantRowSection,

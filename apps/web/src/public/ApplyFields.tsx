@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input'
 import { useFormCheck, type FieldErrors } from '@/lib/use-form-check'
 import { useReveal } from '@/lib/use-reveal'
 import { collectedItems, dateText, inquiryText, noticePurpose } from './registration-text'
+import { QuestionFields } from './QuestionFields'
 import { applyErrors, type ApplyValues } from './useApply'
 
 type Props = {
@@ -101,6 +102,15 @@ export default function ApplyFields({
         />
       </Field>
       <OptionalFields data={data} values={values} busy={busy} errors={errors} set={set} />
+      <QuestionFields
+        questions={data.questions}
+        answers={values.answers}
+        busy={busy}
+        errors={errors}
+        onAnswer={(questionId, value) =>
+          set({ answers: { ...values.answers, [questionId]: value } })
+        }
+      />
       <Button type="submit" touch busy={busy}>
         신청하기
       </Button>

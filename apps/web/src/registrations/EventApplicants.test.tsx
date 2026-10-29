@@ -187,3 +187,15 @@ test('상한을 넘긴 검색은 보내지 않고 칸에서 고쳐 다시 찾을
   expect(search.getAttribute('aria-invalid')).not.toBe('true')
   api.assertNoUnexpectedRequests()
 })
+
+// 답은 명단을 읽는 사람 모두가 본다(관리 권한과 상관없다).
+test('명단 줄에 질문마다 답이 보이고 관리 권한이 없어도 같다', async () => {
+  const answers = [
+    { questionId: 'q1', title: '티셔츠 사이즈', values: ['M'] },
+    { questionId: 'q2', title: '참가 종목', values: [] },
+  ]
+  setup(data({ canManage: false, applicants: [row({ answers })] }))
+  expect(await screen.findByText('티셔츠 사이즈')).toBeTruthy()
+  expect(screen.getByText('M')).toBeTruthy()
+  expect(screen.getByText('참가 종목')).toBeTruthy()
+})

@@ -72,6 +72,22 @@ export function SavedLinkBlock({ mine }: { mine: MyRegistration }) {
   )
 }
 
+// 내가 낸 답(질문마다). 질문이 없는 양식은 그리지 않는다.
+function AnswersBlock({ mine }: { mine: MyRegistration }) {
+  if (!mine.answers.length) return null
+  return (
+    <section aria-label="내 답" className={`${cardClass} w-full p-5 text-left`}>
+      <dl className="flex flex-col gap-3">
+        {mine.answers.map(answer => (
+          <Fact key={answer.questionId} label={answer.title}>
+            {answer.values.length ? answer.values.join(', ') : '답 없음'}
+          </Fact>
+        ))}
+      </dl>
+    </section>
+  )
+}
+
 export function MineFacts({ mine }: { mine: MyRegistration }) {
   return (
     <div className="flex flex-col items-center gap-5 text-center break-keep wrap-anywhere">
@@ -90,6 +106,7 @@ export function MineFacts({ mine }: { mine: MyRegistration }) {
         {mine.mine.phone && <p className="text-sm text-muted-foreground">{mine.mine.phone}</p>}
       </div>
       <FeeBlock mine={mine} />
+      <AnswersBlock mine={mine} />
       <section className="flex w-full flex-col gap-3 rounded-lg bg-muted p-4 text-left">
         <div className="flex flex-col gap-1">
           <h2 className="text-sm font-medium">안내 사항</h2>

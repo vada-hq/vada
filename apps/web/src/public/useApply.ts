@@ -15,13 +15,14 @@ import {
 } from '@/lib/registration-messages'
 import { applyCommandId, clearApplyCommand } from './apply-command'
 import { requiredText, withContract } from '@/lib/use-form-check'
+import { answerErrors, answersRequest, type AnswerValues } from './answer-values'
 
-export type ApplyValues = { name: string; studentId: string; phone: string }
-export const EMPTY_VALUES: ApplyValues = { name: '', studentId: '', phone: '' }
+export type ApplyValues = { name: string; studentId: string; phone: string; answers: AnswerValues }
+export const EMPTY_VALUES: ApplyValues = { name: '', studentId: '', phone: '', answers: {} }
 
 const CHECK_COMMAND_ID = '00000000-0000-4000-8000-000000000000'
 
-type Collects = Pick<PublicRegistrationForm, 'collectsStudentId' | 'collectsPhone'>
+type Collects = Pick<PublicRegistrationForm, 'collectsStudentId' | 'collectsPhone' | 'questions'>
 
 // 받지 않는 칸은 보내지 않는다. 버튼을 켜는 판단과 보내는 본문이 같은 스키마에서 나온다.
 export function parseApply(form: Collects, values: ApplyValues) {
@@ -31,6 +32,7 @@ export function parseApply(form: Collects, values: ApplyValues) {
     name: values.name,
     studentId: form.collectsStudentId ? values.studentId : null,
     phone: form.collectsPhone ? values.phone : null,
+    answers: answersRequest(form.questions, values.answers),
   })
 }
 
@@ -41,6 +43,7 @@ export function applyErrors(form: Collects, values: ApplyValues) {
       name: requiredText(values.name, '이름을'),
       studentId: form.collectsStudentId ? requiredText(values.studentId, '학번을') : undefined,
       phone: form.collectsPhone ? requiredText(values.phone, '휴대폰 번호를') : undefined,
+      ...answerErrors(form.questions, values.answers),
     },
     parseApply(form, values),
     { studentId: APPLY_STUDENT_ID_INVALID, phone: APPLY_PHONE_INVALID },

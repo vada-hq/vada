@@ -12,6 +12,7 @@ import { FormReception } from '@/registrations/FormReception'
 import { eventDetail } from '@/test-support/event-fixtures'
 import { EventApplicantsView } from '@/registrations/EventApplicantsView'
 import { Section } from './GallerySection'
+import { sampleAnswers } from './question-samples'
 import { longName, unbroken } from './sample-text'
 
 const form = (id: string, extra: Partial<RegistrationForm>): RegistrationForm => ({
@@ -187,7 +188,7 @@ const eventRows: EventApplicant[] = [
     formId: '00000000-0000-4000-8000-000000000201',
     formTitle: '재학생 참가 신청',
     affiliation: null,
-    answers: [],
+    answers: sampleAnswers,
     needsAttention: false,
   },
   {
