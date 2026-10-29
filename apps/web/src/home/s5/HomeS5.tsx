@@ -6,6 +6,7 @@ import type { S5Home } from './s5-data'
 import S5Attention from './S5Attention'
 import S5Events from './S5Events'
 import { S5Finance, S5Finish, S5Greeting, S5Upcoming } from './S5Lists'
+import HomeS7, { type S7Preview } from '../s7/HomeS7'
 import {
   attentionMore,
   attentionRows,
@@ -17,12 +18,14 @@ import {
 } from './s5-view'
 
 // 회장단 홈 S5 흑백 시안 A·B·C(notes/home-design-rules.md 3절). 미리보기(home-s5.html)에서만 쓴다. 지금 홈(CouncilHome)은 그대로다.
-export type S5Variant = 'A' | 'B' | 'C'
-export const HomeS5Preview = createContext<{ variant: S5Variant; data: S5Home } | null>(null)
+// B2는 10/29 내용 확정판(s7/HomeS7). A·B·C는 옛 내용으로 남긴다.
+export type S5Variant = 'A' | 'B' | 'C' | 'B2'
+export const HomeS5Preview = createContext<{ variant: S5Variant; data: S5Home; s7?: S7Preview } | null>(null)
 
 type Props = {
   variant: S5Variant
   data: S5Home
+  s7?: S7Preview | undefined
   councilId: string
   pushBand?: ReactNode
   onOpenEvent: (eventId: string, tab?: EventTab) => void
@@ -56,6 +59,21 @@ function useOpeners({ councilId, onOpenEvent, onOpenPage }: Props) {
 }
 
 export default function HomeS5(props: Props) {
+  if (props.s7)
+    return (
+      <HomeS7
+        {...props.s7}
+        councilId={props.councilId}
+        pushBand={props.pushBand}
+        onOpenEvent={eventId => props.onOpenEvent(eventId)}
+        onOpenPage={props.onOpenPage}
+        onNewEvent={props.onNewEvent}
+      />
+    )
+  return <HomeS5Variants {...props} />
+}
+
+function HomeS5Variants(props: Props) {
   const { variant, data, pushBand, onNewEvent } = props
   const go = useOpeners(props)
   const rows = attentionRows(data)

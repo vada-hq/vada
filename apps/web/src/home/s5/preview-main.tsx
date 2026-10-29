@@ -8,14 +8,18 @@ import CouncilWorkspace from '../../workspace/CouncilWorkspace'
 import { targetOf } from '../../workspace/address'
 import { HomeS5Preview, type S5Variant } from './HomeS5'
 import { S5_DATA, type S5DataName } from './s5-data'
+import { S7_DATA, type S7Greeting } from '../s7/s7-data'
 import '../../index.css'
 
-// S5 흑백 시안 미리보기: /home-s5.html?variant=A|B|C&data=main|normal|empty
+// S5 흑백 시안 미리보기: /home-s5.html?variant=A|B|C|B2&data=main|normal|empty[&greeting=line|date|merge]
+// B2는 10/29 내용 확정판(s7). greeting은 B2에서만 쓴다.
 // 실제 작업 공간(옆 메뉴 포함)을 가짜 API로 띄우고, 회장단 홈 자리만 시안으로 바꾼다(S1 1절과 같은 방법).
 const params = new URLSearchParams(window.location.search)
-const variant = (['A', 'B', 'C'].includes(params.get('variant') ?? '') ? params.get('variant') : 'A') as S5Variant
+const variant = (['A', 'B', 'C', 'B2'].includes(params.get('variant') ?? '') ? params.get('variant') : 'A') as S5Variant
 const dataName = (params.get('data') ?? 'main') as S5DataName
 const data = S5_DATA[dataName] ?? S5_DATA.main
+const greeting = (['line', 'date', 'merge'].includes(params.get('greeting') ?? '') ? params.get('greeting') : 'line') as S7Greeting
+const s7 = variant === 'B2' ? { data: S7_DATA[dataName] ?? S7_DATA.main, greeting } : undefined
 
 const COUNCIL_ID = '0199d1a0-0000-7000-8000-0000000000c1'
 const council: MyCouncil = {
@@ -127,10 +131,14 @@ function Workspace() {
   )
 }
 
+// 실제 앱은 작업 공간을 h-dvh 열(SignedInView) 안에 둔다. 미리보기에 그 열이 없어 짧은 페이지에서 옆 메뉴 바탕이
+// 내용 높이에서 끊겼다(S6 검토). 미리보기는 페이지 전체를 찍어야 해서 h-dvh 대신 min-h-dvh로 같은 높이를 채운다.
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <HomeS5Preview.Provider value={{ variant, data }}>
-      <Workspace />
+    <HomeS5Preview.Provider value={{ variant, data, s7 }}>
+      <div className="flex min-h-dvh flex-col">
+        <Workspace />
+      </div>
     </HomeS5Preview.Provider>
   </StrictMode>,
 )
