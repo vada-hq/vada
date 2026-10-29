@@ -30,13 +30,17 @@ function tidyRowsOf(followUp: HomeCouncilBoard['followUp'], people: OpsPeople, a
   }))
 }
 
-// 업무 줄: 담당자가 나이거나 다른 회장단인 업무의 지남(오래된 것부터)·오늘 마감. ①이 빼는 업무와 같은 조건(isCouncilWork)이다.
-function taskRowsOf(open: OpenTask[], people: OpsPeople, actor: Actor, today: string) {
+type Scope = { today: string; mine: (row: OpenTask) => boolean }
+
+// 업무 줄: 내 몫인 업무(mine)의 지남(오래된 것부터)·오늘 마감.
+// 회장단은 담당자가 나이거나 다른 회장단인 업무로 ①이 빼는 업무와 같은 조건(isCouncilWork), 부장은 담당자가 나인 업무다.
+function taskRowsOf(open: OpenTask[], people: OpsPeople, actor: Actor, scope: Scope) {
+  const { today, mine } = scope
   const late: HomeTodoRow[] = []
   const due: HomeTodoRow[] = []
   for (const row of open) {
     const { dueDate, assignee } = row.summary
-    if (dueDate === null || !isCouncilWork(people, actor, row)) continue
+    if (dueDate === null || !mine(row)) continue
     const days = daysBetween(dueDate, today)
     if (days < 0) continue
     const owner = councilOwnerOf(people, actor, assignee?.id)
@@ -55,13 +59,20 @@ export async function todoOf(
   db: Reader,
   actor: Actor,
   now: Date,
-  board: { open: OpenTask[]; people: OpsPeople; followUp: HomeCouncilBoard['followUp'] },
+  board: {
+    open: OpenTask[]
+    people: OpsPeople
+    followUp: HomeCouncilBoard['followUp']
+    // 내 몫인 업무. 없으면 회장단 규칙(isCouncilWork)이다.
+    mine?: (row: OpenTask) => boolean
+  },
 ): Promise<HomeTodo> {
   const { people } = board
+  const mine = board.mine ?? ((row: OpenTask) => isCouncilWork(people, actor, row))
   const rows = [
     ...(await minutesRowsOf(db, actor, people, now)),
     ...tidyRowsOf(board.followUp, people, actor),
-    ...taskRowsOf(board.open, people, actor, koreanDateOf(now)),
+    ...taskRowsOf(board.open, people, actor, { today: koreanDateOf(now), mine }),
   ]
   const counts = Object.fromEntries(
     HOME_TODO_KINDS.map(kind => [kind, rows.filter(row => row.kind === kind).length]),

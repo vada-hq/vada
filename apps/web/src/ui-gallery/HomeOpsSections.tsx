@@ -70,7 +70,7 @@ const MAIN_ROWS = [LATE_KIM, LATE_LEE, ...REST_ROWS]
 export const mainOps: HomeOps = {
   rows: MAIN_ROWS,
   counts: { late: 2, today: 1, tomorrow: 1, approval: 1 },
-  assign: { noDepartment: 1, unassignedMembers: 1, financeStaffed: true },
+  assign: { by: 'council', noDepartment: 1, unassignedMembers: 1, financeStaffed: true },
   total: 7,
 }
 // 많음(many): 지남 셋(긴 제목·긴 행사 포함)이라 결재가 접힌다. 재정 담당도 없다.
@@ -87,7 +87,7 @@ const many: HomeOps = {
     ...REST_ROWS,
   ],
   counts: { late: 3, today: 2, tomorrow: 1, approval: 1 },
-  assign: { noDepartment: 2, unassignedMembers: 0, financeStaffed: false },
+  assign: { by: 'council', noDepartment: 2, unassignedMembers: 0, financeStaffed: false },
   total: 10,
 }
 // 배정만: 마감 줄이 하나이고 배정 줄
@@ -100,13 +100,13 @@ const assign: HomeOps = {
     }),
   ],
   counts: { late: 0, today: 0, tomorrow: 1, approval: 0 },
-  assign: { noDepartment: 3, unassignedMembers: 2, financeStaffed: true },
+  assign: { by: 'council', noDepartment: 3, unassignedMembers: 2, financeStaffed: true },
   total: 6,
 }
 const empty: HomeOps = {
   rows: [],
   counts: { late: 0, today: 0, tomorrow: 0, approval: 0 },
-  assign: { noDepartment: 0, unassignedMembers: 0, financeStaffed: true },
+  assign: { by: 'council', noDepartment: 0, unassignedMembers: 0, financeStaffed: true },
   total: 0,
 }
 

@@ -31,8 +31,6 @@ export const remainingTidyLabel = ({ tasks, settlement }: HomeFollowUp['remainin
     ? EVENT_SETTLED_LABEL
     : `남은 정리: 업무 ${tasks} · 정산 ${settlement}`
 
-export const ATTENTION_CHIP = { overdue: '지남', unassigned: '담당자 없음' } as const
-
 // 인사 카드 아래 바로가기: '내 업무 4', 지난 것이 있으면 '내 업무 4 · 지남 1'(DEC-95).
 export const myTasksLabel = ({ open, overdue }: HomeMyTasks) =>
   overdue > 0 ? `내 업무 ${open} · 지남 ${overdue}` : `내 업무 ${open}`

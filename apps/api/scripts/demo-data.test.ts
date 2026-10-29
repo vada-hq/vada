@@ -17,7 +17,8 @@ import { EVENT_A, EVENT_B, EVENT_C } from '../src/flows/rehearsal.js'
 import { FEE } from '../src/flows/rehearsal-event.js'
 import { BANNER_WON, DIRECT_WON } from '../src/flows/rehearsal-money.js'
 import { fakeStorage } from '../src/test-support/storage.js'
-import { DEMO_SCHOOL_NAME, seedDemoCouncil } from './demo-data.js'
+import { DEMO_SCHOOL_NAME } from '../src/home/demo-budget.js'
+import { seedDemoCouncil } from './demo-data.js'
 import { seedTestCouncil } from './test-data.js'
 
 // 시연 시험은 행 수를 세지 않는다. 시연을 PGlite에 넣고, 회장 계정으로 화면이 부르는 GET 응답만 읽어 '리허설 화면 기준'(명세 017)을 본다.

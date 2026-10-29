@@ -39,7 +39,6 @@ type Props = HomeOpeners & {
   councilId: string
   // 인사 카드의 이름(새 홈)
   name: string
-  memberId: string
   // 학생회 직급도 부서도 없는 운영진이면 부원 홈 맨 위에 '부서 배정 전' 띠(DEC-87)
   awaitingDepartment?: boolean
   // 작업 공간이 옆 메뉴 배지와 같이 읽는 대화 목록(DEC-90 홈 메시지함). 같은 응답이라 칩과 배지가 어긋나지 않는다.
@@ -186,7 +185,7 @@ function CurrentHome({
   awaitingDepartment = false,
   pushBand,
   ...open
-}: Omit<Props, 'name' | 'memberId'> & { pushBand?: ReactNode }) {
+}: Omit<Props, 'name'> & { pushBand?: ReactNode }) {
   const extras = useHomeExtras(councilId, home.today, onForbidden, !home.council)
   const mineIds = new Set(mineRows(home.mine).map(task => task.id))
   const items = attentionOf(home, extras.requests, extras.events.length)
@@ -215,7 +214,7 @@ const isDepartmentHome = (
 ): home is HomeResponse & { departmentBoard: HomeDepartmentBoard } =>
   home.kind === 'department' && home.departmentBoard !== undefined
 
-export default function HomeBody({ name, memberId, awaitingDepartment = false, ...props }: Props) {
+export default function HomeBody({ name, awaitingDepartment = false, ...props }: Props) {
   const setPushSlot = useContext(PushBandSlot)
   const { home, councilId, rooms, onOpenEvent, onOpenPage, onNewEvent } = props
   const { finance, switcher } = useFinanceView(home, councilId)
@@ -228,9 +227,7 @@ export default function HomeBody({ name, memberId, awaitingDepartment = false, .
         home={home}
         board={home.departmentBoard}
         councilId={councilId}
-        memberId={memberId}
         name={name}
-        rooms={rooms}
         pushBand={pushBand}
         {...opens}
       />

@@ -55,9 +55,17 @@ export function contactText(person: HomeOpsPerson) {
   return `${person.name} ${headLabel(role.department, role.title)}`
 }
 
-// 회장단이 배정할 일 줄을 둘지(부서 미정 업무, 미배정 구성원, 재정 담당 없음 가운데 하나라도 있으면)
+// 배정할 일 줄을 둘지. 회장단: 부서 미정 업무, 미배정 구성원, 재정 담당 없음 가운데 하나라도 있으면. 부장: 담당자 없는 업무가 있으면.
 export const hasAssign = ({ assign }: HomeOps) =>
-  assign.noDepartment > 0 || assign.unassignedMembers > 0 || !assign.financeStaffed
+  assign.by === 'head'
+    ? assign.noAssignee > 0
+    : assign.noDepartment > 0 || assign.unassignedMembers > 0 || !assign.financeStaffed
+
+// 배정할 일 줄의 제목. 누가 배정하는지는 서버가 준 갈래(assign.by)가 말한다.
+export const ASSIGN_TITLE: Record<HomeOps['assign']['by'], string> = {
+  council: '회장단이 배정할 일',
+  head: '부장이 배정할 일',
+}
 
 // 처음에 보일 일 줄 수: 상한 5에서 배정 줄 몫 하나를 뺀다.
 export const shownLimit = (ops: HomeOps) => HOME_OPS_SHOWN - (hasAssign(ops) ? 1 : 0)

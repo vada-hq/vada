@@ -31,5 +31,3 @@ export function departmentMembersOf(db: Pick<Db, 'select'>, actor: Actor) {
       ),
     )
 }
-
-export type DepartmentMember = Awaited<ReturnType<typeof departmentMembersOf>>[number]

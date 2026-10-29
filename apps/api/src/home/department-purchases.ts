@@ -1,5 +1,4 @@
 import { and, asc, eq, inArray, isNull, sql } from 'drizzle-orm'
-import { HOME_LIST_LIMIT, type HomeMyRequests } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
 import { lineItem, record, request } from '../db/schema.js'
 import type { Db } from '../db/types.js'
@@ -35,12 +34,4 @@ export async function departmentRequestsOf(db: Pick<Db, 'select'>, actor: Actor)
   })
   const payable = await payableRequestIds(db, rows)
   return rows.map(row => summaryOf(row, payable.has(row.id)))
-}
-
-export async function departmentPurchasesOf(
-  db: Pick<Db, 'select'>,
-  actor: Actor,
-): Promise<HomeMyRequests> {
-  const requests = await departmentRequestsOf(db, actor)
-  return { requests: requests.slice(0, HOME_LIST_LIMIT), total: requests.length }
 }

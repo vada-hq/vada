@@ -28,7 +28,7 @@ const councilBoard = {
   ops: {
     rows: [],
     counts: { late: 0, today: 0, tomorrow: 0, approval: 0 },
-    assign: { noDepartment: 0, unassignedMembers: 0, financeStaffed: true },
+    assign: { by: 'council' as const, noDepartment: 0, unassignedMembers: 0, financeStaffed: true },
     total: 0,
   },
   todo: {

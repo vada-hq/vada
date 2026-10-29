@@ -1,6 +1,7 @@
 import type {
   EventSummary,
   HomeCouncilBoard,
+  HomeDepartmentBoard,
   HomeEventLane,
   HomeFollowUp,
   HomeList,
@@ -99,7 +100,7 @@ export const followUpRow = (id: string, extra: Partial<HomeFollowUp> = {}): Home
 export const emptyOps = (extra: Partial<HomeOps> = {}): HomeOps => ({
   rows: [],
   counts: { late: 0, today: 0, tomorrow: 0, approval: 0 },
-  assign: { noDepartment: 0, unassignedMembers: 0, financeStaffed: true },
+  assign: { by: 'council', noDepartment: 0, unassignedMembers: 0, financeStaffed: true },
   total: 0,
   ...extra,
 })
@@ -169,6 +170,24 @@ export const councilHome = (
   board: Partial<HomeCouncilBoard> = {},
   extra: Partial<HomeResponse> = {},
 ): HomeResponse => homeResponse({ kind: 'council', councilBoard: councilBoard(board), ...extra })
+
+// 부장 홈(HOME-01D, 10/30). 시험이 정하지 않으면 구역이 비고 배정할 일은 부장 갈래 0건이다.
+export const departmentHome = (
+  board: Partial<HomeDepartmentBoard> = {},
+  extra: Partial<HomeResponse> = {},
+): HomeResponse =>
+  homeResponse({
+    kind: 'department',
+    departmentBoard: {
+      ops: emptyOps({ assign: { by: 'head', noAssignee: 0, departments: [] } }),
+      todo: emptyTodo(),
+      week: emptyWeek(),
+      lanes: { events: [], total: 0 },
+      budget: null,
+      ...board,
+    },
+    ...extra,
+  })
 
 // 부원 홈(기능 027 조각 7, HOME-01M). 시험이 정하지 않으면 공통 칸이 비어 있다.
 export const memberHome = (extra: Partial<HomeResponse> = {}): HomeResponse =>

@@ -9,6 +9,7 @@ import TwoColumnRow from '@/components/TwoColumnRow'
 import { Tray, TrayGroup, TrayHead } from '@/components/Tray'
 import PersonText from './PersonText'
 import {
+  ASSIGN_TITLE,
   OPS_ICON,
   OPS_TITLE,
   factText,
@@ -47,6 +48,8 @@ function Contact({ row, onSetHead }: { row: HomeOpsRow; onSetHead: Props['onSetH
 }
 
 function assignLinks(ops: HomeOps, props: Props): AssignLink[] {
+  if (ops.assign.by === 'head')
+    return [{ label: `담당자 없는 업무 ${ops.assign.noAssignee}건`, onClick: props.onAssignTasks }]
   const { noDepartment, unassignedMembers, financeStaffed } = ops.assign
   return [
     noDepartment > 0 && { label: `부서 미정 업무 ${noDepartment}건`, onClick: props.onAssignTasks },
@@ -59,7 +62,7 @@ function assignLinks(ops: HomeOps, props: Props): AssignLink[] {
 }
 
 // ① 확인이 필요한 운영 상황(f8 확정 시안): 회색 쟁반 위 흰 묶음. 일 줄은 상한 5(배정할 일이 있으면 4)이고
-// 회장단이 배정할 일 한 줄을 늘 맨 아래에 둔다. '전체 n건 보기'는 홈 안에서 접힌 줄을 펼친다.
+// 배정할 일(회장단 또는 부장) 한 줄을 늘 맨 아래에 둔다. '전체 n건 보기'는 홈 안에서 접힌 줄을 펼친다.
 export default function OpsCard(props: Props) {
   const { ops, onOpen } = props
   const headId = useId()
@@ -86,7 +89,11 @@ export default function OpsCard(props: Props) {
           />
         ))}
         {hasAssign(ops) && (
-          <AssignRow icon={UserPlus} title="회장단이 배정할 일" links={assignLinks(ops, props)} />
+          <AssignRow
+            icon={UserPlus}
+            title={ASSIGN_TITLE[ops.assign.by]}
+            links={assignLinks(ops, props)}
+          />
         )}
       </TrayGroup>
       {showSeeAll && (

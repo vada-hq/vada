@@ -1,12 +1,20 @@
 // @vitest-environment jsdom
 import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
-import type { HomeDepartmentBoard } from '@vada/contracts'
-import { councilView, LEADER_PERMISSIONS } from '@/test-support/council-fixtures'
-import { homeResponse, homeTask, homeRequest, noRooms } from '@/test-support/home-fixtures'
+import type { HomeResponse } from '@vada/contracts'
+import { councilView } from '@/test-support/council-fixtures'
+import {
+  departmentHome,
+  emptyOps,
+  eventLane,
+  homeTask,
+  noRooms,
+  opsRow,
+} from '@/test-support/home-fixtures'
 import { json, mockApi } from '@/test-support/mock-api'
-import { settle } from '@/test-support/settle'
 import HomePage from './HomePage'
+
+// 부장 홈(HOME-01D, 10/30): 회장단 홈과 같은 구역에 서버가 좁힌 데이터만 그린다. 화면은 역할을 다시 계산하지 않는다(DEC-38).
 
 afterEach(() => {
   cleanup()
@@ -14,24 +22,15 @@ afterEach(() => {
   window.history.replaceState(null, '', '/')
 })
 const C = '01900000-0000-7000-8000-000000000001'
-const M = '01900000-0000-7000-8000-000000000002'
 const department = { id: '01900000-0000-7000-8000-000000000003', name: '기획부' }
-const board = (extra: Partial<HomeDepartmentBoard> = {}): HomeDepartmentBoard => ({
-  departments: [department],
-  purchases: { requests: [], total: 0 },
-  ownedEnded: [],
-  attention: { items: [], total: 0 },
-  congestion: null,
-  ...extra,
-})
-function open(data = board()) {
+
+function open(home: HomeResponse) {
   const api = mockApi()
-  api.on('GET', `/api/organizations/${C}/home`, () => json(homeResponse({ departmentBoard: data })))
+  api.on('GET', `/api/organizations/${C}/home`, () => json(home))
   render(
     <HomePage
       view={councilView(C, {
         councilRank: null,
-        permissions: LEADER_PERMISSIONS,
         departments: [{ ...department, role: null, rank: 'head' }],
       })}
       rooms={noRooms}
@@ -42,90 +41,61 @@ function open(data = board()) {
   )
   return { api }
 }
-test('부서장 홈의 내 업무 바로가기는 내 업무 탭을 명시한다', async () => {
-  open()
-  fireEvent.click(await screen.findByRole('button', { name: '내 업무 0' }))
-  expect(window.location.pathname + window.location.search).toBe(`/tasks/${C}?tab=mine`)
-})
 
-test('부서장 홈은 인사와 네 카드만 보이고 별도 읽기가 없으며 빈 참여 행사에서 만들 수 있다', async () => {
-  const { api } = open()
-  await screen.findByRole('region', { name: '확인이 필요한 일' })
-  expect(screen.queryByText('학생회 주요 행사와 기획부의 행사·일정·구매를 봐요')).toBeNull()
-  expect(screen.queryByText(/끼룩이가/)).toBeNull()
-  for (const name of [
-    '우리 부서 참여 행사',
-    '가까운 일정·마감',
-    '부서 구매 진행',
-    '확인이 필요한 일',
-  ])
-    expect(screen.getByRole('region', { name })).toBeTruthy()
-  expect(screen.queryByRole('region', { name: '지금 볼 것' })).toBeNull()
-  expect(screen.getByRole('button', { name: '새 행사' })).toBeTruthy()
-  await settle()
-  expect(api.calls.map(call => call.path)).toEqual([`/api/organizations/${C}/home`])
-})
-test('책임 행사 네 줄 모두와 업무 앞 세 줄을 함께 보이고 합한 수·다중 부서·구매 요청 구분을 보인다', async () => {
-  const items = Array.from({ length: 5 }, (_, i) => ({
-    task: homeTask(`t${i}`, 'overdue', { department }),
-    reason: 'overdue' as const,
-  }))
-  const ownedEnded = Array.from({ length: 4 }, (_, i) => ({
-    event: {
-      id: `e${i}`,
-      name: `책임 행사 ${i}`,
-      status: 'ended' as const,
-      startsAt: null,
-      endsAt: null,
-    },
-    endedDays: 7,
-    remaining: { tasks: 1, settlement: 2 },
-  }))
-  open(
-    board({
-      departments: [department, { id: 'd2', name: '소통부' }],
-      ownedEnded,
-      attention: { items, total: 5 },
-      purchases: { requests: [homeRequest('r1')], total: 1 },
-    }),
-  )
-  const card = within(await screen.findByRole('region', { name: '확인이 필요한 일' }))
-  expect(card.getAllByText(/책임 행사/)).toHaveLength(4)
-  expect(card.getByText('업무 t2')).toBeTruthy()
-  expect(card.queryByText('업무 t3')).toBeNull()
-  expect(card.getByText('9건')).toBeTruthy()
-  expect(card.getByRole('button', { name: '업무 전체 보기' })).toBeTruthy()
-  expect(screen.queryByText('학생회 주요 행사와 우리 부서의 행사·일정·구매를 봐요')).toBeNull()
-  expect(screen.getByText('부서 요청 · 박부원')).toBeTruthy()
-})
+const member = {
+  memberId: 'm1',
+  name: '한결',
+  role: { kind: 'assignee' as const },
+  tint: 2,
+}
 
-test('마감 몰림을 누르면 직급 부서·담당자·7일 안 거르기가 주소에 남는다', async () => {
-  open(
-    board({
-      congestion: {
-        member: { id: M, name: '정하늘' },
-        departmentIds: [department.id],
-        count: 3,
-        firstDue: '2026-10-25',
-        lastDue: '2026-11-01',
+test('신호 있는 날: ① 우리 부서 줄은 담당자에게 묻고 부장이 배정할 일을 맨 아래에 두며, ②③⑤가 같은 배치로 놓인다', async () => {
+  const { api } = open(
+    departmentHome({
+      ops: emptyOps({
+        rows: [opsRow('t1', 'late', { title: '부스 배치안', days: 2, contact: member })],
+        counts: { late: 1, today: 0, tomorrow: 0, approval: 0 },
+        assign: { by: 'head', noAssignee: 2, departments: [department] },
+        total: 3,
+      }),
+      lanes: { events: [eventLane('e1', { late: [{ department, overdue: 1 }] })], total: 1 },
+      todo: {
+        rows: [{ kind: 'task_today', task: homeTask('t2', 'today'), days: 0, owner: null }],
+        counts: { minutes: 0, event_tidy: 0, task_late: 0, task_today: 1 },
+        total: 1,
+        meTint: 0,
       },
     }),
   )
-  fireEvent.click(await screen.findByRole('button', { name: /마감 몰림/ }))
-  const query = new URLSearchParams(window.location.search)
-  expect(window.location.pathname).toBe(`/tasks/${C}`)
-  expect(query.get('assignee')).toBe(M)
-  expect(query.get('dept')).toBe(department.id)
-  expect(query.get('heads')).toBe('true')
-  expect(query.get('due')).toBe('week')
-  expect(query.get('view')).toBeNull()
-  expect(query.get('events')).toBe('include')
+  const ops = within(await screen.findByRole('region', { name: '확인이 필요한 운영 상황' }))
+  expect(ops.getByText('부스 배치안')).toBeTruthy()
+  expect(ops.getByText('한결 담당자에게 묻기')).toBeTruthy()
+  expect(ops.getByText('부장이 배정할 일')).toBeTruthy()
+  expect(ops.getByRole('button', { name: '담당자 없는 업무 2건' })).toBeTruthy()
+  // 회장단 전용 갈래는 서버가 주지 않으니 없다.
+  expect(ops.queryByText('회장단이 배정할 일')).toBeNull()
+  expect(ops.queryByText(/부서 미정|미배정 구성원|재정 담당 없음/)).toBeNull()
+  expect(screen.getByRole('region', { name: '행사' })).toBeTruthy()
+  expect(screen.getByRole('region', { name: '내가 할 일' })).toBeTruthy()
+  expect(screen.getAllByText(/이번 주/).length).toBeGreaterThan(0)
+  // 옛 부장 홈 카드와 별도 읽기는 없다.
+  expect(screen.queryByRole('region', { name: '부서 구매 진행' })).toBeNull()
+  api.assertNoUnexpectedRequests()
 })
 
-test('구매 전체 보기는 홈과 같은 부서 구매 보기로 간다', async () => {
-  open(board({ purchases: { requests: [homeRequest('r1')], total: 4 } }))
-  const card = within(await screen.findByRole('region', { name: '부서 구매 진행' }))
-  fireEvent.click(card.getByRole('button', { name: '전체 4건 보기' }))
-  expect(window.location.pathname).toBe(`/purchases/${C}`)
-  expect(new URLSearchParams(window.location.search).get('view')).toBe('department')
+test('평소: ①이 0건이면 머리 한 문장으로 합치고, 예산 한 줄은 서버가 줄 때만 보인다', async () => {
+  open(departmentHome())
+  expect(await screen.findByText('김회장님, 확인이 필요한 운영 상황 없어요')).toBeTruthy()
+  expect(screen.queryByRole('region', { name: '확인이 필요한 운영 상황' })).toBeNull()
+  expect(screen.queryByRole('region', { name: '사용 가능' })).toBeNull()
+  expect(screen.queryByRole('region', { name: '가을 축제 상금' })).toBeNull()
+})
+
+test('시연 학생회의 우리 부서 예산 한 줄은 금액과 남음을 싣고 재정으로 간다', async () => {
+  open(departmentHome({ budget: { name: '가을 축제 상금', amount: 600_000, remaining: 600_000 } }))
+  const line = await screen.findByRole('region', { name: '가을 축제 상금' })
+  expect(line.textContent).toContain('600,000원')
+  expect(line.textContent).toContain('· 남음 600,000원')
+  fireEvent.click(within(line).getByRole('button', { name: /재정 보기/ }))
+  expect(window.location.pathname).toBe(`/finance/${C}`)
 })

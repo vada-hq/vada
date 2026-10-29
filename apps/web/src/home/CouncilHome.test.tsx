@@ -203,7 +203,7 @@ test('배정할 일이 있으면 일 줄은 4줄이고 배정 줄이 맨 아래,
       ops: emptyOps({
         rows,
         counts: { late: 2, today: 1, tomorrow: 2, approval: 3 },
-        assign: { noDepartment: 2, unassignedMembers: 1, financeStaffed: false },
+        assign: { by: 'council', noDepartment: 2, unassignedMembers: 1, financeStaffed: false },
         total: 12,
       }),
     }),
@@ -241,7 +241,7 @@ test.each(['president', 'vice_president'] as const)(
     open(
       councilHome({
         ops: emptyOps({
-          assign: { noDepartment: 3, unassignedMembers: 2, financeStaffed: false },
+          assign: { by: 'council', noDepartment: 3, unassignedMembers: 2, financeStaffed: false },
           total: 5,
         }),
       }),

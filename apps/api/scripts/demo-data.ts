@@ -6,10 +6,11 @@ import { startFlow } from '../src/flows/server.js'
 import type { FileStorage } from '../src/storage/storage.js'
 import { uploadDemoEvidence } from './demo-evidence.js'
 import { requireGoogleUser } from './test-data.js'
+import { DEMO_SCHOOL_NAME } from '../src/home/demo-budget.js'
 
 // 섭외와 리허설에서 보이는 시연 학생회. 학교 이름으로 찾고, 있으면 아무것도 하지 않는다(다시 넣으려면 그 학교 이름을 바꾼다).
 // 시험 학생회(VADA 시험 학교)와 이름이 달라 서로 찾지 않는다. 내용은 리허설 시나리오(flows/rehearsal.ts)를 그대로 돈 결과다.
-export const DEMO_SCHOOL_NAME = 'VADA 시연 학교'
+// 이름은 부장 홈의 시연용 고정값도 쓰므로 서버 쪽(home/demo-budget.ts)에 둔다.
 
 export type DemoResult = 'created' | 'exists'
 export type DemoDeps = { storage: FileStorage; fetcher?: typeof fetch }

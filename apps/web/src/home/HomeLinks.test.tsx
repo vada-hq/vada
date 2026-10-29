@@ -1,10 +1,11 @@
 // @vitest-environment jsdom
 import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
-import type { HomeDepartmentBoard, HomeResponse, TaskSummary } from '@vada/contracts'
+import type { HomeResponse, TaskSummary } from '@vada/contracts'
 import { councilView, teamResponse } from '@/test-support/council-fixtures'
 import {
   councilHome,
+  departmentHome,
   emptyOps,
   eventLane,
   homeResponse,
@@ -95,25 +96,6 @@ afterEach(() => {
   vi.unstubAllGlobals()
 })
 
-const attention = (items: TaskSummary[]) => ({
-  // 홈 응답은 앞줄만 주지만 머리 수는 전체 범위다.
-  items: items.slice(0, 3).map(task => ({
-    task: { ...task, group: 'overdue' as const },
-    reason: task.overdue ? ('overdue' as const) : ('unassigned' as const),
-  })),
-  total: items.length,
-})
-
-function departmentBoard(items: TaskSummary[]): HomeDepartmentBoard {
-  return {
-    departments: [department],
-    attention: attention(items),
-    purchases: { requests: [], total: 0 },
-    ownedEnded: [],
-    congestion: null,
-  }
-}
-
 // 행사(event)와 상태(status)로 고른 거르기 전 목록. 보기·칩은 가짜 서버(narrowedTasksResponse)가 건다.
 function listOf(list: TaskSummary[], path: string) {
   const query = new URL(path, 'http://localhost').searchParams
@@ -202,7 +184,7 @@ test('① 부서 미정 업무 n건은 업무 목록의 부서 없음 + 담당�
   const { api, destination } = setup(
     councilHome({
       ops: emptyOps({
-        assign: { noDepartment: 2, unassignedMembers: 0, financeStaffed: true },
+        assign: { by: 'council', noDepartment: 2, unassignedMembers: 0, financeStaffed: true },
         total: 2,
       }),
     }),
@@ -233,31 +215,33 @@ test('② 행사의 늦은 부서 신호는 그 부서·지남 거르기가 켜�
   api.assertNoUnexpectedRequests()
 })
 
-test('부서장 업무 전체 보기는 그 부서 칩과 행사 포함으로 홈의 확인 필요 수를 유지한다', async () => {
-  const expected = tasks.slice(0, 4)
-  const { api, destination } = setup(homeResponse({ departmentBoard: departmentBoard(expected) }))
-  fireEvent.click(await screen.findByRole('button', { name: '업무 전체 보기' }))
-  expect(new URLSearchParams(window.location.search).get('view')).toBeNull()
+test('부장 홈 ①의 담당자 없는 업무 n건은 직급 부서 + 담당자 없음 거르기로 가고 같은 수를 보인다', async () => {
+  const expected = tasks.filter(task => ['both', 'free', 'left'].includes(task.id))
+  const { api, destination } = setup(
+    departmentHome({
+      ops: emptyOps({
+        assign: { by: 'head', noAssignee: 3, departments: [department] },
+        total: 3,
+      }),
+    }),
+  )
+  const card = within(await screen.findByRole('region', { name: '확인이 필요한 운영 상황' }))
+  expect(card.getByText('부장이 배정할 일')).toBeTruthy()
+  fireEvent.click(card.getByRole('button', { name: '담당자 없는 업무 3건' }))
   destination()
   await expectTasks(expected)
   expect(screen.getByRole('button', { name: department.name }).getAttribute('aria-pressed')).toBe(
     'true',
   )
-  expect(screen.getByRole('button', { name: '행사 업무 포함' }).getAttribute('aria-pressed')).toBe(
-    'true',
-  )
-  fireEvent.click(screen.getByRole('button', { name: '필터 해제' }))
-  expect(await screen.findByRole('button', { name: '다른 부서 지난 업무' })).toBeTruthy()
   api.assertNoUnexpectedRequests()
 })
 
-// 회장단 홈은 배치 L3에서 인사 카드의 내 업무 바로가기가 빠졌다(③ 내가 할 일이 시연 조각 ㉯에서 그 자리를 맡는다).
-test.each(['department', 'finance', 'member'] as const)(
+// 회장단·부장 홈은 배치 L3에서 인사 카드의 내 업무 바로가기가 빠졌다(③ 내가 할 일이 그 자리를 맡는다).
+test.each(['finance', 'member'] as const)(
   '$s 홈의 내 업무는 마지막 학생회 탭과 무관하게 내 업무 탭으로 간다',
   async kind => {
     const empty = homeResponse()
     const homes = {
-      department: homeResponse({ departmentBoard: departmentBoard([]) }),
       finance: homeResponse({
         kind: 'finance',
         financeBoard: {

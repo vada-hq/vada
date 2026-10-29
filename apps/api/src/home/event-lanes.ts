@@ -10,7 +10,12 @@ import {
 import type { Actor } from '../access/actor.js'
 import type { Db } from '../db/types.js'
 import { registrationStatusOf } from '../registrations/state.js'
-import { openEventCountsOf, openEventIdsByCreation, openEventsOf } from '../events/queries.js'
+import {
+  openEventCountsOf,
+  openEventIdsByCreation,
+  openEventsAmong,
+  openEventsOf,
+} from '../events/queries.js'
 import type { OpenTask } from '../tasks/open-tasks.js'
 import { laneFormsOf, type LaneForm } from './event-lane-forms.js'
 import { milestoneOf } from './event-milestone.js'
@@ -113,15 +118,29 @@ function laneOf(
   }
 }
 
+// 고를 행사와 끝나지 않은 행사 수. eventIds가 있으면(부장 홈: 우리 부서가 맡은 행사) 그 가운데 끝나지 않은 것만이다.
+async function candidatesOf(db: Reader, actor: Actor, now: Date, eventIds?: string[]) {
+  if (eventIds) {
+    const among = (await openEventsAmong(db, actor, now, eventIds)).filter(
+      row => row.status !== 'ended',
+    )
+    return { events: among.slice(0, HOME_EVENT_LIMIT), total: among.length }
+  }
+  const { events } = await openEventsOf(db, actor, now, { limit: HOME_EVENT_LIMIT, endedLimit: 0 })
+  const counts = await openEventCountsOf(db, actor, now)
+  return { events, total: counts.planning + counts.ongoing }
+}
+
 // ② 행사: 끝나지 않은 행사(진행 중·예정·날짜 미정)를 HOME_EVENT_LIMIT개까지 읽어 다음 일정이 가까운 순으로 셋을 고른다.
 // 일정 미정은 맨 뒤이고, 같은 자리는 행사 목록 차례(진행 중 → 예정 → 미정)를 지킨다.
+// 부장 홈은 open을 우리 부서 업무로, eventIds를 우리 부서가 맡은 행사로 좁혀 준다(늦은 부서도 우리 부서만).
 export async function eventLanesOf(
   db: Reader,
   actor: Actor,
   now: Date,
-  input: { open: OpenTask[]; budget: Budget },
+  input: { open: OpenTask[]; budget: Budget; eventIds?: string[] },
 ): Promise<HomeEventLanes> {
-  const { events } = await openEventsOf(db, actor, now, { limit: HOME_EVENT_LIMIT, endedLimit: 0 })
+  const { events, total } = await candidatesOf(db, actor, now, input.eventIds)
   const forms = await laneFormsOf(
     db,
     actor,
@@ -129,15 +148,17 @@ export async function eventLanesOf(
   )
   const colors = await colorsOf(db, actor)
   const lanes = events.map(event =>
-    laneOf(event, { forms, ...input, color: colors.get(event.id) ?? EVENT_COLORS[0], now }),
+    laneOf(event, {
+      forms,
+      open: input.open,
+      budget: input.budget,
+      color: colors.get(event.id) ?? EVENT_COLORS[0],
+      now,
+    }),
   )
   // 정렬은 안정이라 같은 날은 행사 목록 차례가 남는다.
   const sorted = lanes.sort(
     (a, b) => (a.milestone?.days ?? NO_MILESTONE) - (b.milestone?.days ?? NO_MILESTONE),
   )
-  const counts = await openEventCountsOf(db, actor, now)
-  return {
-    events: sorted.slice(0, HOME_COUNCIL_EVENT_CARDS),
-    total: counts.planning + counts.ongoing,
-  }
+  return { events: sorted.slice(0, HOME_COUNCIL_EVENT_CARDS), total }
 }

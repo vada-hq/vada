@@ -43,6 +43,11 @@ function open(t: SettlementKit) {
 }
 
 const titles = (ops: HomeOps) => ops.rows.map(row => row.title)
+// 회장단 홈의 배정할 일은 회장단 갈래다.
+function councilAssign(ops: HomeOps) {
+  assert.equal(ops.assign.by, 'council')
+  return ops.assign
+}
 
 test('일 줄은 지남(오래된 것부터) → 오늘 → 내일 → 결재 3일 안이고, 부서 업무는 부장, 부서 없는 업무는 담당자가 연락할 사람이다', async () => {
   await withSettlement(async t => {
@@ -127,12 +132,12 @@ test('부서 미정은 부서도 담당자도 없는 업무이고 업무 목록�
     await h.task({ title: '떠난 담당자', assigneeId: people.ended.memberId })
     await h.task({ title: '담당자 있음', assigneeId: people.plain.memberId })
     const ops = await h.ops()
-    assert.equal(ops.assign.noDepartment, 3)
+    assert.equal(councilAssign(ops).noDepartment, 3)
     assert.equal((await h.tasksOf('view=all&dept=none&assignee=none')).length, 3)
     assert.ok(!titles(ops).includes('부서 미정 지남'))
     // 미배정 구성원: 직급도 부서도 없는 운영진(plain) 한 명
-    assert.equal(ops.assign.unassignedMembers, 1)
-    assert.equal(ops.assign.financeStaffed, true)
+    assert.equal(councilAssign(ops).unassignedMembers, 1)
+    assert.equal(councilAssign(ops).financeStaffed, true)
     assert.equal(ops.total, ops.rows.length + 3 + 1)
   })()
 })
@@ -196,7 +201,7 @@ test('다른 학생회의 업무·요청·사람은 들어오지 않고 그 학�
     await h.task({ title: '다른 쪽 부서 미정' }, t.other)
     const ops = await h.ops()
     assert.deepEqual(ops.rows, [])
-    assert.equal(ops.assign.noDepartment, 0)
+    assert.equal(councilAssign(ops).noDepartment, 0)
     const home = caller(
       createApp({
         auth: { handler: async () => new Response() },
@@ -208,7 +213,7 @@ test('다른 학생회의 업무·요청·사람은 들어오지 않고 그 학�
     const theirs = ((await response.json()) as HomeResponse).councilBoard!.ops
     assert.deepEqual(titles(theirs), ['다른 쪽 지남', '다른 쪽 다과'])
     assert.equal(theirs.rows[0]!.contact?.name, 'o planningHead')
-    assert.equal(theirs.assign.noDepartment, 1)
+    assert.equal(councilAssign(theirs).noDepartment, 1)
     // 다른 학생회 사람은 우리 홈을 읽지 못한다.
     assert.equal(
       (await home.get(`/api/organizations/${t.council.councilId}/home`, 'o-president')).status,

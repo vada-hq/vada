@@ -140,7 +140,7 @@ const emptyBoard: HomeCouncilBoard = {
   ops: {
     rows: [],
     counts: { late: 0, today: 0, tomorrow: 0, approval: 0 },
-    assign: { noDepartment: 0, unassignedMembers: 0, financeStaffed: false },
+    assign: { by: 'council', noDepartment: 0, unassignedMembers: 0, financeStaffed: false },
     total: 1,
   },
   todo: {

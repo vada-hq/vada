@@ -6,11 +6,17 @@ import { cn } from '@/lib/utils'
 
 // 사용 가능 한 줄(c35 안 b 확정): ① 0건 띠와 같은 회색 띠. 흰 원 지갑 + '사용 가능' + 금액 | '재정 보기 ›'(띠 전체가 재정으로 간다).
 // 음수만 금액 글이 위험 색(①의 '3일 지남'처럼 글 색만)이다. 셈은 재정 첫 화면과 같다(DEC-92).
+// 부장 홈은 같은 띠에 우리 부서가 맡은 예산을 싣는다: '가을 축제 상금 600,000원 · 남음 600,000원'.
 export default function AvailableLine({
+  label = '사용 가능',
   amount,
+  remaining,
   onFinance,
 }: {
+  label?: string
   amount: number
+  // 맡은 예산에서 남은 금액(부장 홈). 없으면 싣지 않는다.
+  remaining?: number
   onFinance: () => void
 }) {
   const negative = amount < 0
@@ -18,7 +24,7 @@ export default function AvailableLine({
     <div className="@container min-w-0">
       <IconBand
         as="section"
-        label="사용 가능"
+        label={label}
         size="lg"
         icon={Wallet}
         interactive
@@ -34,7 +40,7 @@ export default function AvailableLine({
         }
       >
         <p className="flex min-w-0 flex-wrap items-baseline gap-x-2">
-          <span className="text-row-sub text-fg-secondary">사용 가능</span>
+          <span className="text-row-sub text-fg-secondary">{label}</span>
           <span
             className={cn(
               'text-base leading-5.5 font-semibold tracking-tight tabular-nums',
@@ -43,6 +49,16 @@ export default function AvailableLine({
           >
             {wonLabel(amount)}
           </span>
+          {remaining !== undefined && (
+            <span
+              className={cn(
+                'text-row-sub tabular-nums',
+                remaining < 0 ? 'text-danger' : 'text-fg-secondary',
+              )}
+            >
+              {`· 남음 ${wonLabel(remaining)}`}
+            </span>
+          )}
         </p>
       </IconBand>
     </div>

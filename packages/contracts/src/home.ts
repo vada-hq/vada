@@ -5,11 +5,7 @@ import type { HomeOps } from './home-ops.js'
 import type { HomeEventLanes } from './home-lanes.js'
 import type { HomeTodo } from './home-todo.js'
 import type { HomeWeek } from './home-week.js'
-export {
-  HOME_CONGESTION_TASKS,
-  type HomeCongestion,
-  type HomeDepartmentBoard,
-} from './home-department.js'
+export type { HomeDepartmentBoard, HomeDepartmentBudget } from './home-department.js'
 import type { EventNext, EventSummary } from './events.js'
 import { DAY_MS, koreanDateOf } from './korean-time.js'
 import type { PurchaseRequestSummary } from './purchases.js'

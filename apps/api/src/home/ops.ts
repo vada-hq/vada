@@ -30,7 +30,7 @@ type Reader = Pick<Db, 'select'>
 const TOMORROW = -1
 
 // 마감 갈래: 지난 날 수가 양수면 지남, 0이면 오늘, -1이면 내일. 그 뒤는 ①에 없다.
-function dueKindOf(lateDays: number): HomeOpsKind | null {
+export function dueKindOf(lateDays: number): HomeOpsKind | null {
   if (lateDays > 0) return 'late'
   if (lateDays === 0) return 'today'
   return lateDays === TOMORROW ? 'tomorrow' : null
@@ -105,6 +105,15 @@ async function approvalsOf(db: Reader, actor: Actor, people: OpsPeople, now: Dat
 
 const KIND_ORDER = new Map(HOME_OPS_KINDS.map((kind, index) => [kind, index]))
 
+// 갈래 차례로 놓는다(정렬은 안정이라 같은 갈래 안은 읽어 온 차례가 남는다).
+export const byKind = (a: HomeOpsRow, b: HomeOpsRow) =>
+  KIND_ORDER.get(a.kind)! - KIND_ORDER.get(b.kind)!
+
+export const kindCountsOf = (rows: HomeOpsRow[]) =>
+  Object.fromEntries(
+    HOME_OPS_KINDS.map(kind => [kind, rows.filter(row => row.kind === kind).length]),
+  ) as HomeOps['counts']
+
 // ① 확인이 필요한 운영 상황. 열린 업무는 이미 마감 순으로 읽어 왔다(지남은 오래된 것부터가 된다).
 export async function opsOf(
   db: Reader,
@@ -122,16 +131,15 @@ export async function opsOf(
   const rows = [
     ...taskRowsOf(board.open, people, actor, koreanDateOf(now)),
     ...approvals.rows,
-  ].sort((a, b) => KIND_ORDER.get(a.kind)! - KIND_ORDER.get(b.kind)!)
-  const counts = Object.fromEntries(
-    HOME_OPS_KINDS.map(kind => [kind, rows.filter(row => row.kind === kind).length]),
-  ) as HomeOps['counts']
+  ].sort(byKind)
+  const counts = kindCountsOf(rows)
   counts.approval = approvals.count
   const noDepartment = board.open.filter(isNoDepartment).length
   return {
     rows: rows.slice(0, HOME_OPS_ROW_LIMIT),
     counts,
     assign: {
+      by: 'council',
       noDepartment,
       unassignedMembers: board.unassignedMembers,
       financeStaffed: board.financeStaffed,

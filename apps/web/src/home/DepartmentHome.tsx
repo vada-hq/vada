@@ -1,112 +1,30 @@
-import type { ReactNode } from 'react'
-import type { HomeDepartmentBoard, HomeResponse } from '@vada/contracts'
-import { openMenu, openRecord } from '@/lib/go-to'
-import { rememberDepartment } from '@/lib/menu-memory'
-import type { RoomListState } from '../chat/useRoomList'
-import type { HomeOpeners } from './HomeBody'
-import { DepartmentAttentionCard, DepartmentPurchasesCard } from './DepartmentCards'
-import HomeFrame from './HomeFrame'
-import DepartmentGreeting from './DepartmentGreeting'
-import { GridLayout } from './HomeLayout'
-import { HOME_PLANS } from './home-kinds'
-import { NewEventButton } from './NoOpenEvents'
-import ParticipatingCard from './ParticipatingCard'
-import UpcomingCard from './UpcomingCard'
+import type { ComponentProps } from 'react'
+import type { HomeDepartmentBoard } from '@vada/contracts'
+import { openMenu } from '@/lib/go-to'
+import AvailableLine from './AvailableLine'
+import BoardHome from './BoardHome'
 
-type Props = HomeOpeners & {
-  home: HomeResponse
+type Props = Omit<ComponentProps<typeof BoardHome>, 'board' | 'money'> & {
   board: HomeDepartmentBoard
-  councilId: string
-  memberId: string
-  name: string
-  rooms: RoomListState
-  pushBand?: ReactNode
 }
-const [PARTICIPATING, UPCOMING] = HOME_PLANS.department.cards
 
-// HOME-01D: 부서장·부부장과 다중 부서 모두 서버가 고른 범위로 그린다. 별도 조회·주기 읽기는 없다.
-export default function DepartmentHome({
-  home,
-  board,
-  councilId,
-  memberId,
-  name,
-  rooms,
-  pushBand,
-  ...open
-}: Props) {
-  const openTask = (id: string) => openRecord('tasks', councilId, id, { behind: 'home' })
-  const seeTasks = () => {
-    for (const department of board.departments) rememberDepartment(department.id, department.name)
-    openMenu('tasks', councilId, {
-      tab: 'council',
-      events: 'include',
-      heads: 'true',
-      attention: 'true',
-      ...(board.departments.length === 1 ? { dept: board.departments[0]!.id } : {}),
-    })
-  }
+// 부장 홈(HOME-01D, 10/30 확정): 회장단 홈과 같은 배치·부품에 서버가 좁힌 부장 범위의 데이터를 그린다.
+// 돈 한 줄은 우리 부서가 맡은 예산이고, 서버가 줄 때만(지금은 시연 학생회의 고정값만) 보인다.
+export default function DepartmentHome(props: Props) {
+  const { budget } = props.board
   return (
-    <HomeFrame
-      pushBand={pushBand}
-      greeting={
-        <DepartmentGreeting
-          home={home}
-          councilId={councilId}
-          name={name}
-          rooms={rooms}
-          onOpenEvent={id => open.onOpenEvent(id)}
-        />
+    <BoardHome
+      {...props}
+      money={
+        budget && (
+          <AvailableLine
+            label={budget.name}
+            amount={budget.amount}
+            remaining={budget.remaining}
+            onFinance={() => openMenu('finance', props.councilId)}
+          />
+        )
       }
-    >
-      <GridLayout
-        cards={[
-          <ParticipatingCard
-            key="events"
-            title={PARTICIPATING}
-            participating={home.participating}
-            onOpenEvent={id => open.onOpenEvent(id)}
-            onSeeAll={() => open.onOpenPage('events')}
-            emptyAction={open.onNewEvent && <NewEventButton onNewEvent={open.onNewEvent} />}
-          />,
-          <UpcomingCard
-            councilId={councilId}
-            key="upcoming"
-            title={UPCOMING}
-            upcoming={home.upcoming}
-            wideDate
-            onOpenTask={openTask}
-            onOpenEvent={open.onOpenEvent}
-          />,
-          <DepartmentPurchasesCard
-            key="purchases"
-            purchases={board.purchases}
-            memberId={memberId}
-            onOpen={id => openRecord('purchases', councilId, id)}
-            onSeeAll={() => openMenu('purchases', councilId, { view: 'department' })}
-          />,
-          <DepartmentAttentionCard
-            key="attention"
-            board={board}
-            onOpenTask={openTask}
-            onOpenEvent={open.onOpenEvent}
-            onSeeAll={seeTasks}
-            onCongestion={() =>
-              board.congestion &&
-              openMenu('tasks', councilId, {
-                tab: 'council',
-                events: 'include',
-                heads: 'true',
-                assignee: board.congestion.member.id,
-                due: 'week',
-                ...(board.congestion.departmentIds.length === 1
-                  ? { dept: board.congestion.departmentIds[0]! }
-                  : {}),
-              })
-            }
-          />,
-        ]}
-      />
-    </HomeFrame>
+    />
   )
 }

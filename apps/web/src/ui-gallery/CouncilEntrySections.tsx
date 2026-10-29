@@ -79,7 +79,12 @@ export function CouncilEntrySection() {
             ops={{
               rows: [],
               counts: { late: 0, today: 0, tomorrow: 0, approval: 0 },
-              assign: { noDepartment: 0, unassignedMembers: 2, financeStaffed: true },
+              assign: {
+                by: 'council',
+                noDepartment: 0,
+                unassignedMembers: 2,
+                financeStaffed: true,
+              },
               total: 1,
             }}
             onOpen={noop}

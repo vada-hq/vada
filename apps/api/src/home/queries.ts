@@ -111,19 +111,23 @@ async function addBudgetParts(
     })
 }
 
+// 예산 읽기: 재정부·회장단과 부장 홈 ②의 예산 신호(재정 첫 화면은 운영진 모두가 읽는다).
+const readsBudget = (level: ReturnType<typeof levelOf>, kind: HomeKind) =>
+  level.finance || level.council || kind === 'department'
+
 // 새 칸은 모든 종류가 받고, 지금 화면의 부분은 계층(levelOf)이 가른 것만 읽는다(기능 010, 조각 10까지).
 // 회장단은 새 홈(councilBoard)만 그려 옛 council 칸을 읽지 않고, 모든 부서에서 부장 권한을 물려받아도 '내 부서'를 받지 않는다(기능 027 조각 6).
 export async function homeOf(db: Reader, actor: Actor, now: Date): Promise<HomeResponse> {
   const level = levelOf(actor)
   const { home, open } = await commonOf(db, actor, now)
   if (level.finance) Object.assign(home, await financeOf(db, actor, now, level.council))
-  const budget = level.finance || level.council ? await financeBudgetOf(db, actor, now) : null
+  const budget = readsBudget(level, home.kind) ? await financeBudgetOf(db, actor, now) : null
   if (budget) await addBudgetParts(db, actor, now, { home, open, budget, council: level.council })
   if (level.council && budget)
     home.councilBoard = await councilBoardOf(db, actor, now, { open, budget })
   else if (level.departmentIds.length)
     home.departments = await departmentsOf(db, actor, level.departmentIds, open)
-  if (home.kind === 'department')
-    home.departmentBoard = await departmentBoardOf(db, actor, now, open)
+  if (home.kind === 'department' && budget)
+    home.departmentBoard = await departmentBoardOf(db, actor, now, { open, budget })
   return home
 }
