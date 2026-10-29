@@ -1,4 +1,4 @@
-import type { AppMenu, MyCouncil, RecordKind } from '@vada/contracts'
+import type { AppMenu, MyCouncil } from '@vada/contracts'
 import type { PageTrail } from '@/components/PageHeading'
 import type { PageWidth } from '@/components/page-width'
 import type { Target } from './address'
@@ -8,25 +8,9 @@ export type Page = AppMenu
 export type Opener = 'sidebar' | 'header'
 export type CouncilEntry = 'join' | 'create'
 
-const PAGE_WIDTHS: Record<Page, PageWidth> = {
-  home: 'default',
-  chat: 'full',
-  council: 'full',
-  events: 'default',
-  tasks: 'full',
-  meetings: 'default',
-  calendar: 'full',
-  purchases: 'default',
-  finance: 'default',
-  people: 'default',
-  departments: 'default',
-  settings: 'narrow',
-  records: 'default',
-}
-
-// 주소로 폭을 정해 로딩 중에도 고정한다. 행사 기록은 모든 탭에서 끝까지 쓴다(DEC-101).
-export const pageWidthOf = (page: Page, record?: RecordKind): PageWidth =>
-  page === 'events' && record === 'events' ? 'full' : PAGE_WIDTHS[page]
+// 넓은 모니터에서 화면마다 폭이 달라 배치가 제각각이고 칸이 너무 길어져, 모든 화면을 기본 틀(1280px) 하나로 둔다.
+// 글을 읽고 고치는 설정만 좁은 틀이다(DEC-117 초안, DEC-101 고침).
+export const pageWidthOf = (page: Page): PageWidth => (page === 'settings' ? 'narrow' : 'default')
 
 // 머리글 경로 줄에서 학생회 이름 뒤에 붙는 메뉴 칸(crumbs)과 제목(DEC-96). 홈은 학생회 이름 한 칸뿐이다.
 // 사람(people)과 옛 부서 주소(departments)는 같은 조직 화면이다(DEC-91, DEC-96).

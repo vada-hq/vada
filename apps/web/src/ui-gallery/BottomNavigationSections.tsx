@@ -60,7 +60,7 @@ function Preview() {
           onNavOpenChange={setOpen}
         >
           <WorkspaceHeader
-            width="full"
+            width="default"
             crumbs={[{ label: '소프트웨어융합대학 학생회', truncate: true }]}
             title={pageTitles[page].title}
           />
