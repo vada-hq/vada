@@ -1,7 +1,7 @@
 import { and, asc, eq, gte, inArray, isNotNull, lte, type SQL } from 'drizzle-orm'
 import type { ErrorCode } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
-import { accountClosing, approval, event, fiscalPeriod } from '../db/schema.js'
+import { accountClosing, approval, event, fiscalPeriod, record } from '../db/schema.js'
 import type { Db, Tx } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
 
@@ -13,15 +13,21 @@ type Reader = Pick<Db, 'select'>
 const COMPLETION_OUTCOMES = ['completed', 'completion_cancelled']
 
 // 행사의 완료는 저장하지 않고 센다: 그 행사에 대한 마지막 결재(완료, 완료 취소)가 완료이면 완료다(logical-model '행사의 완료').
-// 행사 번호는 호출하는 쪽이 이미 학생회를 확인한 것만 넘긴다.
-export async function completedEventIdsAmong(db: Reader, eventIds: string[]): Promise<Set<string>> {
+// 행사 번호는 호출하는 쪽이 이미 학생회를 확인한 것만 넘긴다. 학생회를 주면 그 학생회의 결재만 본다(기록 메뉴).
+export async function completedEventIdsAmong(
+  db: Reader,
+  eventIds: string[],
+  councilId?: string,
+): Promise<Set<string>> {
   if (!eventIds.length) return new Set()
   // 행사마다 결재는 많지 않아 다 읽고 마지막 것을 고른다.
   const rows = await db
     .select({ id: approval.targetId, outcome: approval.outcome })
     .from(approval)
+    .innerJoin(record, eq(record.id, approval.id))
     .where(
       and(
+        councilId === undefined ? undefined : eq(record.councilId, councilId),
         eq(approval.targetKind, 'event'),
         inArray(approval.targetId, eventIds),
         inArray(approval.outcome, COMPLETION_OUTCOMES),

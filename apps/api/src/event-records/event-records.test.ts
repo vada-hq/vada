@@ -387,16 +387,35 @@ test(
     const quiet = await t.event({ name: '완료 안 함' })
     await t.pg.query('UPDATE approval SET target_id = $1 WHERE id = $2', [quiet, theirCompletion])
     await complete(t, ev)
+    // 그쪽 업무와 그쪽 완료 취소 결재가 우리 완료한 행사를 가리킨다
+    const theirTask = await t.make(t.other, 'task', { title: '그쪽 업무', status: 'done' })
+    await t.pg.query('UPDATE task SET event_id = $1 WHERE id = $2', [ev, theirTask])
+    const theirCancel = await t.make(t.other, 'approval', {
+      targetId: theirEvent,
+      targetKind: 'event',
+      outcome: 'completion_cancelled',
+      actorId: t.other.people.president.memberId,
+      actorKind: 'member',
+      actedAt: new Date(Date.now() + HOUR),
+      reason: '그쪽',
+    })
+    await t.pg.query('UPDATE approval SET target_id = $1 WHERE id = $2', [ev, theirCancel])
     const list = await listOf(t)
     assert.deepEqual(
       list.events.map(item => item.name),
       ['우리 행사'],
     )
+    assert.equal(list.events[0]!.chips.tasksDone, 1)
     assert.deepEqual(list.events[0]!.departments, [])
     assert.equal(list.events[0]!.chips.attended, 0)
     const record = await recordOf(t, ev)
     assert.deepEqual(record.overview.departments, [])
     assert.equal(record.outcome.registrations.attended, 0)
+    assert.deepEqual(record.outcome.tasks, { done: 1, total: 1 })
+    assert.deepEqual(
+      record.timeline.filter(line => line.kind !== 'created').map(line => line.kind),
+      ['completed'],
+    )
     assert.equal((await readRecord(t, quiet)).status, 404)
   }),
 )

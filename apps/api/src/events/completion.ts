@@ -1,6 +1,6 @@
 import { and, asc, eq, inArray } from 'drizzle-orm'
 import type { SettlementApproval } from '@vada/contracts'
-import { approval, member } from '../db/schema.js'
+import { approval, member, record } from '../db/schema.js'
 import type { Db } from '../db/types.js'
 import { displayNameOf, recordCouncilSql } from '../team/display-name.js'
 
@@ -16,10 +16,11 @@ export {
   lockedCompleted,
 } from '../policy/locks.js'
 
-// 완료와 완료 취소 결재를 오래된 것부터 모두.
+// 완료와 완료 취소 결재를 오래된 것부터 모두. 학생회를 주면 그 학생회의 결재만이다(기록 메뉴).
 export async function completionApprovalsOf(
   db: Reader,
   eventId: string,
+  councilId?: string,
 ): Promise<SettlementApproval[]> {
   const rows = await db
     .select({
@@ -31,8 +32,10 @@ export async function completionApprovalsOf(
     })
     .from(approval)
     .leftJoin(member, eq(member.id, approval.actorId))
+    .innerJoin(record, eq(record.id, approval.id))
     .where(
       and(
+        councilId === undefined ? undefined : eq(record.councilId, councilId),
         eq(approval.targetId, eventId),
         eq(approval.targetKind, 'event'),
         inArray(approval.outcome, COMPLETION_OUTCOMES),

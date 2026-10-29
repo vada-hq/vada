@@ -17,7 +17,7 @@ type Reader = Pick<Db, 'select'>
 
 // 완료한 행사의 완료 처리 시각: 마지막 완료 결재의 시각. 완료한 행사의 마지막 결재는 완료이므로 완료 결재 시각의 가장 늦은 것이다.
 // 결재 기록도 이 학생회 것만 본다.
-export async function completedAtByEvent(db: Reader, councilId: string, eventIds: string[]) {
+async function completedAtByEvent(db: Reader, councilId: string, eventIds: string[]) {
   if (!eventIds.length) return new Map<string, Date>()
   const rows = await db
     .select({ id: approval.targetId, at: max(approval.actedAt) })
@@ -46,6 +46,7 @@ async function completedOrderOf(db: Reader, actor: Actor) {
     ...(await completedEventIdsAmong(
       db,
       all.map(row => row.id),
+      actor.councilId,
     )),
   ]
   const at = await completedAtByEvent(db, actor.councilId, completed)
@@ -60,7 +61,7 @@ async function completedOrderOf(db: Reader, actor: Actor) {
 async function chipsOf(db: Reader, scope: RecordScope) {
   const registrations = await registrationCountsByEvent(db, scope)
   const money = await moneyByEvent(db, scope)
-  const tasks = await taskCountsByEvent(db, scope.eventIds)
+  const tasks = await taskCountsByEvent(db, scope.eventIds, undefined, scope.councilId)
   return (id: string): RecordEventItem['chips'] => {
     const counts = registrations.get(id) ?? { total: 0, cancelled: 0, attended: 0 }
     const { budget, actual } = money.get(id) ?? { budget: 0, actual: 0 }

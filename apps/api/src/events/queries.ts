@@ -273,8 +273,13 @@ export async function openEventsAmong(
 }
 
 // 행사 여럿의 지우지 않은 업무 수(끝나지 않은 것, 전체). 행사 상세와 홈이 같이 쓴다.
-// 부서를 주면 그 부서들의 업무만 센다(홈 참여 행사의 '부서 업무 n/m').
-export async function taskCountsByEvent(db: Reader, eventIds: string[], departmentIds?: string[]) {
+// 부서를 주면 그 부서들의 업무만 센다(홈 참여 행사의 '부서 업무 n/m'). 학생회를 주면 그 학생회의 업무만 센다(기록 메뉴).
+export async function taskCountsByEvent(
+  db: Reader,
+  eventIds: string[],
+  departmentIds?: string[],
+  councilId?: string,
+) {
   const counts = new Map<string, { open: number; total: number }>()
   if (!eventIds.length || departmentIds?.length === 0) return counts
   const rows = await db
@@ -284,8 +289,10 @@ export async function taskCountsByEvent(db: Reader, eventIds: string[], departme
       open: sql<number>`count(*) filter (where ${task.status} <> 'done')`.mapWith(Number),
     })
     .from(task)
+    .innerJoin(record, eq(record.id, task.id))
     .where(
       and(
+        councilId === undefined ? undefined : eq(record.councilId, councilId),
         inArray(task.eventId, eventIds),
         isNull(task.cancelledAt),
         departmentIds ? inArray(task.departmentId, departmentIds) : undefined,
