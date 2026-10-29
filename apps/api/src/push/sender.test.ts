@@ -237,3 +237,25 @@ test('읽을 수 없는 Retry-After는 기본 기다림을 쓴다', async () => 
     assert.deepEqual(waits, [500])
   }
 })
+
+test('Retry-After의 HTTP 날짜는 주입한 시계로 남은 시간을 잰다', async () => {
+  const now = new Date('2026-10-29T03:00:00Z')
+  let calls = 0
+  const waits: number[] = []
+  const send = makePushSender(
+    config,
+    async () => {
+      if (++calls === 1)
+        throw Object.assign(new Error('secret'), {
+          statusCode: 429,
+          headers: { 'retry-after': new Date(now.getTime() + 1000).toUTCString() },
+        })
+    },
+    async ms => {
+      waits.push(ms)
+    },
+    () => now,
+  )
+  assert.deepEqual(await send(target, message), { result: 'sent' })
+  assert.deepEqual(waits, [1000])
+})

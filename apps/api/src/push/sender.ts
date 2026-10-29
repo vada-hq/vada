@@ -54,7 +54,7 @@ function retryable(status: number | undefined) {
   )
 }
 
-function retryDelay(error: unknown, fallback: number) {
+function retryDelay(error: unknown, fallback: number, now: Date) {
   if (diagnosisOf(error).status !== TOO_MANY_REQUESTS) return fallback
   const headers = (error as { headers?: Record<string, unknown> }).headers
   const value = headers?.['retry-after']
@@ -62,12 +62,17 @@ function retryDelay(error: unknown, fallback: number) {
   const delay = /^\d+$/.test(value)
     ? Number(value) * MILLISECONDS_PER_SECOND
     : value.includes(':')
-      ? Date.parse(value) - Date.now()
+      ? Date.parse(value) - now.getTime()
       : Number.NaN
   return Number.isFinite(delay) ? Math.min(RETRY_AFTER_MAX_MS, Math.max(0, delay)) : fallback
 }
 
-async function sendWithRetry(attempt: () => Promise<unknown>, pause: Wait): Promise<PushOutcome> {
+type Timing = { pause: Wait; clock: () => Date }
+
+async function sendWithRetry(
+  attempt: () => Promise<unknown>,
+  { pause, clock }: Timing,
+): Promise<PushOutcome> {
   for (let retries = 0; ; retries++) {
     try {
       await attempt()
@@ -76,7 +81,7 @@ async function sendWithRetry(attempt: () => Promise<unknown>, pause: Wait): Prom
       const diagnosis = diagnosisOf(error)
       const fallback = RETRY_DELAYS_MS[retries]
       if (fallback !== undefined && retryable(diagnosis.status)) {
-        await pause(retryDelay(error, fallback))
+        await pause(retryDelay(error, fallback, clock()))
         continue
       }
       return {
@@ -94,6 +99,8 @@ export function createPushSender(
   config: PushConfig,
   send: Send = sendWithLibrary,
   pause: Wait = wait,
+  // Retry-After의 HTTP 날짜를 견줄 지금 시각. 앱 시계와 같은 꼴로 받는다(no-own-clock).
+  clock: () => Date = () => new Date(),
 ): PushSender {
   const options: RequestOptions = {
     vapidDetails: {
@@ -106,9 +113,9 @@ export function createPushSender(
   }
   return async (target, message, { ttl = TEST_TTL_SECONDS } = {}) => {
     if (!isKnownPushService(target.endpoint)) return { result: 'rejected' }
-    return sendWithRetry(
-      () => send(target, JSON.stringify(message), { ...options, TTL: ttl }),
+    return sendWithRetry(() => send(target, JSON.stringify(message), { ...options, TTL: ttl }), {
       pause,
-    )
+      clock,
+    })
   }
 }
