@@ -84,7 +84,7 @@ test('마이그레이션을 적용한 DB의 상태를 읽으면 로컬과 같고
     const state = await readTargetState(
       async text => (await pg.query<Record<string, unknown>>(text)).rows,
     )
-    assert.equal(state.publicTables, 65)
+    assert.equal(state.publicTables, 66)
     assert.deepEqual(checkTarget(state, localMigrations(migrationsFolder)), {
       ok: true,
       pending: 0,

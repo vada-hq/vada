@@ -132,6 +132,7 @@ test('--apply는 앱의 탈퇴와 같은 결과를 내고, 다시 돌리면 계�
       placements: 0,
       named_versions: 0,
       seats: 0,
+      kept_reads: 0,
       departed: 1,
     })
     const other = council.people.plain

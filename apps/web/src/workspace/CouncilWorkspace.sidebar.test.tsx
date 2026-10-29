@@ -129,7 +129,12 @@ test.each([
     ).toBeNull()
     fireEvent.click(messages)
     // 메시지 첫 화면은 학생회 방 탭(US-MSG-01)이고, 행사 묶음은 머리 [전체 보기]의 전체 목록(MSG-01)에 있다.
-    fireEvent.click(await screen.findByRole('button', { name: '전체 보기' }))
+    // 탭 줄에 없는 행사 방의 안 읽은 수는 [전체 보기]에 달려 버튼 이름에도 들어간다(탭 이름과 같다).
+    const all = await screen.findByRole('button', { name: /^전체 보기/ })
+    expect(within(all).getByLabelText(`안 읽은 메시지 ${eventUnread}개`).textContent).toBe(
+      String(eventUnread),
+    )
+    fireEvent.click(all)
     const events = await screen.findByRole('region', { name: '행사' })
     const eventRoom = within(events).getByRole('button', { name: /봄 축제 공지방/ })
     expect(within(eventRoom).getByLabelText(`안 읽은 메시지 ${eventUnread}개`).textContent).toBe(
