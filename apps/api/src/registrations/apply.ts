@@ -6,9 +6,11 @@ import { lockedCompleted } from '../events/completion.js'
 import { ApiError } from '../http/errors.js'
 import { saveReceipt } from '../commands/receipt.js'
 import { createRecord } from '../records/records.js'
+import { answerRowsOf, saveAnswers } from './answers.js'
 import { appliedFeeOf } from './fee-match.js'
 import { addLink, newToken } from './link.js'
 import { applicantCountOf, publicRowOf, stopsTaking } from './public-form.js'
+import { questionsOfForm } from './questions.js'
 import { applyBodyHashOf, applyKeyOf, resendApply } from './resend.js'
 import { registrationStatusOf } from './state.js'
 
@@ -73,6 +75,8 @@ export async function applyToForm(
   await assertOpen(tx, form, { now: target.now, eventCompleted })
   // 학번과 휴대폰은 양식이 받을 때만 받는다(DEC-75).
   assertFieldsMatch(input, { studentId: form.collectsStudentId, phone: form.collectsPhone })
+  // 질문은 양식 행을 잠근 뒤에 읽는다. 질문 바꾸기(question-write.ts)도 같은 행을 잠그므로 낡은 질문의 답을 받지 않는다.
+  const answers = answerRowsOf(await questionsOfForm(tx, form.id), input.answers)
   // 양식 기록은 늘 학생회 번호가 있다(학생회 번호가 없는 것은 학생회와 운영진뿐이다).
   const councilId = form.councilId
   if (councilId === null) throw new ApiError('NOT_FOUND')
@@ -95,6 +99,7 @@ export async function applyToForm(
       ),
     },
   })
+  await saveAnswers(tx, registrationId, answers)
   const token = newToken()
   await addLink(tx, registrationId, token)
   await saveReceipt(

@@ -17,6 +17,7 @@ const row = (extra: Partial<EventApplicant> = {}): EventApplicant => ({
   formId: 'f1',
   formTitle: '참가 신청',
   affiliation: null,
+  answers: [],
   needsAttention: false,
   ...extra,
 })

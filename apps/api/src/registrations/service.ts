@@ -16,6 +16,7 @@ import { clockNow, createRecord, updateRecord } from '../records/records.js'
 import { assertLinkableTask } from '../tasks/link.js'
 import { clearPhones } from './personal-values.js'
 import { assertEventAction, assertFormAction } from './policy.js'
+import { insertQuestions, replaceQuestions } from './question-write.js'
 import { freshPublicCode } from './public-code.js'
 import { formDetailOf, formRowOf, type FormRow } from './queries.js'
 
@@ -72,6 +73,7 @@ export async function createForm(
       feeAccountId: input.feeAccountId,
     },
   })
+  await insertQuestions(tx, id, input.questions)
   return formDetailOf(tx, actor, id, target.now)
 }
 
@@ -103,7 +105,7 @@ function changesOf(row: FormRow, input: UpdateFormRequest) {
   }
 }
 
-// 고치기. 칸을 모두 받아 그대로 바꾸고, 같은 값이면 판을 만들지 않는다.
+// 고치기. 칸을 모두 받아 그대로 바꾸고, 같은 값이면 판을 만들지 않는다. 질문은 판이 없다(question-write.ts).
 // 휴대폰 받기를 끄면 이미 받은 번호를 지금 값과 판에서 비운다(받지 않는 칸의 값이 남지 않게).
 // 학번 받기는 꺼도 이미 받은 학번을 비우지 않는다. 입금 대조와 같은 이름 가리기에 쓰고 보관 기간(DEC-55)대로 지운다(DEC-75).
 export async function updateForm(
@@ -115,6 +117,8 @@ export async function updateForm(
   const row = await formRowOf(tx, actor, target.formId)
   await assertEventAction(tx, actor, 'form.update', row)
   await assertFeeAccount(tx, actor, input, row.pausedAt !== null)
+  // 질문은 다른 칸보다 먼저 본다. 신청이 있어 바꿀 수 없으면 409로 거래 전체가 되돌아간다.
+  if (input.questions) await replaceQuestions(tx, row.id, input.questions)
   const changes = changesOf(row, input)
   if (Object.keys(changes).length)
     await updateRecord(tx, {

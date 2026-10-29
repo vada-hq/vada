@@ -116,7 +116,7 @@ export function eventApplicantOf(
   actor: Actor,
   facts: EventFacts,
   duplicates: Set<string | null>,
-): EventApplicant {
+): Omit<EventApplicant, 'answers'> {
   const duplicate = row.studentId !== null && duplicates.has(row.studentId)
   return {
     id: row.id,

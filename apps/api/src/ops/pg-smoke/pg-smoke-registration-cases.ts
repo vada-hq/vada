@@ -79,6 +79,7 @@ export const applyAs = (
         name: '점검 신청자',
         studentId: null,
         phone: null,
+        answers: [],
       },
     )
     await options.hold?.()

@@ -386,6 +386,23 @@ async function addUnusedTables(testDb: TestDb, councilId: string, author: string
       WHERE rec.council_id = $1 AND r.cancelled_at IS NULL ORDER BY r.id LIMIT 1`,
     [councilId],
   )
+  // 질문·선택지·답(025 조각 21): 그 신청의 양식에 고르기 질문 하나와 답 하나.
+  const question = await oneOf(
+    pg,
+    `INSERT INTO registration_question (form_id, position, kind, title)
+     SELECT form_id, 1, 'single_choice', '사이즈' FROM registration WHERE id = $1 RETURNING id`,
+    [registrationId],
+  )
+  const choice = await oneOf(
+    pg,
+    `INSERT INTO registration_question_choice (question_id, form_id, position, label)
+     SELECT id, form_id, 1, 'M' FROM registration_question WHERE id = $1 RETURNING id`,
+    [question],
+  )
+  await pg.query(
+    'INSERT INTO registration_answer (registration_id, question_id, choice_id) VALUES ($1, $2, $3)',
+    [registrationId, question, choice],
+  )
   const periodId = await ofKind('fiscal_period')
   await db.transaction(async tx => {
     const base = { councilId, actor: president }

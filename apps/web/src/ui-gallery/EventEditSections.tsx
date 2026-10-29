@@ -20,6 +20,7 @@ const form = (id: string, extra: Partial<RegistrationForm>): RegistrationForm =>
   collectsStudentId: true,
   paused: false,
   publicCode: 'ABCD2345',
+  questions: [],
   payerFee: 5000,
   nonPayerFee: 5000,
   feeAccount: null,

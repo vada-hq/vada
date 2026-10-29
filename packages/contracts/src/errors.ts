@@ -78,6 +78,8 @@ export const ERROR_STATUS = {
   FEE_PAYMENT_REPLACE_REQUIRED: 409,
   FORM_CHANGED: 409,
   FORM_CLOSED: 409,
+  // 신청이 있는 양식의 질문은 바꾸지 않는다. 이미 낸 답이 다른 질문의 답이 된다(DEC-93)
+  FORM_HAS_APPLICANTS: 409,
   FORM_NOT_READY: 409,
   NOT_CHECKED_IN: 409,
   // [입장 안 함]이 보낸 출석이 더는 지금 출석이 아니다(그사이 다른 운영진이 취소·재출석했다)

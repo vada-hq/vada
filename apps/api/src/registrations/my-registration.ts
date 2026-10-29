@@ -12,6 +12,7 @@ import {
 import type { Db } from '../db/types.js'
 import { completedEventIdsAmong } from '../events/completion.js'
 import { ApiError } from '../http/errors.js'
+import { shownAnswersOf } from './answers.js'
 import { hashOfToken } from './link.js'
 import { isFormClosed } from './state.js'
 
@@ -23,6 +24,7 @@ export async function mineRowOf(db: Reader, token: string) {
   const [row] = await db
     .select({
       id: registration.id,
+      formId: registration.formId,
       eventId: registrationForm.eventId,
       name: registration.name,
       studentId: registration.studentId,
@@ -78,6 +80,8 @@ export async function lookupMine(db: Reader, token: string, now: Date): Promise<
     event: { name: row.eventName },
     form: { notice: row.notice },
     mine: { name: row.name, studentId: row.studentId, phone: row.phone },
+    // 토큰을 가진 본인의 답이라 열람 기록이 없다(이름·학번과 같다).
+    answers: (await shownAnswersOf(db, [row])).get(row.id)!,
     appliedFee,
     depositConfirmed: row.depositId !== null,
     account:

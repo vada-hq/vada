@@ -9,6 +9,7 @@ import { attendance, registration, registrationForm } from '../db/schema.js'
 import type { Tx } from '../db/types.js'
 import { eventRowOf } from '../events/queries.js'
 import { recordApplicantAccess } from './access-log.js'
+import { shownAnswersOf } from './answers.js'
 import { duplicateStudentIds } from './applicants.js'
 import { eventApplicantOf, eventApplicantRows } from './event-applicant-rows.js'
 import { decideOnEvent, eventFactsOf, type EventFacts } from './policy.js'
@@ -60,8 +61,13 @@ async function visibleApplicants(tx: Tx, actor: Actor, target: Target, facts: Ev
       action: 'list',
       ip: target.ip,
     })
+  // 답도 신청자 정보다. 위 열람 기록과 같은 거래에서 같은 쪽의 신청만 읽는다(DEC-56).
+  const answers = await shownAnswersOf(tx, rows)
   return {
-    applicants: rows.map(row => eventApplicantOf(row, actor, facts, duplicates)),
+    applicants: rows.map(row => ({
+      ...eventApplicantOf(row, actor, facts, duplicates),
+      answers: answers.get(row.id)!,
+    })),
     total: total!.n,
     showForm: forms.length > 1,
     accessToken: access.token,

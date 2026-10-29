@@ -3,6 +3,7 @@ import {
   koreanOf,
   missingFormConditions,
   REGISTRATION_FORM_LIST_LIMIT,
+  type FormQuestion,
   type RegistrationForm,
   type RegistrationFormsResponse,
 } from '@vada/contracts'
@@ -16,6 +17,7 @@ import { ApiError } from '../http/errors.js'
 import { registrationContextOf } from './permission-context.js'
 import { actionsOf, eventFactsOf, factsFrom, listActionsOf } from './policy.js'
 import { purgeOnOf } from './purge-date.js'
+import { questionsOf } from './questions.js'
 import { registrationStatusOf, remainingOf } from './state.js'
 
 type Reader = Pick<Db, 'select'>
@@ -97,10 +99,18 @@ function missingConditionsOf(row: FormRow) {
   })
 }
 
-// 양식 줄 하나. 신청 수와 참석 수, 그 행사의 맥락(책임자, 담당 부서)은 부르는 쪽이 읽어 준다.
+type FormFacts = {
+  actor: Actor
+  counts: Counts
+  context: Context
+  now: Date
+  questions: FormQuestion[]
+}
+
+// 양식 줄 하나. 신청 수와 참석 수, 그 행사의 맥락(책임자, 담당 부서), 질문은 부르는 쪽이 읽어 준다.
 function formOf(
   row: FormRow,
-  { actor, counts, context, now }: { actor: Actor; counts: Counts; context: Context; now: Date },
+  { actor, counts, context, now, questions }: FormFacts,
   completed: boolean,
 ): RegistrationForm {
   const { applicants, attended } = counts
@@ -138,6 +148,7 @@ function formOf(
     remaining: remainingOf(row.capacity, applicants),
     purgeOn: purgeOnOf(row),
     missingConditions: missingConditionsOf(row),
+    questions,
     // 쓰기 동작은 쓰기와 같은 판정에서 나온다(registrations/policy.ts). 완료한 행사는 신청자 보기만 남는다.
     actions: actionsOf(
       actor,
@@ -160,6 +171,10 @@ async function formsOf(
     db,
     rows.map(row => row.id),
   )
+  const questions = await questionsOf(
+    db,
+    rows.map(row => row.id),
+  )
   const completed = await completedEventIdsAmong(
     db,
     rows.map(row => row.eventId),
@@ -179,6 +194,7 @@ async function formsOf(
         counts: counts.get(row.id)!,
         context: contexts.get(row.eventId)!,
         now,
+        questions: questions.get(row.id)!,
       },
       completed.has(row.eventId),
     ),

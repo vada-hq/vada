@@ -190,6 +190,13 @@
       "when": 1793204468067,
       "tag": "0026_meeting_minutes",
       "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "7",
+      "when": 1793252708322,
+      "tag": "0027_registration_questions",
+      "breakpoints": true
     }
   ]
 }

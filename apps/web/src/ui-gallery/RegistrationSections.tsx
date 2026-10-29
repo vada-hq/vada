@@ -26,6 +26,7 @@ const form = (id: string, extra: Partial<RegistrationForm>): RegistrationForm =>
   collectsStudentId: true,
   paused: false,
   publicCode: 'ABCD2345',
+  questions: [],
   payerFee: 5000,
   nonPayerFee: 10000,
   feeAccount: null,
@@ -186,6 +187,7 @@ const eventRows: EventApplicant[] = [
     formId: '00000000-0000-4000-8000-000000000201',
     formTitle: '재학생 참가 신청',
     affiliation: null,
+    answers: [],
     needsAttention: false,
   },
   {
@@ -197,6 +199,7 @@ const eventRows: EventApplicant[] = [
     formId: '00000000-0000-4000-8000-000000000202',
     formTitle: '신입생 참가 신청',
     affiliation: null,
+    answers: [],
     needsAttention: true,
   },
   {
@@ -210,6 +213,7 @@ const eventRows: EventApplicant[] = [
     formId: '00000000-0000-4000-8000-000000000201',
     formTitle: '재학생 참가 신청',
     affiliation: null,
+    answers: [],
     needsAttention: false,
   },
 ]

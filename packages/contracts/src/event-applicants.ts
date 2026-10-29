@@ -2,6 +2,7 @@ import { z } from 'zod'
 import type { ErrorCode } from './errors.js'
 import { DEPOSIT_STATUSES } from './deposits.js'
 import { text, token } from './input.js'
+import type { ShownAnswer } from './registration-questions.js'
 import type { Applicant } from './registrations.js'
 import { recordIdInput } from './team.js'
 
@@ -28,6 +29,8 @@ export interface EventApplicant extends Applicant {
   formTitle: string
   // 학적 질문이 있는 양식의 답만 담는다. 아직 그 질문을 받지 않는 양식은 null이다.
   affiliation: string | null
+  // 그 신청 양식의 질문마다 답 하나(신청자 정보라 이름과 같은 열람 기록 아래에서만 준다)
+  answers: ShownAnswer[]
   needsAttention: boolean
 }
 export interface EventApplicantsResponse {

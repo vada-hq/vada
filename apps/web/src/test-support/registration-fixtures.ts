@@ -29,6 +29,7 @@ export const publicForm = (
   collectsStudentId: true,
   collectsPhone: false,
   purgeOn: '2027-10-24',
+  questions: [],
   ...extra,
 })
 
@@ -36,6 +37,7 @@ export const myRegistration = (extra: Partial<MyRegistration> = {}): MyRegistrat
   event: { name: publicForm().event.name },
   form: { notice: publicForm().form.notice },
   mine: { name: '김새내', studentId: '20260001', phone: null },
+  answers: [],
   appliedFee: 5000,
   depositConfirmed: false,
   account: { bank: '국민은행', accountNumber: '123-456-789012', holder: '소프트웨어학부 학생회' },

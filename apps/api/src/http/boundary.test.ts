@@ -154,6 +154,10 @@ test('본문 상한은 가드 한 곳에서 경로마다 정한다: 학생회비
   assert.equal(bodyLimitOf('/api/organizations/a/events/e/report/retrospective'), 65_536)
   assert.equal(bodyLimitOf('/api/organizations/a/meetings/m/agenda/g'), 65_536)
   assert.equal(bodyLimitOf('/api/organizations/a/meetings/m/agenda/g/cancel'), MAX_BODY_BYTES)
+  assert.equal(bodyLimitOf('/api/organizations/a/events/e/registration-forms'), 196_608)
+  assert.equal(bodyLimitOf('/api/organizations/a/registration-forms/f'), 196_608)
+  assert.equal(bodyLimitOf('/api/organizations/a/registration-forms/f/activate'), MAX_BODY_BYTES)
+  assert.equal(bodyLimitOf('/api/public/registration-forms/ABCDEFGH/apply'), MAX_BODY_BYTES)
   for (const path of [
     '/api/organizations/a/fee-payments/b/remove',
     '/api/organizations/a/expenses',

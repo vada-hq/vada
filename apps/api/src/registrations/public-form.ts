@@ -5,6 +5,7 @@ import type { Db } from '../db/types.js'
 import { completedEventIdsAmong } from '../events/completion.js'
 import { ApiError } from '../http/errors.js'
 import { purgeOnOf } from './purge-date.js'
+import { questionsOfForm } from './questions.js'
 import { registrationStatusOf, remainingOf } from './state.js'
 
 const koreanOrNull = (value: Date | null) => (value ? koreanOf(value) : null)
@@ -106,6 +107,8 @@ export async function publicFormOf(
     // 양식의 학번 받기(DEC-75). 두 참가비가 다르면 DB CHECK가 받기로 묶는다.
     collectsStudentId: row.collectsStudentId,
     collectsPhone: row.collectsPhone,
+    // 질문 제목은 화면 고지의 받는 항목에 그대로 실린다(DEC-93). 선택지 번호는 신청 본문이 쓴다.
+    questions: await questionsOfForm(db, row.id),
     purgeOn: purgeOnOf({ ...row, eventStartsAt: row.eventStartsAt, eventEndsAt: row.eventEndsAt }),
   }
 }

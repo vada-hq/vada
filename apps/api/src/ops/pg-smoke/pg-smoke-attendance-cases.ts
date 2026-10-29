@@ -87,7 +87,7 @@ async function newRegistration(run: Race) {
     applyToForm(
       tx,
       { code: run.code, now: run.context.now, receiptKey: 'smoke-receipt-key' },
-      { commandId: randomUUID(), name: '점검 신청자', studentId: null, phone: null },
+      { commandId: randomUUID(), name: '점검 신청자', studentId: null, phone: null, answers: [] },
     ),
   )
   return { token, hash: hashOfToken(token) }

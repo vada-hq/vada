@@ -76,6 +76,7 @@ test(
       nonPayerFee: 5000,
       collectsStudentId: true,
       collectsPhone: true,
+      questions: [],
       purgeOn: '2027-11-05',
     })
     // 계좌, 신청자, 운영진, 내부 번호는 어느 곳에도 없다.

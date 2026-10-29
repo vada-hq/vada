@@ -3,7 +3,14 @@ import { commandIdInput, EmptyRequestSchema, text, token } from './input.js'
 import type { ApplicantDeposit } from './deposits.js'
 import { koreanDateTime } from './korean-time.js'
 import { recordIdInput } from './team.js'
+import {
+  AnswersSchema,
+  QuestionsInputSchema,
+  type FormQuestion,
+  type ShownAnswer,
+} from './registration-questions.js'
 export * from './event-applicants.js'
+export * from './registration-questions.js'
 
 // 신청 양식(기능 007, DEC-44). 값은 DB CHECK와 같다.
 export const REGISTRATION_FORM_NAME_MAX = 50
@@ -106,12 +113,16 @@ export const CreateFormSchema = z
     payerFee: fields.payerFee.default(null),
     nonPayerFee: fields.nonPayerFee.default(null),
     feeAccountId: fields.feeAccountId.default(null),
+    questions: QuestionsInputSchema.default([]),
     // 이 양식을 이을 업무(기능 015). 이 학생회의 끝나지 않은 업무로 내가 상태를 바꿀 수 있는 것만 된다. 비우거나 빼면 잇지 않는다.
     taskId: recordIdInput.nullish(),
   })
   .refine(isValidForm)
 export type CreateFormRequest = z.infer<typeof CreateFormSchema>
-export const UpdateFormSchema = z.strictObject(fields).refine(isValidForm)
+// 질문은 목록 전체를 받아 그대로 바꾼다. 빼면 질문을 그대로 둔다. 신청이 있는 양식은 같은 목록만 받는다(409 FORM_HAS_APPLICANTS).
+export const UpdateFormSchema = z
+  .strictObject({ ...fields, questions: QuestionsInputSchema.optional() })
+  .refine(isValidForm)
 export type UpdateFormRequest = z.infer<typeof UpdateFormSchema>
 // 멈추기와 다시 받기는 본문이 없다.
 export const PauseFormSchema = EmptyRequestSchema
@@ -160,6 +171,8 @@ export interface RegistrationForm {
   purgeOn: string
   // 서버가 활성화 시 검사하는 부족 조건. 읽기 권한과 무관하게 모든 운영진에게 준다.
   missingConditions: FormActivationCondition[]
+  // 신청자가 답할 질문(차례대로). 이름·학번·휴대폰 칸 밖의 받는 항목이다.
+  questions: FormQuestion[]
   actions: FormAction[]
 }
 
@@ -185,6 +198,8 @@ export interface PublicRegistrationForm {
   // 양식의 학번 받기(DEC-75). 두 참가비가 다르면 늘 true다.
   collectsStudentId: boolean
   collectsPhone: boolean
+  // 고지의 받는 항목에 질문 제목이 실린다(DEC-93).
+  questions: FormQuestion[]
   purgeOn: string
 }
 
@@ -206,6 +221,8 @@ export const ApplySchema = z.strictObject({
     .nullable()
     .default(null),
   phone: phone.nullable().default(null),
+  // 양식의 질문마다 답 하나. 질문이 없는 양식은 비운다.
+  answers: AnswersSchema.default([]),
 })
 export type ApplyRequest = z.infer<typeof ApplySchema>
 
@@ -227,6 +244,8 @@ export interface MyRegistration {
   event: Pick<PublicRegistrationForm['event'], 'name'>
   form: Pick<PublicRegistrationForm['form'], 'notice'>
   mine: { name: string; studentId: string | null; phone: string | null }
+  // 내가 낸 답(질문마다 하나)
+  answers: ShownAnswer[]
   appliedFee: number
   // 자기 신청의 현재 입금 확인 여부만 준다. 입금액·환불 내역은 공개하지 않는다.
   depositConfirmed: boolean

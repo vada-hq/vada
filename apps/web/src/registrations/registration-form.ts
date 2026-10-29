@@ -193,5 +193,6 @@ export function previewOf(
     collectsStudentId: collectsStudentId(values),
     collectsPhone: values.collectsPhone,
     purgeOn: purgeOnOf(event, values.closesAt) ?? '',
+    questions: [],
   }
 }

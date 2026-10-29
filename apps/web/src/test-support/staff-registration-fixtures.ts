@@ -33,6 +33,7 @@ export const staffForm = (extra: Partial<RegistrationForm> = {}): RegistrationFo
   collectsStudentId: true,
   paused: false,
   publicCode: 'ABCD2345',
+  questions: [],
   payerFee: 5000,
   nonPayerFee: 10000,
   feeAccount: { id: ACCOUNT_ID, name: '학생회 통장' },

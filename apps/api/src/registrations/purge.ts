@@ -3,12 +3,13 @@ import { koreanDateOf } from '@vada/contracts'
 import { event, record, registration, registrationForm } from '../db/schema.js'
 import type { Db, Tx } from '../db/types.js'
 import { removeReceiptsOf } from '../commands/receipt.js'
+import { removeAnswers } from './answers.js'
 import { removeLinks } from './link.js'
 import { idList } from '../records/clear-versions.js'
 import { clearVersionValues } from './personal-values.js'
 import { purgeOnOf } from './purge-date.js'
 
-// 신청자 정보(이름, 학번, 휴대폰)를 지금 값과 모든 판에서 비우고 개인 링크 줄을 지운다(DEC-54, DEC-55). 행은 남고 판은 새로 열지 않는다.
+// 신청자 정보(이름, 학번, 휴대폰)를 지금 값과 모든 판에서 비우고 개인 링크 줄과 답을 지운다(DEC-54, DEC-55). 행은 남고 판은 새로 열지 않는다.
 // 판 비우기와 링크 지우기는 스스로 취소(cancel-mine.ts)와 같은 도우미를 쓴다.
 async function clearApplicants(tx: Tx, formIds: string[]) {
   const rows = await tx
@@ -22,9 +23,10 @@ async function clearApplicants(tx: Tx, formIds: string[]) {
     WHERE id IN ${idList(ids)} AND (name IS NOT NULL OR student_id IS NOT NULL OR phone IS NOT NULL)`)
   await removeLinks(tx, ids)
   await removeReceiptsOf(tx, ids)
+  await removeAnswers(tx, ids)
 }
 
-// 지울 것이 남은 양식(값이 있는 신청이나 개인 링크가 남은 양식)과 지울 날 계산에 쓰는 날짜들
+// 지울 것이 남은 양식(값이 있는 신청이나 개인 링크·답이 남은 양식)과 지울 날 계산에 쓰는 날짜들
 async function candidatesOf(
   tx: Pick<Db, 'selectDistinct'>,
   scope?: { councilId: string; formId: string },
@@ -34,6 +36,7 @@ async function candidatesOf(
     isNotNull(registration.studentId),
     isNotNull(registration.phone),
     sql`EXISTS (SELECT 1 FROM registration_link l WHERE l.registration_id = ${registration.id})`,
+    sql`EXISTS (SELECT 1 FROM registration_answer a WHERE a.registration_id = ${registration.id})`,
   )
   return tx
     .selectDistinct({

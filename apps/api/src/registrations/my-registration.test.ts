@@ -43,6 +43,7 @@ test(
       },
       form: { notice: '문의는 카톡' },
       mine: person,
+      answers: [],
       appliedFee: 5000,
       depositConfirmed: false,
       account: { bank: '국민은행', accountNumber: '123-45-6789012', holder: '한양대 학생회' },
@@ -104,6 +105,7 @@ test(
     assert.equal((await mineOf(t, second)).depositConfirmed, false)
     assert.deepEqual(Object.keys(confirmed).sort(), [
       'account',
+      'answers',
       'appliedFee',
       'attended',
       'cancellable',

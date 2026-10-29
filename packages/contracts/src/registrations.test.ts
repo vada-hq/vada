@@ -69,7 +69,7 @@ const COMMAND_ID = '3f2b8a52-6c1e-4d0b-9a7e-2d5c8f1b4a60'
 test('신청 본문: 휴대폰은 공백과 -를 빼고, 안 보낸 칸은 null이다', () => {
   assert.deepEqual(
     ApplySchema.parse({ commandId: COMMAND_ID, name: ' 김 ', phone: '010-1234 5678' }),
-    { commandId: COMMAND_ID, name: '김', studentId: null, phone: '01012345678' },
+    { commandId: COMMAND_ID, name: '김', studentId: null, phone: '01012345678', answers: [] },
   )
   assert.equal(
     ApplySchema.safeParse({ commandId: COMMAND_ID, name: '김', studentId: '12345' }).success,

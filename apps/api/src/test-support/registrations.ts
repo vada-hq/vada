@@ -189,7 +189,11 @@ export async function startRegistrations(options: { writeLimiter?: RateLimiter }
     ).form
   // 생성 API 시험과 기존 활성 양식을 읽는 시험을 가른다. 옛 활성 양식은 일시가 미정이어도 그대로 받는다.
   const activeForm = async (eventId: string, body: Values = {}) => {
-    const { taskId: _task, ...input } = CreateFormSchema.parse({ ...FORM, ...body })
+    const {
+      taskId: _task,
+      questions: _questions,
+      ...input
+    } = CreateFormSchema.parse({ ...FORM, ...body })
     const id = await makeForm(eventId, {
       ...input,
       opensAt: input.opensAt ? dateFromKorean(input.opensAt) : null,
