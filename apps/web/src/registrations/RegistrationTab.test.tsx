@@ -842,3 +842,18 @@ test('신청이 있는 양식은 질문을 목록으로만 보이고 더하기·
   expect(within(form).queryByRole('button', { name: '짧은 답' })).toBeNull()
   expect(within(form).queryByRole('button', { name: '이니셜 빼기' })).toBeNull()
 })
+
+test('양식 보기의 받는 항목에 질문이 종류·필수와 함께 차례대로 보인다(고치기 권한이 없어도)', async () => {
+  const questions = [
+    {
+      id: '00000000-0000-4000-8000-000000000802',
+      kind: 'multiple_choice' as const,
+      title: '참가 종목',
+      required: false,
+      choices: [{ id: '00000000-0000-4000-8000-000000000803', label: '축구' }],
+    },
+  ]
+  setup({ forms: [staffForm({ questions, actions: [] })], actions: [] })
+  expect(await screen.findByText('참가 종목')).toBeTruthy()
+  expect(screen.getByText('여럿 고르기 · 선택')).toBeTruthy()
+})

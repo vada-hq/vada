@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import {
+  QUESTION_KIND_LABELS,
   registrationStatusLabel,
   type ActivateFormRequest,
   type ActivateFormResponse,
@@ -72,20 +73,33 @@ function Recruitment({ form, onEdit }: Pick<Props, 'form' | 'onEdit'>) {
   )
 }
 
+// 받는 항목: 기본 칸과 질문(차례대로). 질문은 모든 운영진이 읽는다(고치기는 편집 화면에서만).
 function Collected({ form }: Pick<Props, 'form'>) {
   const fields = [
-    '이름',
-    ...(form.collectsStudentId ? ['학번'] : []),
-    ...(form.collectsPhone ? ['휴대폰 번호'] : []),
+    { key: 'name', label: '이름', kind: null, required: true },
+    ...(form.collectsStudentId
+      ? [{ key: 'studentId', label: '학번', kind: null, required: true }]
+      : []),
+    ...(form.collectsPhone
+      ? [{ key: 'phone', label: '휴대폰 번호', kind: null, required: true }]
+      : []),
+    ...form.questions.map(question => ({
+      key: question.id,
+      label: question.title,
+      kind: QUESTION_KIND_LABELS[question.kind],
+      required: question.required,
+    })),
   ]
   return (
     <FormSection title="받는 항목">
       <ol className="flex flex-col divide-y">
-        {fields.map((label, index) => (
-          <li key={label} className="flex min-h-11 items-center gap-3 py-3 text-sm">
+        {fields.map((field, index) => (
+          <li key={field.key} className="flex min-h-11 items-center gap-3 py-3 text-sm">
             <span className="text-muted-foreground tabular-nums">{index + 1}</span>
-            <span>{label}</span>
-            <span className="ml-auto text-xs text-muted-foreground">필수</span>
+            <span className="min-w-0 wrap-anywhere">{field.label}</span>
+            <span className="ml-auto shrink-0 text-xs text-muted-foreground">
+              {[field.kind, field.required ? '필수' : '선택'].filter(Boolean).join(' · ')}
+            </span>
           </li>
         ))}
       </ol>

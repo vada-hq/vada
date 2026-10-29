@@ -15,7 +15,12 @@ export function answersRequest(questions: FormQuestion[], values: AnswerValues):
       return { questionId: question.id, text: textOf(value).trim() || null }
     if (question.kind === 'single_choice')
       return { questionId: question.id, choiceId: textOf(value) || null }
-    return { questionId: question.id, choiceIds: listOf(value) }
+    // 고른 차례가 아니라 선택지 차례로 보낸다. 같은 답이면 본문이 같아 재전송이 같은 신청이 된다.
+    const picked = listOf(value)
+    return {
+      questionId: question.id,
+      choiceIds: question.choices.map(choice => choice.id).filter(id => picked.includes(id)),
+    }
   })
 }
 

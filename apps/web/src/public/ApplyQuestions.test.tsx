@@ -66,12 +66,35 @@ test('필수 질문을 비우면 칸 아래 오류이고 보내지 않는다. �
   fireEvent.change(screen.getByLabelText('이니셜'), { target: { value: ' KHS ' } })
   fireEvent.click(screen.getByRole('radio', { name: 'M' }))
   fireEvent.click(screen.getByRole('checkbox', { name: '농구' }))
+  fireEvent.click(screen.getByRole('checkbox', { name: '축구' }))
   fireEvent.click(screen.getByRole('button', { name: '신청하기' }))
   await waitFor(() => expect(api.calls.filter(call => call.method === 'POST')).toHaveLength(1))
   const body = api.calls.find(call => call.method === 'POST')!.body as { answers: unknown }
   expect(body.answers).toEqual([
     { questionId: Q(1), text: 'KHS' },
     { questionId: Q(2), choiceId: Q(4) },
-    { questionId: Q(5), choiceIds: [Q(7)] },
+    // 고른 차례(농구, 축구)가 아니라 선택지 차례다.
+    { questionId: Q(5), choiceIds: [Q(6), Q(7)] },
   ])
+})
+
+test('필수 여럿 고르기가 비면 그 묶음으로 초점이 간다', async () => {
+  const api = mockApi()
+  api.on('GET', FORM_PATH, () =>
+    json(
+      publicForm({
+        payerFee: 0,
+        nonPayerFee: 0,
+        collectsStudentId: false,
+        questions: [{ ...questions[2]!, required: true }],
+      }),
+    ),
+  )
+  render(<ApplyPage code={FORM_CODE} onApplied={vi.fn()} />)
+  fireEvent.change(await screen.findByLabelText('이름'), { target: { value: '김신청' } })
+  fireEvent.click(screen.getByRole('button', { name: '신청하기' }))
+  expect(await screen.findByText('하나 이상 골라 주세요')).toBeTruthy()
+  await waitFor(() =>
+    expect(document.activeElement).toBe(screen.getByRole('group', { name: '참가 종목' })),
+  )
 })
