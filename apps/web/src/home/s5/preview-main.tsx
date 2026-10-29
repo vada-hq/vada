@@ -11,6 +11,8 @@ import { S5_DATA, type S5DataName } from './s5-data'
 import { S7_DATA, type S7Greeting } from '../s7/s7-data'
 import C1Preview from '../c1/C1Preview'
 import type { C1DataName } from '../c1/c1-view'
+import C1rPreview, { C1R_VARIANTS, type C1rVariant } from '../c1r/C1rPreview'
+import { C1R_DATA_NAMES, type C1rDataName } from '../c1r/c1r-data'
 import '../../index.css'
 
 // S5 흑백 시안 미리보기: /home-s5.html?variant=A|B|C|B2&data=main|normal|empty[&greeting=line|date|merge]
@@ -136,9 +138,17 @@ function Workspace() {
 // 실제 앱은 작업 공간을 h-dvh 열(SignedInView) 안에 둔다. 미리보기에 그 열이 없어 짧은 페이지에서 옆 메뉴 바탕이
 // 내용 높이에서 끊겼다(S6 검토). 미리보기는 페이지 전체를 찍어야 해서 h-dvh 대신 min-h-dvh로 같은 높이를 채운다.
 // C1: ① 컴포넌트 하나만 띄운다(작업 공간 없음). /home-s5.html?component=c1&variant=A|B&data=main|many|normal
+// C1R: ① 컴포넌트 시안 절차(P3~)의 판. /home-s5.html?component=c1r&variant=0|1|2|3&data=main|many|assign|normal|empty
 const c1 = params.get('component') === 'c1'
+const c1r = params.get('component') === 'c1r'
+const c1rVariant = (Object.keys(C1R_VARIANTS).includes(params.get('variant') ?? '') ? params.get('variant') : '0') as C1rVariant
+const c1rData = (C1R_DATA_NAMES.includes(params.get('data') as C1rDataName) ? params.get('data') : 'main') as C1rDataName
 createRoot(document.getElementById('root')!).render(
-  c1 ? (
+  c1r ? (
+    <StrictMode>
+      <C1rPreview variant={c1rVariant} data={c1rData} />
+    </StrictMode>
+  ) : c1 ? (
     <StrictMode>
       <C1Preview variant={params.get('variant') === 'B' ? 'B' : 'A'} data={(params.get('data') ?? 'main') as C1DataName} />
     </StrictMode>
