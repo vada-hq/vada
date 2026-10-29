@@ -1,7 +1,9 @@
-import { useId, type ReactNode } from 'react'
-import { Copy } from 'lucide-react'
+import { useId, useState, type ReactNode } from 'react'
+import { Copy, QrCode as QrIcon } from 'lucide-react'
+import QrCode from '@/components/QrCode'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { dayTimeLabel } from '@/lib/korean-date-text'
@@ -30,7 +32,9 @@ export function InviteFields({ link, code, createdAt, notice, onCopy, children }
         value={link}
         copyLabel="링크 복사"
         onCopy={() => onCopy(link, 'link')}
-      />
+      >
+        <InviteQrButton link={link} />
+      </CopyField>
       <CopyField
         label="초대 코드"
         value={code}
@@ -56,9 +60,11 @@ type FieldProps = {
   // 짧은 코드는 사람이 읽고 옮겨 적으므로 크게, 글자 사이를 띄운다.
   mono?: boolean
   onCopy: () => void
+  // 복사 버튼 옆에 더 둘 버튼(링크의 QR 보기).
+  children?: ReactNode
 }
 
-function CopyField({ label, value, copyLabel, mono = false, onCopy }: FieldProps) {
+function CopyField({ label, value, copyLabel, mono = false, onCopy, children }: FieldProps) {
   const id = useId()
   return (
     <section aria-label={label} className="flex flex-col gap-2">
@@ -76,10 +82,36 @@ function CopyField({ label, value, copyLabel, mono = false, onCopy }: FieldProps
         }
         onFocus={event => event.currentTarget.select()}
       />
-      <Button variant="outline" size="sm" touch className="self-start" onClick={onCopy}>
-        <Copy />
-        {copyLabel}
-      </Button>
+      <div className="flex flex-wrap gap-2">
+        <Button variant="outline" size="sm" touch onClick={onCopy}>
+          <Copy />
+          {copyLabel}
+        </Button>
+        {children}
+      </div>
     </section>
+  )
+}
+
+// 대면 초대(회의실 빔·휴대폰 화면)에서 찍도록 링크와 같은 값의 QR을 창으로 크게 보인다. 링크 칸 안에 있어 링크가
+// 없으면(불러오기 전·실패) 버튼도 없고, 코드를 바꾸면 새 링크를 담는다. 메신저 그룹 초대(카카오톡 오픈채팅·LINE·
+// 텔레그램·WhatsApp)처럼 링크와 QR을 같이 준다.
+function InviteQrButton({ link }: { link: string }) {
+  const [open, setOpen] = useState(false)
+  return (
+    <>
+      <Button variant="outline" size="sm" touch onClick={() => setOpen(true)}>
+        <QrIcon />
+        QR 보기
+      </Button>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent aria-describedby={undefined} className="items-center sm:max-w-xl">
+          <DialogHeader className="self-stretch">
+            <DialogTitle>초대 링크 QR</DialogTitle>
+          </DialogHeader>
+          <QrCode text={link} label="초대 링크 QR" large />
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }

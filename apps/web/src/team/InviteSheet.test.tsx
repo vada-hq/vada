@@ -3,6 +3,7 @@ import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
 import { asElement } from '@/test-support/elements'
+import { qrMatrix, qrPath } from '@/lib/qr-code'
 import { InviteSheet, InviteSheetBody } from './InviteSheet'
 
 // 구성원 초대 창(기능 023 조각 6)의 안: 링크와 코드를 따로 복사하고, 코드 바꾸기는 확인 창을 거친다(기능 020 정한 것 14).
@@ -70,6 +71,29 @@ test('링크와 코드를 따로 보이고 따로 복사하며, 만든 시각을
   expect(writeText).toHaveBeenLastCalledWith(`${window.location.origin}/join/ABCD2345`)
 })
 
+const qrOf = (dialog: HTMLElement) =>
+  within(dialog).getByRole('img', { name: '초대 링크 QR' }).querySelector('path')?.getAttribute('d')
+
+test('[QR 보기]는 초대 링크와 같은 값의 QR을 창으로 크게 보인다', async () => {
+  const sheet = show()
+  fireEvent.click(await within(sheet).findByRole('button', { name: 'QR 보기' }))
+  const dialog = screen.getByRole('dialog', { name: '초대 링크 QR' })
+  expect(qrOf(dialog)).toBe(qrPath(qrMatrix(valueOf('초대 링크'))))
+  expect(valueOf('초대 링크')).toBe(`${window.location.origin}/join/ABCD2345`)
+  fireEvent.click(within(dialog).getByRole('button', { name: '닫기' }))
+  expect(screen.queryByRole('dialog', { name: '초대 링크 QR' })).toBeNull()
+})
+
+test('코드를 바꾸면 QR도 새 링크를 담는다', async () => {
+  api.on('POST', '/api/organizations/c1/invite/rotate', () => json(NEXT))
+  const dialog = await askRotate()
+  fireEvent.click(within(dialog).getByRole('button', { name: '코드 바꾸기' }))
+  await screen.findByText('코드를 바꿨어요. 옛 링크로는 이제 들어올 수 없어요.')
+  fireEvent.click(screen.getByRole('button', { name: 'QR 보기' }))
+  const qr = screen.getByRole('dialog', { name: '초대 링크 QR' })
+  expect(qrOf(qr)).toBe(qrPath(qrMatrix(`${window.location.origin}/join/WXYZ6789`)))
+})
+
 test('복사하지 못하면 칸을 직접 고르라고 알린다', async () => {
   Object.defineProperty(navigator, 'clipboard', {
     value: { writeText: vi.fn(() => Promise.reject(new Error('denied'))) },
@@ -135,7 +159,9 @@ test('읽지 못하면 다시 시도할 수 있고, 403이면 학생회를 다�
     reads++ === 0 ? json({ error: 'Internal server error' }, 500) : json(FIRST),
   )
   const sheet = show()
+  expect(within(sheet).queryByRole('button', { name: 'QR 보기' })).toBeNull()
   expect(await within(sheet).findByText('초대 링크를 불러오지 못했어요.')).toBeTruthy()
+  expect(within(sheet).queryByRole('button', { name: 'QR 보기' })).toBeNull()
   fireEvent.click(within(sheet).getByRole('button', { name: '다시 시도' }))
   expect(await within(sheet).findByRole('textbox', { name: '초대 코드' })).toBeTruthy()
   cleanup()
