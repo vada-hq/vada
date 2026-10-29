@@ -38,3 +38,22 @@ test('거르기를 바꾼 뒤 이전 거르기의 다시 읽기가 끝나도 지
   expect(state.kind === 'ready' && state.tasks.map(task => task.title)).toEqual(['마감 없는 업무'])
   api.assertNoUnexpectedRequests()
 })
+
+test('꺼져 있을 때 받은 reload를 켜진 뒤 늦게 불러도 지금 읽기가 남는다', async () => {
+  const api = mockApi()
+  const now = deferredResponse()
+  api.on('GET', base, () => now.promise.then(response => response.clone()))
+  const { result, rerender } = renderHook(
+    ({ enabled }) => useTasks('c1', { view: 'all', filter: 'open' }, () => {}, enabled),
+    { initialProps: { enabled: false } },
+  )
+  const oldReload = result.current.reload
+  rerender({ enabled: true })
+  const reloaded = oldReload()
+  now.resolve(json({ tasks: [taskDetail({ title: '켜진 뒤 업무' })], truncated: false }))
+  await act(async () => {
+    await reloaded
+  })
+  await waitFor(() => expect(result.current.state.kind).toBe('ready'))
+  api.assertNoUnexpectedRequests()
+})

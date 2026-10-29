@@ -30,14 +30,17 @@ export function useTasks(
   const [loaded, setLoaded] = useState<{ key: string; state: Loaded } | null>(null)
   const forbidden = useLatest(onForbidden)
   const latestKey = useLatest(key)
+  const latestEnabled = useLatest(enabled)
   const issued = useRef(0)
   const isActive = useActive()
   const load = useCallback(async () => {
     // 꺼질 때도 차례를 올려, 꺼지기 전에 보낸 읽기의 늦은 응답을 버린다.
     const seq = ++issued.current
-    if (!enabled) return
-    // 옛 거르기 때 받은 reload를 늦게 불러도 지금 주소를 읽는다(차례를 올려 지금 읽기를 버리므로 대신 읽는다).
-    const mine = latestKey.current
+    // 화면이 사라졌으면 읽지 않는다(답을 어차피 버린다).
+    if (!isActive()) return
+    // 옛 거르기·꺼진 때 받은 reload를 늦게 불러도 지금 주소와 켜짐으로 읽는다(차례를 올려 지금 읽기를 버리므로 대신 읽는다).
+    const mine = latestEnabled.current ? latestKey.current : null
+    if (mine === null) return
     const result = await getJson<TasksResponse>(mine)
     // 더 나중에 보낸 읽기가 있거나(탭을 바꿈 포함) 화면이 사라졌거나 보낸 뒤 거르기가 바뀌었으면 이 응답은 버린다.
     if (seq !== issued.current || !isActive() || mine !== latestKey.current) return
@@ -53,10 +56,10 @@ export function useTasks(
         ? before
         : { key: mine, state: { kind: 'failed', notFound } },
     )
-  }, [enabled, forbidden, isActive, latestKey])
+  }, [forbidden, isActive, latestKey, latestEnabled])
   useEffect(() => {
     void load()
-  }, [load, key])
+  }, [load, key, enabled])
   useVisiblePoll(() => void load(), LIST_POLL_MS)
   const state: TasksState = loaded?.key === key ? loaded.state : { kind: 'loading' }
   return { state, reload: load }
