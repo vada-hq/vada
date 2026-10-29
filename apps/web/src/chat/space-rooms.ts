@@ -30,6 +30,13 @@ export const shownRoomOf = (rooms: RoomSummary[], wanted: string | null) =>
 // 탭 배지: 그 공간 방들의 안 읽은 수 합(DEC-90 '탭 배지는 공지방과 내 부서방의 안 읽은 수').
 export const unreadSum = (rooms: RoomSummary[]) => rooms.reduce((sum, room) => sum + room.unread, 0)
 
+// 탭 줄에 없는 방(행사 방, 부서 간 방). 메시지 첫 화면에서는 [전체 보기] 목록(MSG-01)에서 연다(US-MSG-01 '이 화면은 학생회 방만').
+// 그 안 읽은 수를 [전체 보기]에 달아, 옆 메뉴 합계(unreadTotal)에 든 방이 첫 화면의 숫자 어딘가에 늘 보이게 한다.
+export const elsewhereRooms = (rooms: RoomSummary[]) => {
+  const tabbed = new Set(councilRooms(rooms))
+  return rooms.filter(room => room.type !== 'direct' && !tabbed.has(room))
+}
+
 // 읽기는 서버 목록 그대로다. 안 읽은 방끼리도 마지막 메시지가 최근인 방부터 둔다.
 export const directRooms = (rooms: RoomSummary[]) =>
   rooms

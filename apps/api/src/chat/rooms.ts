@@ -1,4 +1,4 @@
-import { and, eq, inArray, isNull, notInArray } from 'drizzle-orm'
+import { and, eq, inArray, isNull, sql } from 'drizzle-orm'
 import { isClosing, lockCouncil } from '../access/authorize.js'
 import {
   chatRoom,
@@ -6,11 +6,14 @@ import {
   department,
   departmentMembership,
   event,
+  leftRoomRead,
+  member,
   record,
   roomMembership,
 } from '../db/schema.js'
 import type { Db, Tx } from '../db/types.js'
 import { completedEventIdsAmong } from '../policy/locks.js'
+import { idList } from '../records/clear-versions.js'
 import { clockNow, createRecord } from '../records/records.js'
 import { inNoticeRoom, isPlanRoom } from './plan-room.js'
 
@@ -85,20 +88,44 @@ async function reconcileMembers(tx: Tx, roomId: string, wanted: string[]) {
     .where(eq(roomMembership.roomId, roomId))
   const have = new Set(rows.map(item => item.memberId))
   const missing = wanted.filter(memberId => !have.has(memberId))
-  if (missing.length)
+  if (missing.length) {
     await tx
       .insert(roomMembership)
       .values(missing.map(memberId => ({ roomId, memberId, joinedAt: clockNow })))
+    await restoreRead(tx, roomId, missing)
+  }
   const stale = rows.map(item => item.memberId).filter(memberId => !wanted.includes(memberId))
-  if (stale.length)
-    await tx
-      .delete(roomMembership)
-      .where(
-        and(
-          eq(roomMembership.roomId, roomId),
-          wanted.length ? notInArray(roomMembership.memberId, wanted) : undefined,
-        ),
-      )
+  if (stale.length) await leaveKeepingRead(tx, roomId, stale)
+}
+
+// 빠진 사람의 참여 줄을 지운다. 공지방은 들어오기 전 같은 기수 메시지도 보이므로(DEC-90) 읽음 위치를 남겨, 다시 들어오면
+// 이미 읽은 공지가 안 읽음으로 돌아오지 않게 한다. 다른 방은 들어온 뒤의 메시지만 보여 남길 까닭이 없고, 탈퇴한 사람(left_at)은
+// 다시 들어올 일이 없어 남기지 않는다(보관된 행사 방의 완료를 취소해 빠질 때도). 운영진 행을 FOR SHARE로 잠가, 학생회 잠금 없이
+// 도는 탈퇴(내보낸 뒤의 탈퇴)와 겹치면 그 거래가 끝난 뒤의 left_at을 본다. 지우면서 돌려받은 값을 옮겨, 그사이 읽음이
+// 앞으로 가도 잃지 않는다. 시각은 DB 안에서 옮겨 마이크로초가 깎이지 않게 한다(read-marker.ts와 같다).
+// 남긴 것은 탈퇴(withdrawal/service.ts)와 학생회 파기(councils/destroy.ts)가 지운다.
+async function leaveKeepingRead(tx: Tx, roomId: string, memberIds: string[]) {
+  await tx.execute(sql`WITH live AS (
+      SELECT id FROM ${member} WHERE id IN ${idList(memberIds)} AND left_at IS NULL FOR SHARE),
+    gone AS (
+      DELETE FROM ${roomMembership} WHERE room_id = ${roomId}::uuid AND member_id IN ${idList(memberIds)}
+      RETURNING room_id, member_id, last_read_at)
+    INSERT INTO ${leftRoomRead} (room_id, member_id, last_read_at)
+    SELECT gone.room_id, gone.member_id, gone.last_read_at FROM gone
+      JOIN ${chatRoom} ON ${chatRoom.id} = gone.room_id
+      JOIN live ON live.id = gone.member_id
+     WHERE gone.last_read_at IS NOT NULL AND ${inNoticeRoom}
+    ON CONFLICT (room_id, member_id) DO UPDATE
+      SET last_read_at = greatest(${leftRoomRead}.last_read_at, excluded.last_read_at)`)
+}
+
+// 다시 들어온 사람의 새 참여 줄에 남긴 읽음 위치를 되살리고 지운다. 나가 있던 동안 온 공지는 안 읽음으로 남는다.
+async function restoreRead(tx: Tx, roomId: string, memberIds: string[]) {
+  await tx.execute(sql`WITH kept AS (
+      DELETE FROM ${leftRoomRead} WHERE room_id = ${roomId}::uuid AND member_id IN ${idList(memberIds)}
+      RETURNING member_id, last_read_at)
+    UPDATE ${roomMembership} SET last_read_at = kept.last_read_at FROM kept
+     WHERE ${roomMembership}.room_id = ${roomId}::uuid AND ${roomMembership}.member_id = kept.member_id`)
 }
 
 type Space = { eventId: string | null; wanted: { room: Wanted; memberIds: string[] }[] }

@@ -33,6 +33,28 @@ test(
 )
 
 test(
+  '학생회 파기는 그 학생회 공지방에 남긴 읽음 위치를 지우고 다른 학생회의 것은 남긴다',
+  withSettlement(async t => {
+    const kept = new Map<string, string>()
+    for (const council of [t.council, t.other]) {
+      const room = await t.make(council, 'chat_room', { type: 'all_members' })
+      kept.set(council.councilId, room)
+      await t.pg.query(
+        `INSERT INTO left_room_read (room_id, member_id, last_read_at) VALUES ($1, $2, '2026-10-01T00:00:00Z')`,
+        [room, council.people.planningMember.memberId],
+      )
+    }
+    const plan = await destroyPlanOf(t.db, t.council.councilId)
+    assert.equal(plan.tables.find(item => item.table === 'left_room_read')?.rows, 1)
+    await t.db.transaction(tx => destroyCouncilRows(tx, plan))
+    assert.deepEqual(
+      (await t.pg.query<{ room_id: string }>('SELECT room_id FROM left_room_read')).rows,
+      [{ room_id: kept.get(t.other.councilId) }],
+    )
+  }),
+)
+
+test(
   '일정은 부서·행사보다 먼저 파기하고 다른 학생회의 일정은 남긴다',
   withSettlement(async t => {
     const id = await t.make(t.council, 'schedule_item', {

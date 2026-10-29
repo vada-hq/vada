@@ -10,6 +10,7 @@ import {
   councilMembership,
   department,
   departmentMembership,
+  leftRoomRead,
   memberLogin,
   pushDevice,
   sessions,
@@ -189,6 +190,9 @@ export async function withdrawAccount(
     await tx.delete(calendarFeed).where(eq(calendarFeed.memberId, memberId))
     await endMemberships(tx, memberId, councilIds, now)
     await clearMember(tx, memberId)
+    // 내보낼 때 남긴 공지방 읽음 위치(방 맞추기가 방금 남긴 것도). 탈퇴하면 다시 들어올 일이 없다.
+    // left_at을 쓴 뒤에 지운다: 그 운영진 행을 잠근 채 남기던 다른 거래(chat/rooms.ts)가 있으면 그것이 끝난 뒤의 행까지 지운다.
+    await tx.delete(leftRoomRead).where(eq(leftRoomRead.memberId, memberId))
   }
   await markAgreementsWithdrawn(tx, userId)
   await deleteLogin(tx, userId)

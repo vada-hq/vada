@@ -3,6 +3,7 @@ import type { RoomSummary } from '@vada/contracts'
 import {
   councilRooms,
   directRooms,
+  elsewhereRooms,
   firstRoomOf,
   shownRoomOf,
   switchRooms,
@@ -75,4 +76,19 @@ test('1:1은 전부 보이고 안 읽은 방 먼저, 같은 묶음에서는 최�
   ]
   expect(directRooms(rooms).map(item => item.id)).toEqual(['new', 'old', 'read', 'empty'])
   expect(rooms[0]?.id).toBe('read')
+})
+
+test('탭 줄에 없는 방(행사·부서 간)만 전체 보기 몫이고, 탭·1:1·전체 보기 몫을 더하면 모든 방의 안 읽은 수다', () => {
+  const ownNotice = room('on', { type: 'all_members', eventId: null, unread: 1 })
+  const leadership = room('l', { type: 'leadership', eventId: null, unread: 2 })
+  const ownDepartment = room('od', { eventId: null, unread: 4 })
+  const direct = room('d', { type: 'direct', eventId: null, unread: 8 })
+  const between = room('b', { type: 'inter_department', eventId: null, unread: 16 })
+  const rooms = [ownNotice, leadership, ownDepartment, notice, plan, direct, between]
+  expect(elsewhereRooms(rooms)).toEqual([notice, plan, between])
+  expect(
+    unreadSum(councilRooms(rooms)) +
+      unreadSum(directRooms(rooms)) +
+      unreadSum(elsewhereRooms(rooms)),
+  ).toBe(unreadSum(rooms))
 })

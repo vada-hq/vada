@@ -22,6 +22,17 @@ export const roomMembership = pgTable(
   table => [primaryKey({ columns: [table.roomId, table.memberId] })],
 )
 
+// 내보내진 사람의 공지방 읽음 위치(0028). 다시 들어오면 참여 줄에 되살리고 지운다(chat/rooms.ts).
+export const leftRoomRead = pgTable(
+  'left_room_read',
+  {
+    roomId: uuid('room_id').notNull(),
+    memberId: uuid('member_id').notNull(),
+    lastReadAt: at('last_read_at').notNull(),
+  },
+  table => [primaryKey({ columns: [table.roomId, table.memberId] })],
+)
+
 export const message = pgTable('message', {
   id: uuid('id').primaryKey(),
   kind: text('kind').notNull().default('message'),

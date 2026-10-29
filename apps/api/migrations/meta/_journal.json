@@ -197,6 +197,13 @@
       "when": 1793252708322,
       "tag": "0027_registration_questions",
       "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1793259524490,
+      "tag": "0028_left_room_read",
+      "breakpoints": true
     }
   ]
 }
