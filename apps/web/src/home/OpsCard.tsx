@@ -74,7 +74,8 @@ export default function OpsCard(props: Props) {
   if (ops.total === 0) return <QuietBand id={headId}>{`${OPS_TITLE} 없음`}</QuietBand>
   const shown = expanded ? ops.rows : ops.rows.slice(0, shownLimit(ops))
   const hidden = hiddenText(ops.counts, shown)
-  const showSeeAll = !expanded && (ops.total > HOME_OPS_SHOWN || hidden !== null)
+  // 펼친 뒤에도 서버 상한 밖에 남은 줄이 있으면 그 수를 글로 남긴다(누를 곳은 없다).
+  const showSeeAll = expanded ? hidden !== null : ops.total > HOME_OPS_SHOWN || hidden !== null
   return (
     <Tray labelledBy={headId}>
       <TrayHead id={headId} title={OPS_TITLE} count={ops.total} />
@@ -99,7 +100,7 @@ export default function OpsCard(props: Props) {
         <SeeAllButton
           total={ops.total}
           hidden={hidden}
-          onClick={hidden ? () => setExpanded(true) : undefined}
+          onClick={hidden && !expanded ? () => setExpanded(true) : undefined}
         />
       )}
     </Tray>

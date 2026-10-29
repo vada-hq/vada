@@ -74,6 +74,7 @@ export async function opsPeopleOf(db: Reader, actor: Actor): Promise<OpsPeople> 
       .select({ id: department.id, name: department.name, role: department.role })
       .from(department)
       .where(eq(department.councilId, actor.councilId))
+      .orderBy(asc(department.id))
   ).map(row => ({ id: row.id, name: row.name, finance: row.role === 'finance' }))
   const [titles] = await db
     .select({ headTitle: council.headTitle })
@@ -114,7 +115,8 @@ export function headOf(people: OpsPeople, departmentId: string) {
 
 // 결재의 연락할 사람: 재정 역할 부서의 부장
 export function financeHeadOf(people: OpsPeople) {
-  const head = [...people.heads.values()].find(row => row.finance)
+  const found = financeDepartmentOf(people)
+  const head = found && people.heads.get(found.id)
   if (!head) return null
   return personOf(people, head.memberId, {
     kind: 'finance_head',
@@ -133,9 +135,13 @@ export const headlessOf = (people: OpsPeople, departmentId: string) =>
     people.departments.find(row => row.id === departmentId),
   )
 
+// 결재의 기준 부서: 재정 역할 부서 가운데 지금 부장이 있는 첫 부서, 없으면 첫 재정 역할 부서(부서 번호 차례).
+// 연락할 사람과 부장 없음을 이 한 부서로 정해 둘이 서로 다른 부서를 가리키지 않게 한다.
+function financeDepartmentOf(people: OpsPeople) {
+  const finance = people.departments.filter(row => row.finance)
+  return finance.find(row => people.heads.has(row.id)) ?? finance[0]
+}
+
 // 결재는 재정 역할 부서를 본다. 그런 부서가 없으면 null이다('재정 담당 없음'이 맡는다).
 export const financeHeadlessOf = (people: OpsPeople) =>
-  headless(
-    people,
-    people.departments.find(row => row.finance),
-  )
+  headless(people, financeDepartmentOf(people))

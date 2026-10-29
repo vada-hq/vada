@@ -200,9 +200,9 @@ test('배정할 일이 있으면 일 줄은 4줄이고 배정 줄이 맨 아래,
     councilHome({
       ops: emptyOps({
         rows,
-        counts: { late: 2, today: 1, tomorrow: 2, approval: 1 },
+        counts: { late: 2, today: 1, tomorrow: 2, approval: 3 },
         assign: { noDepartment: 2, unassignedMembers: 1, financeStaffed: false },
-        total: 10,
+        total: 12,
       }),
     }),
   )
@@ -210,11 +210,13 @@ test('배정할 일이 있으면 일 줄은 4줄이고 배정 줄이 맨 아래,
   const items = within(ops).getAllByRole('listitem')
   expect(items).toHaveLength(5)
   expect(items[4]!.textContent).toContain('회장단이 배정할 일')
-  const seeAll = within(ops).getByRole('button', { name: /전체 10건 보기/ })
-  expect(within(seeAll).getByText('외 2건 · 내일 마감 1, 결재 대기 1')).toBeTruthy()
+  const seeAll = within(ops).getByRole('button', { name: /전체 12건 보기/ })
+  expect(within(seeAll).getByText('외 4건 · 내일 마감 1, 결재 대기 3')).toBeTruthy()
   fireEvent.click(seeAll)
   expect(within(ops).getAllByRole('listitem')).toHaveLength(7)
-  expect(within(ops).queryByRole('button', { name: /전체 10건 보기/ })).toBeNull()
+  // 서버 상한(50줄) 밖에 남은 줄은 펼친 뒤에도 수로 남는다(누를 곳은 없다).
+  expect(within(ops).queryByRole('button', { name: /전체 12건 보기/ })).toBeNull()
+  expect(within(ops).getByText('외 2건 · 결재 대기 2')).toBeTruthy()
 })
 
 test('부장 없는 부서의 줄은 누구 칸에 부서 · 부장 없음과 부장 정하기를 두고 조직의 그 부서로 간다', async () => {

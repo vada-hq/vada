@@ -9,9 +9,12 @@ import {
   type HomeOpsKind,
   type HomeOpsRow,
 } from '@vada/contracts'
+import { and, isNull, lte } from 'drizzle-orm'
 import type { Actor } from '../access/actor.js'
+import { request as requestTable } from '../db/schema.js'
 import type { Db } from '../db/types.js'
 import { requestListOf } from '../purchases/list.js'
+import { stageCountsOf } from '../purchases/list-stages.js'
 import type { OpenTask } from '../tasks/open-tasks.js'
 import {
   financeHeadOf,
@@ -74,15 +77,19 @@ function taskRowsOf(open: OpenTask[], people: OpsPeople, actor: Actor, today: st
   return rows
 }
 
-// 결재 대기 가운데 필요한 때가 3일 안(지난 것 포함). 재정 결재 목록과 같은 읽기·차례(필요한 때가 이른 순)다.
-async function approvalRowsOf(db: Reader, actor: Actor, people: OpsPeople, now: Date) {
+// 결재 대기 가운데 필요한 때가 3일 안(지난 것 포함). 줄은 재정 결재 목록과 같은 읽기·차례(필요한 때가 이른 순)이고,
+// 그 목록은 상한(300)이 있어 수는 목록의 단계 셈(stageCountsOf)으로 따로 센다.
+async function approvalsOf(db: Reader, actor: Actor, people: OpsPeople, now: Date) {
   const today = koreanDateOf(now)
   const until = koreanDateOf(new Date(now.getTime() + PURCHASE_NEEDED_SOON_DAYS * DAY_MS))
   const contact = financeHeadOf(people)
-  if (contact?.memberId === actor.memberId) return []
+  if (contact?.memberId === actor.memberId) return { rows: [], count: 0 }
   const noHead = financeHeadlessOf(people)
   const { requests } = await requestListOf(db, actor, { view: 'pending' })
-  return requests
+  const stages = await stageCountsOf(db, actor, {
+    where: and(isNull(requestTable.cancelledAt), lte(requestTable.neededBy, until)),
+  })
+  const rows = requests
     .filter(request => request.neededBy !== null && request.neededBy <= until)
     .map((request): HomeOpsRow => ({
       kind: 'approval',
@@ -94,6 +101,7 @@ async function approvalRowsOf(db: Reader, actor: Actor, people: OpsPeople, now: 
       noHead,
       actions: [],
     }))
+  return { rows, count: stages.pending }
 }
 
 const KIND_ORDER = new Map(HOME_OPS_KINDS.map((kind, index) => [kind, index]))
@@ -106,13 +114,15 @@ export async function opsOf(
   board: { open: OpenTask[]; unassignedMembers: number; financeStaffed: boolean },
 ): Promise<HomeOps> {
   const people = await opsPeopleOf(db, actor)
+  const approvals = await approvalsOf(db, actor, people, now)
   const rows = [
     ...taskRowsOf(board.open, people, actor, koreanDateOf(now)),
-    ...(await approvalRowsOf(db, actor, people, now)),
+    ...approvals.rows,
   ].sort((a, b) => KIND_ORDER.get(a.kind)! - KIND_ORDER.get(b.kind)!)
   const counts = Object.fromEntries(
     HOME_OPS_KINDS.map(kind => [kind, rows.filter(row => row.kind === kind).length]),
   ) as HomeOps['counts']
+  counts.approval = approvals.count
   const noDepartment = board.open.filter(isNoDepartment).length
   return {
     rows: rows.slice(0, HOME_OPS_ROW_LIMIT),
@@ -123,7 +133,7 @@ export async function opsOf(
       financeStaffed: board.financeStaffed,
     },
     total:
-      rows.length +
+      HOME_OPS_KINDS.reduce((sum, kind) => sum + counts[kind], 0) +
       noDepartment +
       (board.unassignedMembers > 0 ? 1 : 0) +
       (board.financeStaffed ? 0 : 1),

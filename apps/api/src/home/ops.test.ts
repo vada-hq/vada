@@ -253,3 +253,37 @@ test('학생회를 떠난 부장은 부장이 아니다', async () => {
     assert.deepEqual(row!.noHead, { id: t.council.departments.planning, name: '기획부' })
   })()
 })
+
+test('재정 역할 부서가 둘이면 부장이 있는 쪽이 연락할 사람이고 부장 없음을 싣지 않는다', async () => {
+  await withSettlement(async t => {
+    const h = open(t)
+    const second = await t.make(t.council, 'department', { name: '재정2부', role: 'finance' })
+    await t.make(t.council, 'department_membership', {
+      memberId: h.people.planningMember.memberId,
+      departmentId: second,
+      cohortId: t.council.cohortId,
+      departmentRank: 'head',
+      startsAt: new Date('2026-01-02T00:00:00Z'),
+    })
+    await t.requestWithItem(null, { title: '다과', neededBy: '2026-10-26' })
+    const [row] = (await h.ops()).rows
+    assert.deepEqual(row!.contact?.role, {
+      kind: 'finance_head',
+      department: '재정2부',
+      title: '부장',
+    })
+    assert.equal(row!.noHead, null)
+  })()
+})
+
+test('결재 수는 목록 상한(300)을 넘어도 전체를 센다', async () => {
+  await withSettlement(async t => {
+    const h = open(t)
+    for (let i = 0; i < 302; i += 1)
+      await t.requestWithItem(null, { title: `다과 ${i}`, neededBy: '2026-10-26' })
+    const ops = await h.ops()
+    assert.equal(ops.counts.approval, 302)
+    assert.equal(ops.total, 302 + 1)
+    assert.equal(ops.rows.length, 50)
+  })()
+})
