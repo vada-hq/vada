@@ -159,7 +159,7 @@ export default function CouncilWorkspace({
         council={council}
         nav={nav}
         content={{
-          width: pageWidthOf(nav.page),
+          width: pageWidthOf(nav.page, target.record),
           data,
           ...lists,
           ...openers,

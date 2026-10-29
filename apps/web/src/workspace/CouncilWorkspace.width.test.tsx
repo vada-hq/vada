@@ -16,9 +16,10 @@ test.each<[Page, string, string]>([
   ['home', `/home/${COUNCIL_ID}`, 'max-w-7xl'],
   ['settings', `/settings/${COUNCIL_ID}`, 'max-w-3xl'],
   ['events', `/events/${COUNCIL_ID}`, 'max-w-7xl'],
-  ['events', `/events/${COUNCIL_ID}/${EVENT_ID}`, 'max-w-7xl'],
-  ['chat', `/chat/${COUNCIL_ID}`, 'max-w-7xl'],
-  ['council', `/council/${COUNCIL_ID}`, 'max-w-7xl'],
+  ['events', `/events/${COUNCIL_ID}/${EVENT_ID}`, 'max-w-none'],
+  ['events', `/events/${COUNCIL_ID}/${EVENT_ID}?tab=overview`, 'max-w-7xl'],
+  ['chat', `/chat/${COUNCIL_ID}`, 'max-w-none'],
+  ['council', `/council/${COUNCIL_ID}`, 'max-w-none'],
   ['tasks', `/tasks/${COUNCIL_ID}`, 'max-w-7xl'],
   ['calendar', `/calendar/${COUNCIL_ID}`, 'max-w-7xl'],
 ])('%s는 불러오는 중에도 머리글과 본문이 같은 가운데 폭이다(%s)', (page, path, width) => {

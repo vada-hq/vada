@@ -10,7 +10,16 @@ export type CouncilEntry = 'join' | 'create'
 
 // 넓은 모니터에서 화면마다 폭이 달라 배치가 제각각이고 칸이 너무 길어져, 모든 화면을 기본 틀(1280px) 하나로 둔다.
 // 글을 읽고 고치는 설정만 좁은 틀이다(DEC-117 초안, DEC-101 고침).
-export const pageWidthOf = (page: Page): PageWidth => (page === 'settings' ? 'narrow' : 'default')
+// 대화 화면(메시지·학생회 방·행사 메시지 탭)은 양옆 빈자리 없이 끝까지 쓴다(대표 10/30).
+export const pageWidthOf = (
+  page: Page,
+  record?: { kind: string; tab?: string | undefined } | null,
+): PageWidth => {
+  if (page === 'settings') return 'narrow'
+  if (page === 'chat' || page === 'council') return 'full'
+  const eventMessages = record?.kind === 'events' && (record.tab ?? 'messages') === 'messages'
+  return page === 'events' && eventMessages ? 'full' : 'default'
+}
 
 // 머리글 경로 줄에서 학생회 이름 뒤에 붙는 메뉴 칸(crumbs)과 제목(DEC-96). 홈은 학생회 이름 한 칸뿐이다.
 // 사람(people)과 옛 부서 주소(departments)는 같은 조직 화면이다(DEC-91, DEC-96).

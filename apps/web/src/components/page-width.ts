@@ -2,6 +2,7 @@
 const WIDTH_CLASSES = {
   narrow: 'max-w-3xl',
   default: 'max-w-7xl',
+  full: 'max-w-none',
 } as const
 
 export type PageWidth = keyof typeof WIDTH_CLASSES
