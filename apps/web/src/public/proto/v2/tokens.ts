@@ -27,6 +27,8 @@ export const size = {
   qrDay: 'w-62',
   // 시트 안 QR 폭 70%
   qrSheet: 'w-[70%] max-w-72',
+  // 640px 이상에서 아래 버튼 자리의 고정을 풀고 흐림 면·위 여백을 뺀다(마지막 칸 뒤 제자리)
+  barStatic: 'sm:static sm:bg-none sm:pt-0',
 }
 
 export const space = {

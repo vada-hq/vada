@@ -78,24 +78,24 @@ const asTiles = (question: FormQuestion) =>
   question.choices.length <= TILE_MAX_CHOICES &&
   question.choices.every(choice => choice.label.length <= TILE_MAX_LABEL)
 
-const CHOICE_BASE = `relative flex cursor-pointer items-center gap-3 ${size.control} ${radius.control} px-4 ${type.body} transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-primary-emphasis`
+const CHOICE_BASE = `relative flex cursor-pointer items-center ${size.control} ${radius.control} ${type.body} transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-primary-emphasis`
 const CHOICE_OFF = 'bg-surface-muted text-fg-body active:bg-muted-strong'
 const CHOICE_ON = 'bg-primary-surface font-semibold text-primary-strong ring-2 ring-inset ring-primary-border-selected'
 
-// 여럿 고르기는 늘 네모 표시가 있고(여럿 됨을 알림), 하나 고르기는 고른 줄에만 체크가 붙는다(r07).
+// 고르는 표시는 늘 왼쪽에 있다: 하나 고르기는 동그라미(라디오), 여럿 고르기는 네모(체크).
+// 안 고르면 흰 속 + 회색 테두리, 고르면 파랗게 찬다(하나 고르기는 가운데 흰 점, 여럿 고르기는 흰 체크).
 function Mark({ on, multiple }: { on: boolean; multiple: boolean }) {
-  if (multiple)
-    return (
-      <span
-        aria-hidden="true"
-        className={`flex size-6 shrink-0 items-center justify-center rounded-md ${on ? 'bg-primary-emphasis text-white' : 'bg-white text-transparent ring-1 ring-border-strong ring-inset'}`}
-      >
+  const shape = multiple ? 'rounded-md' : 'rounded-full'
+  const look = on ? 'bg-primary-emphasis text-white' : 'bg-white text-transparent ring-1 ring-border-strong ring-inset'
+  return (
+    <span aria-hidden="true" className={`flex size-6 shrink-0 items-center justify-center ${shape} ${look}`}>
+      {multiple ? (
         <Check className="size-4" strokeWidth={3} />
-      </span>
-    )
-  return on ? (
-    <Check aria-hidden="true" className="ml-auto size-6 shrink-0 text-primary-emphasis" strokeWidth={3} />
-  ) : null
+      ) : (
+        <span className={`size-2.5 rounded-full ${on ? 'bg-white' : 'bg-transparent'}`} />
+      )}
+    </span>
+  )
 }
 
 function ChoiceRow({
@@ -115,8 +115,9 @@ function ChoiceRow({
   disabled: boolean
   onPick: (on: boolean) => void
 }) {
+  const layout = tile ? 'justify-center gap-2 px-3' : 'gap-3 px-4'
   return (
-    <label className={`${CHOICE_BASE} ${on ? CHOICE_ON : CHOICE_OFF} ${tile ? 'justify-center' : ''}`}>
+    <label className={`${CHOICE_BASE} ${layout} ${on ? CHOICE_ON : CHOICE_OFF}`}>
       <input
         type={multiple ? 'checkbox' : 'radio'}
         name={name}
@@ -125,9 +126,8 @@ function ChoiceRow({
         className="sr-only"
         onChange={event => onPick(event.target.checked)}
       />
-      {multiple && <Mark on={on} multiple />}
+      <Mark on={on} multiple={multiple} />
       <span className={`wrap-anywhere ${tile ? 'text-center' : 'min-w-0 flex-1'}`}>{label}</span>
-      {!multiple && !tile && <Mark on={on} multiple={false} />}
     </label>
   )
 }

@@ -75,10 +75,37 @@ function AccountPanel({ data, copy }: { data: FormSample; copy: ReturnType<typeo
           <span className={`${type.body} font-bold tabular-nums wrap-anywhere`}>{account.accountNumber}</span>
           <span className={`${type.label} text-fg-tertiary wrap-anywhere`}>{account.holder}</span>
         </span>
-        <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-white text-fg-secondary">
-          <Copy aria-hidden="true" className="size-5" />
+        <span
+          className={`inline-flex min-h-11 shrink-0 items-center gap-1 rounded-full bg-white px-3.5 ${type.label} font-semibold text-fg-secondary`}
+        >
+          <Copy aria-hidden="true" className="size-4" />
+          복사
         </span>
       </button>
+    </section>
+  )
+}
+
+// 행사 당일에 입금이 끝났으면(확인됨·무료) 완료·계좌를 한 덩이로 접는다: '신청 완료' + '참가비 10,000원 · 입금 확인됨'.
+// 지난 입금 안내 문구와 계좌는 싣지 않는다(당일 주인공은 입장 QR).
+function DayResult({ data }: { data: FormSample }) {
+  return (
+    <section aria-label="신청 완료" className="flex flex-col items-center gap-1 text-center">
+      <h2 className={`${type.body} font-bold`} data-k="done-title">
+        신청 완료
+      </h2>
+      <p className={`${type.label} text-fg-secondary`} data-k="fee-amount">
+        참가비 {data.text.appliedFee}
+        {data.deposit && (
+          <>
+            <span aria-hidden="true"> · </span>
+            <span className="inline-flex items-center gap-1 font-semibold text-success">
+              <Check aria-hidden="true" className="size-4 self-center" strokeWidth={3} />
+              {data.deposit}
+            </span>
+          </>
+        )}
+      </p>
     </section>
   )
 }
@@ -142,13 +169,15 @@ export default function DoneScreen(props: FormProps) {
   const { data } = props
   const { copy, message } = useCopy(props.onCopy)
   const day = data.eventDay
+  // 당일이고 낼 돈이 남지 않았으면(입금 확인됨·무료) 완료·계좌를 한 줄로 접는다.
+  const settled = day && data.deposit !== '입금 전'
   return (
     <Page>
       <div className={`flex flex-col gap-6 pb-8 ${day ? '' : 'pt-6'}`}>
         {day && <EntryQrHero mine={data.mine} />}
         {day && <Band />}
-        <Result data={data} compact={day} />
-        <AccountPanel data={data} copy={copy} />
+        {settled ? <DayResult data={data} /> : <Result data={data} compact={day} />}
+        {!settled && <AccountPanel data={data} copy={copy} />}
         {!day && <EntryQrRow mine={data.mine} />}
       </div>
       <Band />

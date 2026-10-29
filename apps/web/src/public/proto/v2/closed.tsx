@@ -14,14 +14,12 @@ const LOOK: Record<ClosedDataName, { icon: LucideIcon; tone: string }> = {
   moved: { icon: ArrowRight, tone: 'bg-primary-surface text-primary-emphasis' },
 }
 
-// ⑤ 받지 않을 때: 칸 자리에 Result 꼴 상태(아이콘 원 → 제목 → 한 줄), 버튼은 아래 고정 자리.
+// ⑤ 받지 않을 때: 칸 자리(행사 요약 바로 아래, 신청 화면의 첫 칸과 같은 40px 뒤)에 Result 꼴 상태
+// (아이콘 원 → 제목 → 한 줄). 빈 자리 가운데에 띄우지 않아 첫눈에 신청할 수 없음이 읽힌다.
 function StatusResult({ closed }: { closed: FormClosed }) {
   const { icon: Icon, tone } = LOOK[closed.kind]
   return (
-    <section
-      aria-label={closed.title}
-      className="flex flex-1 flex-col items-center justify-center gap-3 py-16 text-center"
-    >
+    <section aria-label={closed.title} className="mt-10 flex flex-col items-center gap-3 text-center">
       <span className={`flex ${size.resultIcon} items-center justify-center rounded-full ${tone}`}>
         <Icon aria-hidden="true" className="size-8" strokeWidth={2.25} />
       </span>
@@ -40,7 +38,8 @@ export default function ClosedScreen({ data, onClosedAction }: FormProps) {
       <EventHead text={data.text} />
       <div className="flex flex-1 flex-col">
         <StatusResult closed={closed} />
-        <BottomBar>
+        {/* 휴대폰은 버튼을 화면 아래에 붙이고, 1280은 상태 바로 아래에 둔다. */}
+        <BottomBar className="mt-auto sm:mt-10">
           <BigButton tone={moved ? 'primary' : 'gray'} onClick={onClosedAction}>
             {closed.action.label}
           </BigButton>

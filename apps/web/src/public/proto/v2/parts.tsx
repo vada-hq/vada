@@ -43,11 +43,13 @@ export function Band() {
   return <div aria-hidden="true" className={`-mx-6 ${space.band} bg-surface-muted`} />
 }
 
-// 아래에 붙는 꽉 찬 버튼 자리(TDS FixedBottomCTA). sticky라 내용이 길면 화면 아래에 붙고, 끝까지 내리면 제자리(마지막 내용 뒤)로 온다.
-export function BottomBar({ children }: { children: ReactNode }) {
+// 아래에 붙는 꽉 찬 버튼 자리(TDS FixedBottomCTA). 휴대폰 폭에서는 sticky라 내용이 길면 화면 아래에 붙고,
+// 끝까지 내리면 제자리(마지막 내용 뒤)로 와서 어떤 칸도 덮지 않는다.
+// 640px 이상(1280 데스크탑)에서는 고정을 풀고 마지막 칸 뒤 제자리에만 둔다(창이 낮아 고정하면 칸을 덮음).
+export function BottomBar({ children, className = '' }: { children: ReactNode; className?: string }) {
   return (
     <div
-      className={`sticky bottom-0 z-10 -mx-6 flex flex-col gap-2 px-6 pt-6 pb-[max(16px,env(safe-area-inset-bottom))] ${shadow.barFade}`}
+      className={`sticky bottom-0 z-10 -mx-6 flex flex-col gap-2 px-6 pt-6 pb-[max(16px,env(safe-area-inset-bottom))] ${shadow.barFade} ${size.barStatic} ${className}`}
     >
       {children}
     </div>
