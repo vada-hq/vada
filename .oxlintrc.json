@@ -243,6 +243,13 @@
         "no-restricted-imports": "off"
       }
     },
+    // 영구 예외: 시연 학생회 내용 파일(사람이 고치는 데이터)은 금액·수량·정원·날 수 자체가 내용이라 이름을 붙이면 같은 값을 두 번 적게 된다. 임시 목록이 아니다.
+    {
+      "files": ["apps/api/src/flows/showcase/content/**"],
+      "rules": {
+        "no-magic-numbers": "off"
+      }
+    },
     // 영구 예외: 아이콘 생성기의 PNG 형식 바이트와 그림 좌표라 이름을 붙이면 형식 명세를 다시 적게 된다. 임시 목록이 아니다.
     {
       "files": ["apps/web/scripts/make-icons.mjs"],

@@ -1,0 +1,108 @@
+import type { FeeRosterEntry, FormEntry } from './types.js'
+
+// 학생회비 납부자 명단과 신청 양식. 명단을 신청보다 먼저 올려야 신청자마다 참가비(납부자·미납자)가 정해진다(DEC-75).
+export const FEE_ROSTER: FeeRosterEntry = {
+  by: '황성욱',
+  at: 'D-1 22:00',
+  paidFrom: 'D-59',
+  paidUntil: 'D+121',
+  studentIds: [
+    '2027103001',
+    '2027103002',
+    '2027103004',
+    '2027103005',
+    '2027103007',
+    '2027103008',
+    '2027103010',
+    '2027103011',
+    '2027103013',
+    '2027103014',
+    '2027103016',
+    '2027103017',
+    '2027103019',
+    '2027103020',
+  ],
+}
+
+export const FORMS: FormEntry[] = [
+  // 행사가 끝나 받지 않는 양식. 만든 그대로 멈춰 있다.
+  {
+    event: '중간고사 간식행사',
+    by: '김바다',
+    at: 'D-3 19:17',
+    name: '참가 신청',
+    notice: null,
+    capacity: null,
+    opensAt: null,
+    closesAt: 'D+31 23:59',
+    fees: null,
+    collectsPhone: true,
+    questions: [],
+  },
+  {
+    event: '새내기 배움터',
+    by: '백승훈',
+    at: 'D-1 10:48',
+    name: '참가 신청',
+    notice:
+      '신청 후 3일 안에 참가비를 입금해야 신청이 확정돼요.\n{{D+102}}까지 취소하면 전액 돌려드리고, 그 뒤에는 돌려드리기 어려워요.\n문의: 학생회 인스타그램 DM',
+    capacity: 100,
+    opensAt: 'D0 00:00',
+    closesAt: 'D+43 18:00',
+    fees: { payer: 30_000, nonPayer: 50_000 },
+    collectsPhone: true,
+    activateAt: 'D-1 10:50',
+    questions: [
+      { kind: 'single_choice', title: '성별(방 배정용)', required: true, choices: ['남', '여'] },
+      {
+        kind: 'single_choice',
+        title: '셔틀버스 탑승',
+        required: true,
+        choices: ['탑승', '개별 이동'],
+      },
+      { kind: 'short_text', title: '알레르기·식이 제한', required: false },
+    ],
+    applications: {
+      from: 'D0 00:05',
+      everyMinutes: 5,
+      list: [
+        { name: '김민준', studentId: '2027103001', answers: ['남', '탑승', null], deposit: true },
+        { name: '이서연', studentId: '2027103002', answers: ['여', '탑승', null], deposit: true },
+        { name: '박지호', studentId: '2027103003', answers: ['남', '탑승', null], deposit: true },
+        {
+          name: '최하윤',
+          studentId: '2027103004',
+          answers: ['여', '탑승', '갑각류 알레르기'],
+          deposit: true,
+        },
+        {
+          name: '정도현',
+          studentId: '2027103005',
+          answers: ['남', '개별 이동', null],
+          deposit: true,
+        },
+        { name: '강지민', studentId: '2027103006', answers: ['여', '탑승', null], deposit: true },
+        { name: '조예린', studentId: '2027103007', answers: ['남', '탑승', null], deposit: true },
+        { name: '윤시우', studentId: '2027103008', answers: ['여', '탑승', null], deposit: true },
+        { name: '장하은', studentId: '2027103009', answers: ['남', '탑승', '채식'], deposit: true },
+        {
+          name: '임준서',
+          studentId: '2027103010',
+          answers: ['여', '개별 이동', null],
+          deposit: true,
+        },
+        { name: '한지우', studentId: '2027103011', answers: ['남', '탑승', null] },
+        { name: '오서진', studentId: '2027103012', answers: ['여', '탑승', null] },
+        { name: '서유나', studentId: '2027103013', answers: ['남', '탑승', null] },
+        { name: '신동현', studentId: '2027103014', answers: ['여', '탑승', null] },
+        { name: '권나연', studentId: '2027103015', answers: ['남', '개별 이동', '견과류'] },
+        { name: '황지안', studentId: '2027103016', answers: ['여', '탑승', null] },
+        { name: '안태윤', studentId: '2027103017', answers: ['남', '탑승', null] },
+        { name: '송다은', studentId: '2027103018', answers: ['여', '탑승', null] },
+        { name: '류건우', studentId: '2027103019', answers: ['남', '탑승', null] },
+        { name: '전수아', studentId: '2027103020', answers: ['여', '개별 이동', null] },
+      ],
+    },
+    deposits: { by: '백승훈', at: 'D0 01:50' },
+  },
+]
