@@ -4,7 +4,7 @@ import { cleanup, fireEvent, render, screen, within } from '@testing-library/rea
 import type { CouncilView, HomeResponse } from '@vada/contracts'
 import { councilView } from '@/test-support/council-fixtures'
 import { menuPath } from '@vada/contracts'
-import { boardEvent, councilHome, emptyOps, noRooms, opsRow } from '@/test-support/home-fixtures'
+import { councilHome, emptyOps, eventLane, noRooms, opsRow } from '@/test-support/home-fixtures'
 import { mockApi, json } from '@/test-support/mock-api'
 import { settle } from '@/test-support/settle'
 import { pageState } from '@/lib/app-location'
@@ -35,7 +35,7 @@ test('①이 0건이면 머리 한 문장으로 합치고 ② → ③ → ⑤ �
   await screen.findByRole('heading', { name: '이번 주 일정 없음' })
   expect(headings()).toEqual([
     '김회장님, 확인이 필요한 운영 상황 없어요',
-    '전체 행사 진행 현황',
+    '진행 중인 행사 없음',
     '내가 할 일 없음',
     '이번 주 일정 없음',
   ])
@@ -61,75 +61,85 @@ test('①이 있으면 머리는 인사이고 ①이 행사 위에 온다', asyn
   expect(headings()).toEqual([
     '김회장님, 안녕하세요',
     '확인이 필요한 운영 상황',
-    '전체 행사 진행 현황',
+    '진행 중인 행사 없음',
     '내가 할 일 없음',
     '이번 주 일정 없음',
   ])
 })
 
-test('행사 카드: 상태 칩, 이름, 날짜 · D-N, 업무 막대, 이유 칩, 다음 마감이 있고 책임자가 없다', async () => {
+test('② 행사 줄: 이름 · 신호 알약 · 다음 일정이 있고, 신호는 신청 → 인원 관리, 미정 → 개요, 지남 → 업무 탭 거르기, 예산 → 재정 탭이다', async () => {
+  const planning = { id: '01900000-0000-7000-8000-0000000000d1', name: '기획부' }
   const { onOpenEvent } = open(
     councilHome({
-      events: {
-        cards: [
-          boardEvent('e1', {
-            tasks: { done: 1, total: 4, overdue: 2, unassigned: 1 },
-            next: { kind: 'task', dueDate: '2026-10-28', title: '부스 배치안 확정' },
+      lanes: {
+        events: [
+          eventLane('e1', {
+            event: { ...eventLane('e1').event, name: '가을 축제', status: 'ongoing' },
+            milestone: { kind: 'event_end', date: '2026-10-24', days: 1 },
+            late: [
+              { department: planning, overdue: 1 },
+              { department: null, overdue: 2 },
+            ],
+            budget: { kind: 'over', amount: 30000 },
           }),
-          boardEvent('e2', {
-            next: { kind: 'start', startsAt: '2026-10-27T10:00' },
+          eventLane('e2', {
+            milestone: { kind: 'registration_close', date: '2026-10-25', days: 2 },
+            registration: { formId: 'f1', count: 18, capacity: 40, full: false },
+            undecided: ['place'],
+          }),
+          eventLane('e3', {
+            milestone: null,
+            registration: { formId: 'f2', count: 120, capacity: 120, full: true },
+            budget: { kind: 'undecided' },
           }),
         ],
-        counts: { planning: 3, ongoing: 1, followUp: 2 },
+        total: 5,
       },
     }),
   )
-  const events = await card('전체 행사 진행 현황')
-  expect(within(events).getByText('기획 중 3 · 진행 중 1 · 후속 정리 중 2')).toBeTruthy()
-  const [first, second] = within(events).getAllByRole('listitem')
-  const one = within(first!)
-  expect(one.getByText('기획 중')).toBeTruthy()
-  expect(one.getByText('10월 27일 (화) · D-4')).toBeTruthy()
-  expect(one.getByText('1/4')).toBeTruthy()
-  expect(one.getByText('다음 마감 · 10월 28일 (수) 부스 배치안 확정')).toBeTruthy()
-  expect(within(second!).getByText('다음 일정 · 10월 27일 (화) 10:00 행사 시작')).toBeTruthy()
-  expect(within(second!).getByText('확인 필요 없음')).toBeTruthy()
-  expect(within(events).queryByText(/김회장/)).toBeNull()
-  fireEvent.click(one.getByRole('button', { name: '행사 e1' }))
-  expect(onOpenEvent).toHaveBeenCalledWith('e1')
-  // 이유 칩은 그 행사 업무 탭이다. 담당자 없음은 그 보기로 거른다.
-  fireEvent.click(one.getByRole('button', { name: '담당자 없음 1' }))
-  expect(pathNow()).toBe('/events/c1/e1?tab=tasks&assignee=none')
-  fireEvent.click(one.getByRole('button', { name: '지남 2' }))
-  expect(pathNow()).toBe('/events/c1/e1?tab=tasks&due=overdue')
+  const lanes = await card('행사')
+  expect(within(lanes).getByText('5')).toBeTruthy()
+  const [first, second, third] = within(lanes).getAllByRole('listitem')
+  expect(within(first!).getByRole('button', { name: '기획부 지남 1' }).textContent).toContain(
+    '기획부 지남 1',
+  )
+  expect(within(first!).getByText('예산 30,000원 초과').className).toContain('text-danger')
+  expect(within(second!).getByText('장소 미정').className).not.toContain('text-danger')
+  expect(within(third!).getByText('120/120 마감').className).toContain('font-semibold')
+  expect(within(third!).getByText('예산 미정')).toBeTruthy()
+  fireEvent.click(within(first!).getByRole('button', { name: '가을 축제' }))
+  expect(onOpenEvent).toHaveBeenLastCalledWith('e1')
+  fireEvent.click(within(first!).getByRole('button', { name: '학생회 업무 지남 2' }))
+  expect(pathNow()).toBe('/events/c1/e1?tab=tasks&dept=none&due=overdue')
+  fireEvent.click(within(first!).getByRole('button', { name: '기획부 지남 1' }))
+  expect(pathNow()).toBe(`/events/c1/e1?tab=tasks&dept=${planning.id}&due=overdue`)
+  fireEvent.click(within(first!).getByRole('button', { name: '예산 30,000원 초과' }))
+  expect(onOpenEvent).toHaveBeenLastCalledWith('e1', 'money')
+  fireEvent.click(within(second!).getByRole('button', { name: /18\/40/ }))
+  expect(onOpenEvent).toHaveBeenLastCalledWith('e2', 'registrations')
+  fireEvent.click(within(second!).getByRole('button', { name: '장소 미정' }))
+  expect(onOpenEvent).toHaveBeenLastCalledWith('e2')
 })
 
-test('행사가 셋보다 많으면 머리 상태별 수의 합으로 전체 n개 보기가 있고 행사 목록에 간다', async () => {
-  const cards = ['e1', 'e2', 'e3'].map(id => boardEvent(id))
-  const { onOpenPage } = open(
-    councilHome({ events: { cards, counts: { planning: 3, ongoing: 1, followUp: 2 } } }),
-  )
-  const events = await card('전체 행사 진행 현황')
-  fireEvent.click(within(events).getByRole('button', { name: '전체 6개 보기' }))
+test('행사가 셋보다 많으면 끝나지 않은 행사 수로 전체 n개 보기가 있고 행사 목록에 간다', async () => {
+  const events = ['e1', 'e2', 'e3'].map(id => eventLane(id))
+  const { onOpenPage } = open(councilHome({ lanes: { events, total: 4 } }))
+  const lanes = await card('행사')
+  fireEvent.click(within(lanes).getByRole('button', { name: '전체 4개 보기' }))
   expect(onOpenPage).toHaveBeenCalledWith('events')
 })
 
-test('행사가 없으면 진행할 행사 없음과 [새 행사]가 있고 누르면 새 행사 창이 열린다', async () => {
+test('행사가 없으면 진행 중인 행사 없음 띠와 [새 행사]가 있고 누르면 새 행사 창이 열린다', async () => {
   open(councilHome())
-  const events = await card('전체 행사 진행 현황')
-  expect(within(events).getByText('진행할 행사 없음')).toBeTruthy()
-  // 행사가 하나도 없으면 머리는 상태별 수 대신 회색 '0개'다.
-  expect(within(events).getByText('0개')).toBeTruthy()
-  expect(within(events).queryByText(/기획 중 0/)).toBeNull()
-  fireEvent.click(within(events).getByRole('button', { name: '새 행사' }))
+  const lanes = await card('진행 중인 행사 없음')
+  fireEvent.click(within(lanes).getByRole('button', { name: '새 행사' }))
   expect(await screen.findByRole('dialog', { name: '새 행사' })).toBeTruthy()
 })
 
 test('event.create가 없는 회장단에게는 [새 행사]가 없다', async () => {
   open(councilHome(), councilView('c1', { councilRank: 'vice_president', permissions: [] }))
-  const events = await card('전체 행사 진행 현황')
-  expect(within(events).getByText('진행할 행사 없음')).toBeTruthy()
-  expect(within(events).queryByRole('button', { name: '새 행사' })).toBeNull()
+  const lanes = await card('진행 중인 행사 없음')
+  expect(within(lanes).queryByRole('button', { name: '새 행사' })).toBeNull()
 })
 
 const head = (name: string, department = '기획부') => ({

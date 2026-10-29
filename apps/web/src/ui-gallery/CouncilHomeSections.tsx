@@ -3,6 +3,7 @@ import CouncilHome from '@/home/CouncilHome'
 import { Section } from './GallerySection'
 import { mainOps } from './HomeOpsSections'
 import { mainTodo, mainWeek } from './HomeTodoSections'
+import { mainLanes } from './HomeLanesSections'
 import { noop, pushBand, today, Width } from './home-frame-samples'
 import { longName } from './sample-text'
 import { financeCouncilId, financeSummary } from './finance-home-samples'
@@ -94,6 +95,7 @@ const board: HomeCouncilBoard = {
   ops: mainOps,
   todo: mainTodo,
   week: mainWeek,
+  lanes: mainLanes,
 }
 
 const home: HomeResponse = {
@@ -148,6 +150,7 @@ const emptyBoard: HomeCouncilBoard = {
     meTint: 0,
   },
   week: { items: [], total: 0 },
+  lanes: { events: [], total: 0 },
 }
 
 function Sample({ empty = false, band = false }: { empty?: boolean; band?: boolean }) {

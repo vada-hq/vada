@@ -1,7 +1,7 @@
 import type {
   EventSummary,
-  HomeBoardEvent,
   HomeCouncilBoard,
+  HomeEventLane,
   HomeFollowUp,
   HomeList,
   HomeOps,
@@ -82,19 +82,6 @@ export const homeResponse = (extra: Partial<HomeResponse> = {}): HomeResponse =>
 })
 
 // 회장단 홈(기능 027 조각 6)의 칸. 시험이 정하지 않으면 비어 있다.
-export const boardEvent = (id: string, extra: Partial<HomeBoardEvent> = {}): HomeBoardEvent => ({
-  event: {
-    id,
-    name: `행사 ${id}`,
-    startsAt: '2026-10-27T10:00',
-    endsAt: '2026-10-27T12:00',
-    status: 'upcoming',
-  },
-  tasks: { done: 1, total: 4, overdue: 0, unassigned: 0 },
-  next: null,
-  ...extra,
-})
-
 export const followUpRow = (id: string, extra: Partial<HomeFollowUp> = {}): HomeFollowUp => ({
   event: {
     id,
@@ -133,6 +120,24 @@ export const opsRow = (
   ...extra,
 })
 
+// ② 행사 줄 하나. 시험이 정하지 않으면 신호 없는 예정 행사다.
+export const eventLane = (id: string, extra: Partial<HomeEventLane> = {}): HomeEventLane => ({
+  event: {
+    id,
+    name: `행사 ${id}`,
+    startsAt: '2026-10-27T10:00',
+    endsAt: '2026-10-27T12:00',
+    status: 'upcoming',
+    color: 'lime',
+  },
+  milestone: { kind: 'event_start', date: '2026-10-27', days: 4 },
+  registration: null,
+  undecided: [],
+  late: [],
+  budget: null,
+  ...extra,
+})
+
 // ③ 내가 할 일, ⑤ 이번 주. 시험이 정하지 않으면 0건이다.
 export const emptyTodo = (extra: Partial<HomeTodo> = {}): HomeTodo => ({
   rows: [],
@@ -156,6 +161,7 @@ const councilBoard = (extra: Partial<HomeCouncilBoard> = {}): HomeCouncilBoard =
   ops: emptyOps(),
   todo: emptyTodo(),
   week: emptyWeek(),
+  lanes: { events: [], total: 0 },
   ...extra,
 })
 

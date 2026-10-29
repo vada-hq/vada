@@ -20,6 +20,8 @@ import { opsOf } from './ops.js'
 import { opsPeopleOf } from './ops-contacts.js'
 import { todoOf } from './todo.js'
 import { weekOf } from './week.js'
+import { eventLanesOf } from './event-lanes.js'
+import type { financeBudgetOf } from './finance-budget.js'
 
 type Reader = Pick<Db, 'select'>
 
@@ -93,7 +95,7 @@ export async function councilBoardOf(
   db: Reader,
   actor: Actor,
   now: Date,
-  open: OpenTask[],
+  { open, budget }: { open: OpenTask[]; budget: Awaited<ReturnType<typeof financeBudgetOf>> },
 ): Promise<HomeCouncilBoard> {
   const financeStaffed = (await currentFinanceMembers(db, actor, now)).length > 0
   const unassignedMembers = await unassignedMembersOf(db, actor)
@@ -108,5 +110,6 @@ export async function councilBoardOf(
     ops: await opsOf(db, actor, now, { open, people, unassignedMembers, financeStaffed }),
     todo: await todoOf(db, actor, now, { open, people, followUp }),
     week: await weekOf(db, actor, now),
+    lanes: await eventLanesOf(db, actor, now, { open, budget }),
   }
 }

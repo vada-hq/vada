@@ -1,4 +1,4 @@
-import { and, eq, inArray, isNull, or, sql } from 'drizzle-orm'
+import { and, asc, eq, inArray, isNull, or, sql } from 'drizzle-orm'
 import {
   EVENT_LIST_LIMIT,
   SIDEBAR_EVENT_LIMIT,
@@ -143,6 +143,17 @@ async function endedOpenRows(db: Reader, actor: Actor, now: Date, limit: number)
 
 const openScope = (actor: Actor) =>
   and(eq(record.councilId, actor.councilId), sql`not ${completedSql}`)
+
+// 완료하지 않은 행사(끝났고 완료 전인 것 포함)를 만든 차례로. 홈 ②의 행사 색 고정 규칙이 이 차례를 쓴다(c235 7.1).
+export async function openEventIdsByCreation(db: Reader, actor: Actor) {
+  const rows = await db
+    .select({ id: event.id })
+    .from(event)
+    .innerJoin(record, eq(record.id, event.id))
+    .where(openScope(actor))
+    .orderBy(asc(record.createdAt), asc(event.id))
+  return rows.map(row => row.id)
+}
 
 // 옆 메뉴 '공간'의 행사 줄(DEC-85, DEC-96): 완료하지 않은 행사를 기존 listOrder 차례로 따로 읽는다.
 // 행사 목록은 완료 행사를 섞어 EVENT_LIST_LIMIT개에서 자르므로 화면이 그것을 거르면 오래된 미완료 행사가 빠진다.

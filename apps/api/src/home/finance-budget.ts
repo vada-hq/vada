@@ -42,5 +42,7 @@ export async function financeBudgetOf(db: Pick<Db, 'select'>, actor: Actor, now:
     summary,
     budgets: { events: events.slice(0, HOME_LIST_LIMIT), total: events.length },
     open,
+    // 지금 기간에 지출 예산 항목이 있는 행사 모두(상한 없음). 회장단 홈 ②의 예산 초과 신호가 쓴다.
+    entered,
   }
 }
