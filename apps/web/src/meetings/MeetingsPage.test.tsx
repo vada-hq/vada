@@ -475,3 +475,10 @@ test('회의록을 연 뒤 회의가 취소·예정으로 바뀌어 다시 읽�
     resetLeaveGuard()
   }
 })
+
+test('서버가 내 회의를 잘랐으면 일부만 보인다고 알린다', async () => {
+  window.history.replaceState(null, '', `/meetings/${MEETING_COUNCIL}?tab=mine`)
+  api.on('GET', `${base}?view=mine`, () => json({ meetings: mine, truncated: true }))
+  render(page())
+  expect(await screen.findByText('오래된 회의부터 300건만 보여요')).toBeTruthy()
+})

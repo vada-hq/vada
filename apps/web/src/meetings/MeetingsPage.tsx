@@ -55,6 +55,7 @@ function MeetingsListPage({ view, onForbidden }: Props) {
     body = (
       <MyMeetingList
         meetings={read.state.data.meetings}
+        truncated={read.state.data.truncated}
         onOpen={onOpen}
         onAll={() => url.set({ tab: null })}
       />

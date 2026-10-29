@@ -4,7 +4,6 @@ import {
   APP_MENUS,
   EVENT_TABS,
   appPath,
-  ENTRY_PATHS,
   eventRoomPath,
   FINANCE_TABS,
   menuPath,
@@ -13,6 +12,7 @@ import {
   RECORD_KINDS,
   recordPath,
 } from './paths.js'
+import { ENTRY_PATHS } from './entry-paths.js'
 import { movedLocationOf, type AddressMove } from './moved-paths.js'
 
 const C = '0199d1a0-0000-7000-8000-00000000000a'

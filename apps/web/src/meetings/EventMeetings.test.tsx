@@ -75,3 +75,9 @@ test('이은 회의가 없으면 회의 없음이고, 권한이 없다는 읽기
   render(tab())
   await vi.waitFor(() => expect(forbidden).toHaveBeenCalled())
 })
+
+test('서버가 목록을 잘랐으면 행사 회의 탭도 일부만 보인다고 알린다', async () => {
+  api.on('GET', read, () => json({ meetings: [meetingSample()], truncated: true }))
+  render(tab())
+  expect(await screen.findByText('오래된 회의부터 300건만 보여요')).toBeTruthy()
+})

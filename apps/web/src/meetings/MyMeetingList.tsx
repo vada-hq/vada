@@ -5,17 +5,20 @@ import { Button } from '@/components/ui/button'
 import { cardClass } from '@/components/ui/card'
 import { headLinkTouch, rowLinkBox, rowLinkTarget } from '@/components/ui/row-link'
 import { cn } from '@/lib/utils'
+import { MEETING_LIST_TRUNCATED } from './meeting-text'
 import { meetingTime, myMeetingRows } from './meeting-view'
 
 type Props = {
   meetings: MeetingSummary[]
+  // 서버가 목록 상한에서 잘랐다.
+  truncated: boolean
   onOpen: (id: string) => void
   // 학생회 회의 탭으로 간다.
   onAll: () => void
 }
 
 // 내 회의(MEET-MY-01): 한 카드 안에 줄마다 일시·회의명·소속(학생회 또는 행사)·내가 할 일. 줄은 그 회의를 연다.
-export function MyMeetingList({ meetings, onOpen, onAll }: Props) {
+export function MyMeetingList({ meetings, truncated, onOpen, onAll }: Props) {
   const rows = myMeetingRows(meetings)
   const titleId = useId()
   return (
@@ -63,6 +66,9 @@ export function MyMeetingList({ meetings, onOpen, onAll }: Props) {
             </li>
           ))}
         </ul>
+      )}
+      {truncated && (
+        <p className="border-t px-5 py-3 text-sm text-muted-foreground">{MEETING_LIST_TRUNCATED}</p>
       )}
     </section>
   )

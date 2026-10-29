@@ -19,7 +19,7 @@ import { useNow } from '@/lib/use-now'
 import { usePolledRead } from '@/lib/use-polled-read'
 import { cn } from '@/lib/utils'
 import { MeetingReadFailure } from './MeetingReadFailure'
-import { MEETING_LOAD_FAILED, MEETING_STATUS } from './meeting-text'
+import { MEETING_LIST_TRUNCATED, MEETING_LOAD_FAILED, MEETING_STATUS } from './meeting-text'
 import { meetingTime, sortedMeetings } from './meeting-view'
 
 type Props = {
@@ -82,6 +82,8 @@ function EventMeetingCard({ meeting, onOpen }: { meeting: MeetingSummary; onOpen
 
 type ListProps = {
   meetings: MeetingSummary[]
+  // 서버가 목록 상한에서 잘랐다. 요약 줄의 수도 보이는 회의만 센 것이다.
+  truncated: boolean
   // 한국 시각(YYYY-MM-DDTHH:mm). 다가오는 회의를 먼저 둔다.
   now: string
   onOpen: (id: string) => void
@@ -90,7 +92,7 @@ type ListProps = {
 }
 
 // 행사 회의 목록(EVT-MEET-01): 요약 줄, [전체 회의 보기], 회의 카드. 만들기·고치기는 회의 메뉴에서 한다.
-export function EventMeetingList({ meetings, now, onOpen, onAll }: ListProps) {
+export function EventMeetingList({ meetings, truncated, now, onOpen, onAll }: ListProps) {
   const titleId = useId()
   const sorted = sortedMeetings(meetings, now)
   return (
@@ -115,6 +117,7 @@ export function EventMeetingList({ meetings, now, onOpen, onAll }: ListProps) {
           <EventMeetingCard key={meeting.id} meeting={meeting} onOpen={() => onOpen(meeting.id)} />
         ))
       )}
+      {truncated && <p className="text-sm text-muted-foreground">{MEETING_LIST_TRUNCATED}</p>}
     </section>
   )
 }
@@ -135,6 +138,7 @@ export function EventMeetings({ councilId, eventId, onForbidden, referenceTime }
   return (
     <EventMeetingList
       meetings={read.state.data.meetings}
+      truncated={read.state.data.truncated}
       now={referenceTime ?? koreanOf(clock)}
       onOpen={id => openRecord('meetings', councilId, id)}
       onAll={() => navigate(menuPath('meetings', councilId))}

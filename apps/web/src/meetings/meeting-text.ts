@@ -1,4 +1,4 @@
-import type { MeetingStatus, MeetingSummary } from '@vada/contracts'
+import { MEETING_LIST_LIMIT, type MeetingStatus, type MeetingSummary } from '@vada/contracts'
 import { changeErrors } from '@/lib/change-errors'
 import { MINUTES_TEXT } from './minutes-text'
 
@@ -20,6 +20,8 @@ export const MY_MEETING_TODO: Record<MeetingStatus, { label: string; className: 
   done: { label: '완료', className: 'text-muted-foreground' },
   cancelled: { label: '취소', className: 'text-muted-foreground' },
 }
+// 서버가 목록 상한에서 자른 목록(truncated)의 안내. 회의 메뉴의 두 탭과 행사 회의 탭이 같이 쓴다.
+export const MEETING_LIST_TRUNCATED = `오래된 회의부터 ${MEETING_LIST_LIMIT}건만 보여요`
 export const MINUTES_STATUS = { none: '작성 전', draft: '작성 중', confirmed: '정리 완료' }
 export const MEETING_LOAD_FAILED = '회의를 불러오지 못했어요. 연결을 확인해 주세요.'
 export const MEETING_OPTIONS_FAILED = '선택지를 불러오지 못했어요. 다시 시도해 주세요.'

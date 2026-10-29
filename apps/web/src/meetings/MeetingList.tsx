@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { CalendarDays, ChevronDown, ChevronRight, MapPin, Plus, Users } from 'lucide-react'
 import {
   koreanOf,
-  MEETING_LIST_LIMIT,
   MEETING_STATUSES,
   type MeetingsResponse,
   type MeetingStatus,
@@ -16,7 +15,7 @@ import { Field } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { NativeSelect } from '@/components/ui/native-select'
 import { useNow } from '@/lib/use-now'
-import { MEETING_STATUS, MINUTES_STATUS } from './meeting-text'
+import { MEETING_LIST_TRUNCATED, MEETING_STATUS, MINUTES_STATUS } from './meeting-text'
 import { meetingGroups, meetingTime, type MeetingGroup } from './meeting-view'
 import { minutesButton } from './meeting-text'
 
@@ -182,11 +181,7 @@ export function MeetingList({ data, status, onStatus, onOpen, onCreate, referenc
           )}
         </Card>
       )}
-      {data.truncated && (
-        <p className="text-sm text-muted-foreground">
-          오래된 회의부터 {MEETING_LIST_LIMIT}건만 보여요
-        </p>
-      )}
+      {data.truncated && <p className="text-sm text-muted-foreground">{MEETING_LIST_TRUNCATED}</p>}
     </>
   )
 }
