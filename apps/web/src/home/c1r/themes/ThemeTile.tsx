@@ -5,11 +5,12 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Field } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
+import { cn } from '@/lib/utils'
 import { C1R_DATA } from '../c1r-data'
 import type { C1rProps } from '../c1r-props'
 import V1 from '../v1'
 import V3 from '../v3'
-import { THEME_LABEL, type ThemeName } from './theme'
+import type { ThemeName } from './theme'
 
 // 스타일 타일: 한 테마의 색 견본, 글자 단계, 앱 부품, 그리고 ① v3·v1(main)을 977폭으로 한 화면에.
 // /home-s5.html?component=tile&theme=base|a|b|c. 찍기는 창 1280 전체(tools/home-c1r/theme_board.py).
@@ -95,23 +96,15 @@ function Swatches() {
   )
 }
 
+// 역할 = benchmarks.md 갈래별 '글자 단계'. 테마가 text-xs~2xl을 이 역할 크기로 채운다.
 const TYPE_SAMPLES: [string, string, string][] = [
-  ['xl · fg · 굵게', 'text-xl font-semibold text-fg', '확인이 필요한 운영 상황'],
-  ['lg · fg · 굵게', 'text-lg font-semibold text-fg', '가을 축제 준비가 한창이에요'],
-  ['base · fg', 'text-base text-fg', '체험 부스 구성안 확정이 3일 지났어요.'],
-  ['sm · fg · 굵게', 'text-sm font-semibold text-fg', '동아리 지원금 신청서 제출'],
-  ['sm · fg', 'text-sm text-fg', '김민준 기획부장에게 부스 전기 사용 신청을 물어봤어요.'],
-  [
-    'sm · fg-secondary',
-    'text-sm text-fg-secondary',
-    '진로 특강 현장 운영 순서표 만들기 · 내일 마감',
-  ],
-  ['xs · fg-tertiary', 'text-xs text-fg-tertiary', '10월 28일 물어봄 · 답 있음'],
-  [
-    'xs · fg-muted',
-    'text-xs text-fg-muted',
-    '2026 소프트웨어융합대학 체육대회 및 학과 대항 e스포츠 리그',
-  ],
+  ['페이지 제목 · xl', 'text-xl font-bold text-fg', '회장단 홈'],
+  ['구획 제목 · lg', 'text-lg font-semibold text-fg', '확인이 필요한 운영 상황'],
+  ['줄 제목 · base', 'text-base font-semibold text-fg', '체험 부스 구성안 확정'],
+  ['본문 · sm', 'text-sm text-fg', '김민준 기획부장에게 부스 전기 사용 신청을 물어봤어요.'],
+  ['보조 1 · sm', 'text-sm text-fg-secondary', '진로 특강 현장 운영 순서표 만들기 · 내일 마감'],
+  ['메타 · xs', 'text-xs text-fg-muted', '10월 28일 물어봄 · 답 있음 · 가을 축제'],
+  ['숫자 · 2xl', 'text-2xl font-semibold text-fg tabular-nums', '1,240,000원'],
 ]
 
 function TypeScale() {
@@ -129,45 +122,101 @@ function TypeScale() {
   )
 }
 
+// 초점 블록(막힌 일): 갈래마다 강조 방식이 달라 면·왼쪽 띠를 테마 값(--focus-*)으로 받는다.
+const FOCUS_STYLE = {
+  background: 'var(--focus-surface)',
+  borderLeftColor: 'var(--focus-stripe)',
+  borderLeftWidth: 'var(--focus-stripe-width)',
+}
+
+function Focus() {
+  return (
+    <Card className="flex flex-col gap-3 p-4" style={FOCUS_STYLE}>
+      <div className="flex flex-col gap-1">
+        <span className="text-xs font-semibold text-danger">3일 지남 · 막힌 일</span>
+        <h3 className="text-base font-semibold text-fg">체험 부스 구성안 확정</h3>
+        <p className="text-xs text-fg-muted">김민준 기획부장 · 가을 축제 · 10월 26일 (월) 마감</p>
+      </div>
+      <div className="flex flex-wrap items-center gap-3">
+        <Button>김민준에게 묻기</Button>
+        <Button variant="outline">업무 보기</Button>
+      </div>
+    </Card>
+  )
+}
+
+function Budget() {
+  return (
+    <Card className="flex flex-col gap-1 p-4">
+      <span className="text-xs text-fg-muted">가을 축제 남은 예산</span>
+      <span className="text-2xl font-semibold text-fg tabular-nums">1,240,000원</span>
+      <span className="text-xs text-fg-secondary tabular-nums">
+        예산 3,000,000원 중 1,760,000원 사용
+      </span>
+    </Card>
+  )
+}
+
+// 목록 3줄: 지남·임박·정상. 임박 줄이 선택된 줄(옅은 강조 면).
+const LIST_ROWS: { title: string; meta: string; chip: ReactNode; selected?: boolean }[] = [
+  {
+    title: '동아리 지원금 신청서 제출',
+    meta: '이서연 담당자 · 10월 27일 (화) 마감',
+    chip: <Badge tone="danger">2일 지남</Badge>,
+  },
+  {
+    title: '진로 특강 현장 운영 순서표 만들기',
+    meta: '김민준 기획부장 · 진로 특강',
+    chip: <Badge tone="warning">내일 마감</Badge>,
+    selected: true,
+  },
+  {
+    title: '신입생 환영회 장소 예약',
+    meta: '최유나 홍보부장 · 신입생 환영회',
+    chip: <Badge tone="success">완료</Badge>,
+  },
+]
+
+function List() {
+  return (
+    <Card className="overflow-hidden">
+      <ul className="divide-y divide-border-subtle">
+        {LIST_ROWS.map(row => (
+          <li
+            key={row.title}
+            aria-current={row.selected || undefined}
+            className={cn(
+              'flex items-center gap-3 px-4 py-3',
+              row.selected ? 'bg-primary-surface' : 'hover:bg-surface-subtle',
+            )}
+          >
+            <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+              <span className="truncate text-sm font-semibold text-fg">{row.title}</span>
+              <span className="truncate text-xs text-fg-muted">{row.meta}</span>
+            </span>
+            {row.chip}
+          </li>
+        ))}
+      </ul>
+    </Card>
+  )
+}
+
 function Parts() {
   return (
     <Section title="부품">
       <div className="flex flex-wrap items-center gap-3">
         <Button>배정하기</Button>
         <Button variant="outline">전체 보기</Button>
-        <Button variant="link">김민준에게 묻기</Button>
+        <Button variant="link">이서연에게 묻기</Button>
       </div>
       <div className="flex flex-wrap items-center gap-2">
         <Badge tone="danger">3일 지남</Badge>
         <Badge tone="warning">결재 대기 D-3</Badge>
+        <Badge tone="success">완료</Badge>
         <Badge tone="neutral">부서 미정</Badge>
       </div>
-      <Card className="overflow-hidden">
-        <ul className="divide-y divide-border-subtle">
-          <li className="flex items-center gap-3 px-4 py-3 hover:bg-surface-subtle">
-            <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-              <span className="truncate text-sm font-semibold text-fg">부스 전기 사용 신청</span>
-              <span className="truncate text-xs text-fg-muted">박서준 총무부장 · 가을 축제</span>
-            </span>
-            <Badge tone="danger">오늘 마감</Badge>
-          </li>
-          <li className="flex items-center gap-3 bg-surface-subtle px-4 py-3">
-            <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-              <span className="truncate text-sm font-semibold text-fg">
-                진로 특강 다과 구매 (옅은 면)
-              </span>
-              <span className="truncate text-xs text-fg-muted">정하늘 재정부장 · 진로 특강</span>
-            </span>
-            <Badge tone="neutral">결재 대기 D-3</Badge>
-          </li>
-        </ul>
-      </Card>
-      <Card className="flex flex-col gap-1 p-4">
-        <h3 className="text-base font-semibold text-fg">가을 축제</h3>
-        <p className="text-sm text-fg-secondary">
-          10월 31일 (금) ~ 11월 1일 (토) · 업무 12건 중 8건 완료
-        </p>
-      </Card>
+      <List />
       <Field label="업무 이름" required>
         <Input defaultValue="체험 부스 구성안 확정" />
       </Field>
@@ -185,13 +234,20 @@ const C1R_PROPS: C1rProps = {
   onSeeAll: log('전체 보기'),
 }
 
+// 타일 구성은 세 테마가 같다(benchmarks.md 2.1). 테마 이름은 화면에 쓰지 않는다(대표가 이름에 끌리지 않게).
 export default function ThemeTile({ theme }: { theme: ThemeName }) {
   return (
     <main className="flex min-h-dvh flex-col gap-8 bg-background p-6" data-theme-tile={theme}>
-      <h1 className="text-xl font-semibold text-fg">{`테마 ${THEME_LABEL[theme]}`}</h1>
+      <h1 className="text-xl font-bold text-fg">회장단 홈</h1>
       <Swatches />
       <div className="grid grid-cols-2 gap-8">
-        <TypeScale />
+        <div className="flex flex-col gap-6">
+          <TypeScale />
+          <Section title="초점 블록 · 숫자">
+            <Focus />
+            <Budget />
+          </Section>
+        </div>
         <Parts />
       </div>
       <Section title="① 확인이 필요한 운영 상황">

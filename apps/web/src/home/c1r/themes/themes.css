@@ -1,6 +1,6 @@
 /* 회장단 홈 시안 미리보기의 테마(시각 언어) 바꿔 끼우기. 미리보기만 불러온다(theme.ts). 앱 전역 값은 index.css 그대로다.
    쓰는 법·이름 대응: notes/visual-language/theme-frame.md
-   - 1절: 테마마다 채우는 값. 갈래 값이 오면 a·b·c 묶음만 채운다(웹폰트 주소는 theme.ts THEME_FONT).
+   - 1절: 테마마다 채우는 값. a·b·c = benchmarks.md 갈래 A·B·C(웹폰트 주소는 theme.ts THEME_FONT).
    - 2절: a·b·c 공통(기준에는 안 걸림). 1절 값에서 shadcn 이름을 잇고, 앱 부품(components/ui)이 직접 쓰는 팔레트 단계를 1절 값에 잇는다.
    선택자는 :root[data-theme]다. index.css의 :root(0,1,0)보다 세서 파일 불러오는 차례와 상관없이 이기고,
    <html>에 걸려 body와 옆 창(포털)까지 같은 테마가 된다. */
@@ -61,6 +61,8 @@
   --text-lg--line-height: calc(1.75 / 1.125);
   --text-xl: 1.25rem;
   --text-xl--line-height: calc(1.75 / 1.25);
+  --text-2xl: 1.5rem; /* 타일의 숫자 */
+  --text-2xl--line-height: calc(2 / 1.5);
   /* 밀도: 모든 p-·m-·gap-·h-·w- 숫자 유틸리티의 한 칸 */
   --spacing: 0.25rem;
   /* 반경 */
@@ -70,168 +72,205 @@
   /* 그림자 */
   --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1); /* 카드 */
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  /* 아래 셋은 2절이 a·b·c에만 쓴다(기준에는 안 걸림, 짝 맞춤용). 카드 테두리색, 칩 반경, 입력칸 바탕 */
+  --radius-chip: 0.25rem;
+  --card-border: #e5e7eb;
+  --field: #ffffff;
+  /* 타일의 초점 블록(막힌 일) 강조 방식: 면, 왼쪽 띠 색과 두께 */
+  --focus-surface: #ffffff;
+  --focus-stripe: #e5e7eb;
+  --focus-stripe-width: 1px;
 }
 
-/* 가: (갈래 이름 자리, notes/visual-language/benchmarks.md) — 지금은 기준 복사 */
+/* 테마 a = 갈래 A 정돈된 도구(Linear·Primer·채널톡 Bezier). 값 출처: notes/visual-language/benchmarks.md 2.2 토큰 초안.
+   초안에 없는 값은 갈래 원칙으로 채움(theme-frame.md '테마 값 채움'). */
 :root[data-theme='a'] {
-  --fg: oklch(21% 0.034 264.665);
-  --fg-secondary: oklch(37.3% 0.034 259.733);
-  --fg-tertiary: oklch(44.6% 0.03 256.802);
-  --fg-muted: oklch(55.1% 0.027 264.364);
-  --background: #f9fafb;
+  --fg: #1c2024; /* slate-12 */
+  --fg-secondary: #474b53; /* 보조 1 */
+  --fg-tertiary: #60646c; /* 초안은 보조 2단계뿐 → 보조 2 */
+  --fg-muted: #60646c; /* 보조 2, slate-11 */
+  --background: #f9f9fb; /* slate-2 */
   --card: #ffffff;
-  --surface-subtle: oklch(98.5% 0.002 247.839);
-  --muted: #f3f4f6;
-  --border: #e5e7eb;
-  --border-subtle: oklch(96.7% 0.003 264.542);
-  --input: #d1d5dc;
-  --primary: #155dfc;
+  --surface-subtle: #f9f9fb; /* 초안 없음 → 바닥색(기준과 같은 관계) */
+  --muted: #f0f0f3; /* slate-3 */
+  --border: #e0e1e6; /* slate-5 */
+  --border-subtle: #e0e1e6; /* 초안: 가로선 1px #e0e1e6로 줄을 맞춘다 */
+  --input: #cdced6; /* slate-7 */
+  --primary: #5b5bd6; /* iris-9 */
   --primary-foreground: #ffffff;
-  --primary-strong: oklch(48.8% 0.243 264.376);
-  --primary-surface: oklch(97% 0.014 254.604);
-  --ring: #155dfc;
-  --destructive: #e7000b;
-  --danger: oklch(50.5% 0.213 27.518);
-  --danger-surface: oklch(97.1% 0.013 17.38);
-  --danger-border: oklch(88.5% 0.062 18.334);
-  --warning: oklch(55.4% 0.135 66.442);
-  --warning-surface: oklch(98.7% 0.026 102.212);
-  --warning-border: oklch(94.5% 0.129 101.54);
-  --success: oklch(52.7% 0.154 150.069);
-  --success-surface: oklch(98.2% 0.018 155.826);
-  --success-border: oklch(92.5% 0.084 155.995);
+  --primary-strong: #5753c6; /* accent-foreground, iris-11 */
+  --primary-surface: #f0f1fe; /* accent, iris-3 */
+  --ring: #5b5bd6;
+  --destructive: #ce2c31; /* red-11 */
+  --danger: #ce2c31;
+  --danger-surface: #feebec; /* red-3 */
+  --danger-border: #fdbdbe; /* 초안 없음 → Radix red-6(선 갈래라 칩 테두리를 남김) */
+  --warning: #9d5c00;
+  --warning-surface: #fff7c2; /* amber-3 */
+  --warning-border: #f3d673; /* 초안 없음 → Radix amber-6 */
+  --success: #1f7a52;
+  --success-surface: #e6f6eb; /* green-3 */
+  --success-border: #adddc0; /* 초안 없음 → Radix green-6 */
   --font-sans:
     'Pretendard Variable', Pretendard, ui-sans-serif, system-ui, -apple-system, 'Segoe UI',
     sans-serif;
-  --theme-tracking: normal;
+  --theme-tracking: 0em; /* 본문 자간 0 */
   --font-weight-normal: 400;
   --font-weight-medium: 500;
   --font-weight-semibold: 600;
   --font-weight-bold: 700;
-  --text-xs: 0.75rem;
-  --text-xs--line-height: calc(1 / 0.75);
-  --text-sm: 0.875rem;
-  --text-sm--line-height: calc(1.25 / 0.875);
-  --text-base: 1rem;
-  --text-base--line-height: calc(1.5 / 1);
-  --text-lg: 1.125rem;
-  --text-lg--line-height: calc(1.75 / 1.125);
-  --text-xl: 1.25rem;
-  --text-xl--line-height: calc(1.75 / 1.25);
-  --spacing: 0.25rem;
-  --radius-sm: 0.25rem;
-  --radius-md: 0.375rem;
-  --radius-lg: 0.625rem;
-  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --text-xs: 0.75rem; /* 메타 12/18 */
+  --text-xs--line-height: calc(18 / 12);
+  --text-sm: 0.875rem; /* 본문 14/22 */
+  --text-sm--line-height: calc(22 / 14);
+  --text-base: 0.9375rem; /* 줄 제목 15/22 */
+  --text-base--line-height: calc(22 / 15);
+  --text-lg: 1.0625rem; /* 구획 제목 17/24 */
+  --text-lg--line-height: calc(24 / 17);
+  --text-xl: 1.375rem; /* 페이지 제목 22/30 */
+  --text-xl--line-height: calc(30 / 22);
+  --text-2xl: 1.5rem; /* 숫자 24/32 */
+  --text-2xl--line-height: calc(32 / 24);
+  --spacing: 0.25rem; /* 4px 단위(더 줄이면 44px 누르는 자리가 줄어 그대로 둠) */
+  --radius-sm: 6px; /* 버튼·입력(앱 부품은 칩도 sm이라 칩은 --radius-chip) */
+  --radius-md: 6px;
+  --radius-lg: 8px; /* 카드 */
+  --radius-chip: 4px;
+  --shadow-sm: 0 0 #0000; /* 카드 그림자 없음 */
+  --shadow-md: 0 3px 12px rgb(0 0 0 / 0.09); /* Linear shadow-medium */
+  --card-border: var(--border); /* 선으로 나눔 */
+  --field: #ffffff;
+  /* 초점 블록: 옅은 면 + 왼쪽 2px 주 색 선 */
+  --focus-surface: var(--primary-surface);
+  --focus-stripe: var(--primary);
+  --focus-stripe-width: 2px;
 }
 
-/* 나: (갈래 이름 자리, notes/visual-language/benchmarks.md) — 지금은 기준 복사 */
+/* 테마 b = 갈래 B 밝은 면(토스·당근 SEED·원티드 Montage). 값 출처: benchmarks.md 2.3 토큰 초안. */
 :root[data-theme='b'] {
-  --fg: oklch(21% 0.034 264.665);
-  --fg-secondary: oklch(37.3% 0.034 259.733);
-  --fg-tertiary: oklch(44.6% 0.03 256.802);
-  --fg-muted: oklch(55.1% 0.027 264.364);
-  --background: #f9fafb;
+  --fg: #191f28; /* 토스 grey900 */
+  --fg-secondary: #4e5968; /* 보조 1, 토스 grey700 */
+  --fg-tertiary: #646e7b; /* 초안은 보조 2단계뿐 → 보조 2 */
+  --fg-muted: #646e7b; /* 보조 2 */
+  --background: #f2f4f6; /* 토스 greyBackground */
   --card: #ffffff;
-  --surface-subtle: oklch(98.5% 0.002 247.839);
-  --muted: #f3f4f6;
-  --border: #e5e7eb;
-  --border-subtle: oklch(96.7% 0.003 264.542);
-  --input: #d1d5dc;
-  --primary: #155dfc;
+  --surface-subtle: #f9fafb; /* 초안 없음 → 카드 안 옅은 면(초안 muted와 같은 토스 grey50) */
+  --muted: #f9fafb; /* 카드 안 표면 2단계 */
+  --border: #e5e8eb; /* 토스 hairline, 카드 안 구분선에만 */
+  --border-subtle: #e5e8eb; /* 초안: 카드 안 구분선 = hairline */
+  --input: #e5e8eb;
+  --primary: #0066ff; /* Montage blue-50 */
   --primary-foreground: #ffffff;
-  --primary-strong: oklch(48.8% 0.243 264.376);
-  --primary-surface: oklch(97% 0.014 254.604);
-  --ring: #155dfc;
-  --destructive: #e7000b;
-  --danger: oklch(50.5% 0.213 27.518);
-  --danger-surface: oklch(97.1% 0.013 17.38);
-  --danger-border: oklch(88.5% 0.062 18.334);
-  --warning: oklch(55.4% 0.135 66.442);
-  --warning-surface: oklch(98.7% 0.026 102.212);
-  --warning-border: oklch(94.5% 0.129 101.54);
-  --success: oklch(52.7% 0.154 150.069);
-  --success-surface: oklch(98.2% 0.018 155.826);
-  --success-border: oklch(92.5% 0.084 155.995);
+  --primary-strong: #1b64da; /* accent-foreground, 토스 blue700 */
+  --primary-surface: #e8f3ff; /* accent, 토스 blue50 */
+  --ring: #3182f6;
+  --destructive: #d22030; /* 토스 red700 */
+  --danger: #d22030;
+  --danger-surface: #ffeeee;
+  --danger-border: #ffeeee; /* 초안 없음 → 테두리 0 원칙, 면과 같게 */
+  --warning: #956400;
+  --warning-surface: #fff3e0;
+  --warning-border: #fff3e0; /* 테두리 0 */
+  --success: #027648;
+  --success-surface: #f0faf6;
+  --success-border: #f0faf6; /* 테두리 0 */
   --font-sans:
     'Pretendard Variable', Pretendard, ui-sans-serif, system-ui, -apple-system, 'Segoe UI',
     sans-serif;
-  --theme-tracking: normal;
+  --theme-tracking: 0.0057em; /* 본문 16px의 Montage 자간 */
   --font-weight-normal: 400;
   --font-weight-medium: 500;
   --font-weight-semibold: 600;
   --font-weight-bold: 700;
-  --text-xs: 0.75rem;
-  --text-xs--line-height: calc(1 / 0.75);
-  --text-sm: 0.875rem;
-  --text-sm--line-height: calc(1.25 / 0.875);
-  --text-base: 1rem;
-  --text-base--line-height: calc(1.5 / 1);
-  --text-lg: 1.125rem;
-  --text-lg--line-height: calc(1.75 / 1.125);
-  --text-xl: 1.25rem;
-  --text-xl--line-height: calc(1.75 / 1.25);
-  --spacing: 0.25rem;
-  --radius-sm: 0.25rem;
-  --radius-md: 0.375rem;
-  --radius-lg: 0.625rem;
-  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --text-xs: 0.875rem; /* 메타 14/21 */
+  --text-xs--line-height: calc(21 / 14);
+  --text-sm: 1rem; /* 본문 16/24 */
+  --text-sm--line-height: calc(24 / 16);
+  --text-base: 1.0625rem; /* 줄 제목 17/26 */
+  --text-base--line-height: calc(26 / 17);
+  --text-lg: 1.25rem; /* 구획 제목 20/28 */
+  --text-lg--line-height: calc(28 / 20);
+  --text-xl: 1.625rem; /* 페이지 제목 26/35 */
+  --text-xl--line-height: calc(35 / 26);
+  --text-2xl: 2rem; /* 숫자 32/42 */
+  --text-2xl--line-height: calc(42 / 32);
+  --spacing: 0.25rem; /* 초안 4px 단위. 5px로 키우면 44px 누르는 자리가 55px이 되어 v3 390이 K1(≤700)을 넘었다(843) */
+  --radius-sm: 12px; /* 버튼·입력 */
+  --radius-md: 12px;
+  --radius-lg: 16px; /* 카드 */
+  --radius-chip: 9999px; /* 칩 완전 둥글게 */
+  --shadow-sm: 0 0 #0000; /* 그림자 0 */
+  --shadow-md: 0 2px 10px rgb(0 0 0 / 0.1); /* SEED s2 */
+  --card-border: transparent; /* 테두리 0, 회색 바닥 위 흰 면 */
+  --field: #f2f4f6; /* 입력칸은 테두리 대신 면 */
+  /* 초점 카드: accent 면만 */
+  --focus-surface: var(--primary-surface);
+  --focus-stripe: transparent;
+  --focus-stripe-width: 0px;
 }
 
-/* 다: (갈래 이름 자리, notes/visual-language/benchmarks.md) — 지금은 기준 복사 */
+/* 테마 c = 갈래 C 먹색과 색 신호(Notion·Attio·채널톡 웹). 값 출처: benchmarks.md 2.4 토큰 초안. */
 :root[data-theme='c'] {
-  --fg: oklch(21% 0.034 264.665);
-  --fg-secondary: oklch(37.3% 0.034 259.733);
-  --fg-tertiary: oklch(44.6% 0.03 256.802);
-  --fg-muted: oklch(55.1% 0.027 264.364);
-  --background: #f9fafb;
+  --fg: #2c2c2b; /* Notion 본문 */
+  --fg-secondary: #5f5e5b; /* 보조 1, palGra600 */
+  --fg-tertiary: #6d6c68; /* 초안은 보조 2단계뿐 → 보조 2 */
+  --fg-muted: #6d6c68; /* 보조 2 */
+  --background: #f8f8f7; /* palGra50 */
   --card: #ffffff;
-  --surface-subtle: oklch(98.5% 0.002 247.839);
-  --muted: #f3f4f6;
-  --border: #e5e7eb;
-  --border-subtle: oklch(96.7% 0.003 264.542);
-  --input: #d1d5dc;
-  --primary: #155dfc;
+  --surface-subtle: #f8f8f7; /* 초안 없음 → 바닥색(기준과 같은 관계) */
+  --muted: #f1f0ef; /* sand-3 */
+  --border: #e6e5e3; /* Notion 콜아웃 선 */
+  --border-subtle: #e6e5e3; /* 초안: 1px 따뜻한 선 하나 */
+  --input: #dfdcd9;
+  --primary: #2c2c2b; /* 먹색 주 버튼 */
   --primary-foreground: #ffffff;
-  --primary-strong: oklch(48.8% 0.243 264.376);
-  --primary-surface: oklch(97% 0.014 254.604);
-  --ring: #155dfc;
-  --destructive: #e7000b;
-  --danger: oklch(50.5% 0.213 27.518);
-  --danger-surface: oklch(97.1% 0.013 17.38);
-  --danger-border: oklch(88.5% 0.062 18.334);
-  --warning: oklch(55.4% 0.135 66.442);
-  --warning-surface: oklch(98.7% 0.026 102.212);
-  --warning-border: oklch(94.5% 0.129 101.54);
-  --success: oklch(52.7% 0.154 150.069);
-  --success-surface: oklch(98.2% 0.018 155.826);
-  --success-border: oklch(92.5% 0.084 155.995);
+  --primary-strong: #105fad; /* accent-foreground, palBlu700(링크) */
+  --primary-surface: #e7f3f8; /* accent, palBlu50 */
+  --ring: #2383e2;
+  --destructive: #c33937;
+  --danger: #c33937;
+  --danger-surface: #fdebec;
+  --danger-border: #fdebec; /* 초안 없음 → Notion 태그처럼 테두리 없는 옅은 면 */
+  --warning: #8d4e17;
+  --warning-surface: #fbecdd;
+  --warning-border: #fbecdd;
+  --success: #33684e;
+  --success-surface: #edf3ec;
+  --success-border: #edf3ec;
   --font-sans:
     'Pretendard Variable', Pretendard, ui-sans-serif, system-ui, -apple-system, 'Segoe UI',
     sans-serif;
-  --theme-tracking: normal;
+  --theme-tracking: -0.01em; /* 본문 15px */
   --font-weight-normal: 400;
   --font-weight-medium: 500;
   --font-weight-semibold: 600;
   --font-weight-bold: 700;
-  --text-xs: 0.75rem;
-  --text-xs--line-height: calc(1 / 0.75);
-  --text-sm: 0.875rem;
-  --text-sm--line-height: calc(1.25 / 0.875);
-  --text-base: 1rem;
-  --text-base--line-height: calc(1.5 / 1);
-  --text-lg: 1.125rem;
-  --text-lg--line-height: calc(1.75 / 1.125);
-  --text-xl: 1.25rem;
-  --text-xl--line-height: calc(1.75 / 1.25);
-  --spacing: 0.25rem;
-  --radius-sm: 0.25rem;
-  --radius-md: 0.375rem;
-  --radius-lg: 0.625rem;
-  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --text-xs: 0.8125rem; /* 메타 13/20 */
+  --text-xs--line-height: calc(20 / 13);
+  --text-sm: 0.9375rem; /* 본문 15/24 */
+  --text-sm--line-height: calc(24 / 15);
+  --text-base: 0.9375rem; /* 줄 제목 15/24(굵기로만 위계) */
+  --text-base--line-height: calc(24 / 15);
+  --text-lg: 1.125rem; /* 구획 제목 18/26 */
+  --text-lg--line-height: calc(26 / 18);
+  --text-xl: 1.5rem; /* 페이지 제목 24/32 */
+  --text-xl--line-height: calc(32 / 24);
+  --text-2xl: 1.75rem; /* 숫자 28/36 */
+  --text-2xl--line-height: calc(36 / 28);
+  --spacing: 0.25rem; /* 행 안쪽 여백 12·16 = 기준 py-3·px-4 */
+  --radius-sm: 8px; /* 버튼·입력 */
+  --radius-md: 8px;
+  --radius-lg: 12px; /* 카드 */
+  --radius-chip: 6px;
+  --shadow-sm: 0 1px 2px rgb(28 19 1 / 0.06); /* shadow-card */
+  --shadow-md:
+    0 2px 4px -2px rgb(28 19 1 / 0.06), 0 4px 6px -1px rgb(28 19 1 / 0.06); /* shadow-raised */
+  --card-border: var(--border); /* 선 + 옅은 그림자 */
+  --field: #ffffff;
+  /* 초점(지남) 카드: 흰 면 + 왼쪽 3px 빨간 띠 */
+  --focus-surface: var(--card);
+  --focus-stripe: var(--danger);
+  --focus-stripe-width: 3px;
 }
 
 /* ── 2절. a·b·c 공통(채우는 쪽은 고치지 않는다) ────────────────────────────── */
@@ -250,7 +289,7 @@
   --accent-foreground: var(--primary-strong);
   /* 앱 부품(Badge·Button·Input·Label·Field·a)은 팔레트 단계를 직접 쓴다. 부품을 고치지 않고 테마를 입히려고
      미리보기 안에서만 그 단계를 1절 값에 잇는다.
-     잇지 않은 단계(gray-300·400·800, blue-200, white 등)는 테마와 상관없이 팔레트 값 그대로다. */
+     잇지 않은 단계(gray-300·400, blue-200, white 등)는 테마와 상관없이 팔레트 값 그대로다. */
   --color-gray-900: var(--fg);
   --color-gray-700: var(--fg-secondary);
   --color-gray-600: var(--fg-tertiary);
@@ -271,6 +310,8 @@
   --color-green-700: var(--success);
   --color-green-200: var(--success-border);
   --color-green-50: var(--success-surface);
+  /* 입력칸 글자(gray-800)가 테마 글자색과 따로 놀지 않게 */
+  --color-gray-800: var(--fg);
   letter-spacing: var(--theme-tracking);
 }
 
@@ -280,4 +321,16 @@
 }
 :root[data-theme]:not([data-theme='base']) .shadow-md {
   --tw-shadow: var(--shadow-md);
+}
+
+/* 앱 부품이 한 값으로 묶어 둔 것을 갈래 초안대로 나눈다. 카드(cardClass)의 테두리색, 칩 반경(부품은 버튼·입력과 같은
+   rounded-sm), 입력칸 바탕(부품은 bg-white). 읽기 전용·끈 입력칸 바탕도 --field가 이긴다(타일·①에는 없음). */
+:root[data-theme]:not([data-theme='base']) .bg-card.shadow-sm {
+  border-color: var(--card-border);
+}
+:root[data-theme]:not([data-theme='base']) [data-slot='badge'] {
+  border-radius: var(--radius-chip);
+}
+:root[data-theme]:not([data-theme='base']) [data-slot='input'] {
+  background-color: var(--field);
 }

@@ -5,9 +5,6 @@ import './themes.css'
 const THEMES = ['base', 'a', 'b', 'c'] as const
 export type ThemeName = (typeof THEMES)[number]
 
-// 대표에게 보이는 이름. 갈래 이름에 끌리지 않게 가·나·다로만 보인다(대응은 theme-frame.md).
-export const THEME_LABEL: Record<ThemeName, string> = { base: '기준', a: '가', b: '나', c: '다' }
-
 // 미리보기에서만 CDN으로 부르는 한국어 웹폰트 CSS. 앱에는 Pretendard(npm 패키지)만 있다.
 // 각 CSS가 정하는 글꼴 이름(themes.css --font-sans 맨 앞에 쓴다): SUIT 'SUIT Variable',
 // Wanted Sans 'Wanted Sans Variable', Spoqa 'Spoqa Han Sans Neo', IBM Plex 'IBM Plex Sans KR'.
