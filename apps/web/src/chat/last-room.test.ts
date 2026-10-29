@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest'
 import { room, roomList } from '@/test-support/chat-fixtures'
-import { roomToShow, saveSideRoom, savedSideRoom } from './last-room'
+import { roomToShow, saveSideRoom, savedSideOpen, savedSideRoom } from './last-room'
 
 const notice = room('all')
 const leadership = room('lead', { type: 'leadership' })
@@ -43,6 +43,10 @@ test('열린 1:1은 다른 학생회나 사람에게 이어지지 않고 닫으�
   expect(savedSideRoom('c1', 'm1')).toBe('direct-a')
   expect(savedSideRoom('c2', 'm1')).toBeNull()
   expect(savedSideRoom('c1', 'm2')).toBeNull()
+  saveSideRoom('c1', 'm1', null, true)
+  expect(savedSideRoom('c1', 'm1')).toBeNull()
+  expect(savedSideOpen('c1', 'm1')).toBe(true)
   saveSideRoom('c1', 'm1', null)
   expect(savedSideRoom('c1', 'm1')).toBeNull()
+  expect(savedSideOpen('c1', 'm1')).toBe(false)
 })

@@ -12,6 +12,14 @@ import RoomSwitch from './RoomSwitch'
 import { councilRooms, directRooms, elsewhereRooms, unreadSum } from './space-rooms'
 import { useSplit } from '@/lib/use-split'
 import { SideChatList } from './SideChat'
+import { DIRECT_PANEL_ID, DIRECT_PANEL_TOGGLE_ID } from './SidePanelClose'
+
+// PC 오른쪽 1:1 칸을 여닫는 버튼. 칸은 평소 닫혀 있어 안 읽은 1:1 수를 여기에 단다.
+export type DirectPanelToggle = {
+  open: boolean
+  unread: number
+  onToggle: () => void
+}
 
 // 실제 작업 공간에서는 제목과 오른쪽 행동을 공통 머리글로 보낸다. 갤러리도 같은 머리와 탭을 쓴다.
 export function MessageHomeHeader({
@@ -21,6 +29,7 @@ export function MessageHomeHeader({
   onAll,
   elsewhereUnread = 0,
   direct,
+  panel,
 }: {
   rooms: RoomSummary[]
   active: RoomSummary | undefined
@@ -29,6 +38,7 @@ export function MessageHomeHeader({
   // 탭 줄에 없는 방(행사·부서 간)의 안 읽은 수. [전체 보기]에 단다.
   elsewhereUnread?: number
   direct?: ComponentProps<typeof RoomSwitch>['direct']
+  panel?: DirectPanelToggle | undefined
 }) {
   return (
     <header className="shrink-0 bg-white px-4 sm:px-6">
@@ -37,6 +47,20 @@ export function MessageHomeHeader({
           <h1 className="py-3 text-xl font-semibold break-keep">메시지</h1>
         </PageHeading>
         <PageActions>
+          {panel && (
+            <Button
+              id={DIRECT_PANEL_TOGGLE_ID}
+              variant="outline"
+              size="sm"
+              touch
+              aria-expanded={panel.open}
+              aria-controls={panel.open ? DIRECT_PANEL_ID : undefined}
+              onClick={panel.onToggle}
+            >
+              1:1
+              <CountBadge count={panel.unread} label={`안 읽은 메시지 ${panel.unread}개`} />
+            </Button>
+          )}
           <Button variant="outline" size="sm" touch onClick={onAll}>
             전체 보기
             <CountBadge count={elsewhereUnread} label={`안 읽은 메시지 ${elsewhereUnread}개`} />
@@ -62,7 +86,7 @@ export function MessageHomeHeader({
 }
 
 // 첫 화면은 서버가 준 학생회 방의 흐름이다. 전체 목록에 있는 행사·1:1은 자동으로 고르지 않는다.
-const directUnreadOf = ({ state }: RoomPage['rooms']) =>
+export const directUnreadOf = ({ state }: RoomPage['rooms']) =>
   state.kind === 'ready' ? unreadSum(directRooms(state.data.rooms)) : 0
 const elsewhereUnreadOf = ({ state }: RoomPage['rooms']) =>
   state.kind === 'ready' ? unreadSum(elsewhereRooms(state.data.rooms)) : 0
@@ -74,6 +98,7 @@ export default function MessageHome({
   onAll,
   onDirect,
   onDirectTab,
+  panel,
 }: {
   page: RoomPage
   wanted: string | undefined
@@ -81,6 +106,8 @@ export default function MessageHome({
   onAll: () => void
   onDirect: (roomId: string) => void
   onDirectTab: () => void
+  // PC에서만 온다. 휴대폰은 탭 줄의 '1:1'이 같은 일을 한다.
+  panel?: DirectPanelToggle | undefined
 }) {
   const split = useSplit()
   const [directSelected, setDirectSelected] = useState(
@@ -103,6 +130,7 @@ export default function MessageHome({
         active={showDirect ? undefined : room}
         onAll={onAll}
         elsewhereUnread={elsewhereUnreadOf(page.rooms)}
+        panel={panel}
         onPick={roomId => {
           saveRoom(page.councilId, roomId)
           saveDirectTab(page.councilId, page.view.me.memberId, false)
