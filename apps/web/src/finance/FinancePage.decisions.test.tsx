@@ -58,6 +58,9 @@ function setup(detail = twoPending(), budget: BudgetResponse = budgetWithPeriod(
   api.on('GET', `${BASE}?view=all`, () =>
     json({ requests: [purchaseSummary(REQUEST)], truncated: false }),
   )
+  api.on('GET', `${BASE}?view=pending`, () =>
+    json({ requests: [purchaseSummary(REQUEST)], truncated: false }),
+  )
   api.on('GET', `${BASE}/${REQUEST}`, () => json({ request: detail }))
   api.on('GET', `${ORG}/budget`, () => json(budget))
   api.on('GET', `${ORG}/fiscal-periods`, () => json({ periods: [] }))

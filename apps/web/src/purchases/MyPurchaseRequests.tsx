@@ -1,5 +1,7 @@
 import { ArrowLeft, Plus } from 'lucide-react'
 import type { PurchaseRequestSummary } from '@vada/contracts'
+import type { PurchaseList } from '@/finance/usePurchases'
+import { PURCHASES_LOAD_FAILED } from '@/lib/messages'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
 import { cardClass } from '@/components/ui/card'
@@ -13,7 +15,7 @@ import {
 import { PurchaseRequestTable } from './PurchaseRequestTable'
 
 type Props = {
-  requests: PurchaseRequestSummary[]
+  list: PurchaseList
   // 이름과 지금 부서
   who: string
   onBack: () => void
@@ -31,7 +33,8 @@ const VALUE_TONE: Record<RequestState, string> = {
 }
 
 // 내 구매 요청(와이어프레임 MY-REQ-01): 상태별 수와 요청 표.
-export function MyPurchaseRequests({ requests, who, onBack, onCreate, onOpen }: Props) {
+export function MyPurchaseRequests({ list, who, onBack, onCreate, onOpen }: Props) {
+  const requests = list.state.kind === 'ready' ? list.state.requests : []
   const counts = Object.fromEntries(
     REQUEST_STATES.map(state => [state, requests.filter(r => requestStateOf(r) === state).length]),
   ) as Record<RequestState, number>
@@ -63,11 +66,31 @@ export function MyPurchaseRequests({ requests, who, onBack, onCreate, onOpen }: 
           </li>
         ))}
       </ul>
-      {requests.length === 0 ? (
-        <StateMessage kind="empty">구매 요청 없음</StateMessage>
-      ) : (
-        <PurchaseRequestTable requests={requests} variant="mine" onOpen={onOpen} />
-      )}
+      <MineBody list={list} requests={requests} onOpen={onOpen} />
     </section>
   )
+}
+
+function MineBody({
+  list,
+  requests,
+  onOpen,
+}: {
+  list: PurchaseList
+  requests: PurchaseRequestSummary[]
+  onOpen: Props['onOpen']
+}) {
+  if (list.state.kind === 'loading')
+    return <StateMessage kind="loading">구매 요청 불러오는 중…</StateMessage>
+  if (list.state.kind === 'failed')
+    return (
+      <div className="flex flex-col items-start gap-3">
+        <StateMessage kind="error">{PURCHASES_LOAD_FAILED}</StateMessage>
+        <Button touch variant="outline" onClick={() => void list.reload()}>
+          다시 시도
+        </Button>
+      </div>
+    )
+  if (requests.length === 0) return <StateMessage kind="empty">구매 요청 없음</StateMessage>
+  return <PurchaseRequestTable requests={requests} variant="mine" onOpen={onOpen} />
 }

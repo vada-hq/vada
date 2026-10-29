@@ -77,7 +77,7 @@ test('행사 구매 탭은 예산 요약 → 품목 현황 → 정산에 남은 
   expect(api.calls.some(call => call.path === LIST)).toBe(true)
   expect(screen.queryByRole('group', { name: '구매 범위' })).toBeNull()
   expect(screen.queryByRole('button', { name: '새 구매 요청' })).toBeNull()
-  expect(screen.queryByRole('tab', { name: '처리 단계' })).toBeNull()
+  expect(screen.getByRole('tab', { name: '처리 단계' }).getAttribute('aria-selected')).toBe('false')
   const budget = await screen.findByRole('region', { name: '예산 요약' })
   const remaining = await screen.findByRole('region', { name: '정산에 남은 것' })
   expect(budget.compareDocumentPosition(toggle) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()

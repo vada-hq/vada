@@ -5,13 +5,13 @@ import { navigate, useHere } from '@/lib/app-location'
 import { openRecord } from '@/lib/go-to'
 import { useMenuQuery } from '@/lib/use-menu-query'
 import { PurchasePage } from '@/finance/PurchasePage'
-import { usePurchases } from '@/finance/usePurchases'
 import { MyPurchaseRequests } from './MyPurchaseRequests'
 import { PurchaseBudget } from './PurchaseBudget'
 import { PurchaseHeadActions } from './PurchaseHeadActions'
 import { PurchaseScope } from './PurchaseScope'
 import { PurchaseWork } from './PurchaseWork'
 import { usePurchaseBoardQuery, whoOf } from './purchase-board-query'
+import { useBoardRequests } from './useBoardRequests'
 
 type Props = { view: CouncilView; onForbidden: () => void }
 
@@ -30,7 +30,7 @@ function PurchasesList({ view, onForbidden }: Props) {
   const url = useMenuQuery('purchases', councilId)
   const board = usePurchaseBoardQuery(view, url.query)
   const scope = url.query['scope']
-  const list = usePurchases(councilId, board.fetchView, onForbidden, { event: scope })
+  const list = useBoardRequests(councilId, board, onForbidden, scope)
   const canRequest = view.permissions.includes('purchase.request')
   const create = () =>
     navigate(menuPath('purchases', councilId, { compose: 'new' }), {
@@ -46,7 +46,7 @@ function PurchasesList({ view, onForbidden }: Props) {
     return (
       <PageColumn>
         <MyPurchaseRequests
-          requests={list.state.kind === 'ready' ? list.state.requests : []}
+          list={list}
           who={whoOf(view)}
           onBack={() => url.set({ page: null })}
           onCreate={canRequest ? create : null}
@@ -71,7 +71,6 @@ function PurchasesList({ view, onForbidden }: Props) {
       <PurchaseBudget councilId={councilId} scope={scope} onForbidden={onForbidden} />
       <PurchaseWork
         list={list}
-        canProcess={board.canProcess}
         board={board.board}
         area={board.area}
         view={board.view}
