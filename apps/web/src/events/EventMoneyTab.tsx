@@ -5,12 +5,12 @@ import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
 import { openRecord } from '@/lib/go-to'
 import { SETTLEMENT_LOAD_FAILED } from '@/lib/messages'
-import { usePurchases } from '@/finance/usePurchases'
 import { MyPurchaseRequests } from '@/purchases/MyPurchaseRequests'
 import { PurchaseBudgetSummary } from '@/purchases/PurchaseBudgetSummary'
 import { PurchaseHeadActions } from '@/purchases/PurchaseHeadActions'
 import { PurchaseWork } from '@/purchases/PurchaseWork'
 import { usePurchaseBoardQuery, whoOf } from '@/purchases/purchase-board-query'
+import { useBoardRequests } from '@/purchases/useBoardRequests'
 import { useEventMoneyAdd } from './EventMoneyAdd'
 import { SettlementRemaining } from './SettlementRemaining'
 import { useEventPurchaseAddress } from './useEventAddress'
@@ -39,7 +39,7 @@ export function EventMoneyTab({
   const settlement = useSettlement(councilId, event.id, handlers)
   const address = useEventPurchaseAddress(councilId, event.id)
   const board = usePurchaseBoardQuery(view, address.query)
-  const list = usePurchases(councilId, board.fetchView, handlers.onForbidden, { event: event.id })
+  const list = useBoardRequests(councilId, board, handlers.onForbidden, event.id)
   useReloadOn(refreshKey, settlement.reload)
   useReloadOn(refreshKey, list.reload)
   const refresh = () => {
@@ -62,7 +62,7 @@ export function EventMoneyTab({
     return (
       <>
         <MyPurchaseRequests
-          requests={list.state.kind === 'ready' ? list.state.requests : []}
+          list={list}
           who={whoOf(view)}
           onBack={() => address.set({ page: null })}
           onCreate={add.createRequest}
@@ -82,7 +82,6 @@ export function EventMoneyTab({
       <SettlementBody settlement={settlement} actions={add.financeActions} />
       <PurchaseWork
         list={list}
-        canProcess={board.canProcess}
         board={board.board}
         area={board.area}
         view={board.view}

@@ -29,8 +29,13 @@ const ALIGN: Record<string, string> = {
   상태: 'text-center',
 }
 
-const amountOf = (request: PurchaseRequestSummary) =>
-  request.estimate?.total ?? request.estimate?.subtotal ?? null
+// 배송비를 모르면 상품 값만 있다는 것을 같이 적는다(합계로 읽히지 않게).
+function amountText(request: PurchaseRequestSummary) {
+  const estimate = request.estimate
+  if (estimate?.total != null) return wonLabel(estimate.total)
+  if (estimate?.subtotal != null) return `상품 ${wonLabel(estimate.subtotal)} · 배송비 미확인`
+  return '미정'
+}
 
 // 줄을 누르면 그 구매 요청이 열린다(줄 전체가 제목 단추 하나).
 export function PurchaseRequestTable({ requests, variant, onOpen }: Props) {
@@ -87,8 +92,7 @@ function StateBadge({ request }: { request: PurchaseRequestSummary }) {
 }
 
 function Amount({ request }: { request: PurchaseRequestSummary }) {
-  const amount = amountOf(request)
-  return <>{amount === null ? '미정' : wonLabel(amount)}</>
+  return <>{amountText(request)}</>
 }
 
 function RecordCells({

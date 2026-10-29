@@ -1,9 +1,4 @@
-import {
-  statusOf,
-  type PurchaseRequestsResponse,
-  type PurchaseStage,
-  type PurchaseView,
-} from '@vada/contracts'
+import { statusOf, type PurchaseRequestsResponse, type PurchaseView } from '@vada/contracts'
 import { usePolledRead } from '@/lib/use-polled-read'
 import { purchasesPath } from './finance-api'
 
@@ -16,19 +11,14 @@ export function usePurchases(
   councilId: string,
   view: PurchaseView,
   onForbidden: () => void,
-  options: boolean | { event: string | undefined; stage?: PurchaseStage | undefined } = true,
+  options: boolean | { event: string | undefined; enabled?: boolean } = true,
 ) {
   const read = usePolledRead<PurchaseRequestsResponse>(
-    purchasesPath(
-      councilId,
-      view,
-      typeof options === 'boolean' ? undefined : options.event,
-      typeof options === 'boolean' ? undefined : options.stage,
-    ),
+    purchasesPath(councilId, view, typeof options === 'boolean' ? undefined : options.event),
     status => {
       if (status === statusOf('FORBIDDEN')) onForbidden()
     },
-    typeof options === 'boolean' ? options : true,
+    typeof options === 'boolean' ? options : (options.enabled ?? true),
   )
   const state: PurchasesState =
     read.state.kind === 'ready' ? { kind: 'ready', ...read.state.data } : read.state

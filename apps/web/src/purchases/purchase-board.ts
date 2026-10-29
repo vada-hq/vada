@@ -1,4 +1,5 @@
 import type { PurchaseItemBrief, PurchaseRequestSummary } from '@vada/contracts'
+import type { PurchaseList } from '@/finance/usePurchases'
 import type { Tone } from '@/finance/purchase-view'
 
 // 품목 현황 칸반의 열(와이어프레임 PUR-00·EVT-FIN-01). 동의 대기·주문 완료·수령·이행 완료는 아직 그 기록이 없어 늘 빈 열이다.
@@ -100,4 +101,25 @@ export const requestStateLabel = (request: PurchaseRequestSummary) => {
   const state = requestStateOf(request)
   if (state !== 'closed') return REQUEST_STATE_TEXT[state]
   return { label: request.status === 'rejected' ? '반려' : '취소', tone: 'danger' as Tone }
+}
+
+// 처리 단계는 최근 목록(상한 100)에 결재 대기 목록(상한 300, 필요한 때 순)을 더해 읽는다. 오래된 대기 요청이 최근 목록 밖으로
+// 밀려나도 검토 대기 칸에서 빠지지 않게 한다. 둘 중 하나라도 못 읽었으면 칸을 비워 보이지 않고 그 상태를 그대로 보인다.
+export function mergedList(main: PurchaseList, pending: PurchaseList | null): PurchaseList {
+  if (!pending) return main
+  const reload = async () => {
+    await Promise.all([main.reload(), pending.reload()])
+  }
+  if (main.state.kind !== 'ready') return { state: main.state, reload }
+  if (pending.state.kind !== 'ready') return { state: pending.state, reload }
+  const seen = new Set(main.state.requests.map(request => request.id))
+  const extra = pending.state.requests.filter(request => !seen.has(request.id))
+  return {
+    state: {
+      ...main.state,
+      requests: [...main.state.requests, ...extra],
+      truncated: main.state.truncated || pending.state.truncated,
+    },
+    reload,
+  }
 }

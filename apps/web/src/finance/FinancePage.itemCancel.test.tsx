@@ -48,6 +48,9 @@ function setup(first: PurchaseRequestDetail) {
   api.on('GET', `${BASE}?view=all`, () =>
     json({ requests: [purchaseSummary('0199d1a0-0000-7000-8000-00000000a001')], truncated: false }),
   )
+  api.on('GET', `${BASE}?view=pending`, () =>
+    json({ requests: [purchaseSummary('0199d1a0-0000-7000-8000-00000000a001')], truncated: false }),
+  )
   let reads = 0
   const second = { current: first }
   api.on('GET', `${BASE}/0199d1a0-0000-7000-8000-00000000a001`, () => {

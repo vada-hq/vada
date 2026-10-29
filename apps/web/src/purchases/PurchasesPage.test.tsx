@@ -57,7 +57,8 @@ test('운영진은 품목 현황 칸반을 보고, 품목은 진행 단계 열�
   mockApi().on('GET', `${base}/purchase-requests?view=all`, () => list())
   show()
   await screen.findByRole('button', { name: '생수' })
-  expect(screen.queryByRole('tab', { name: '처리 단계' })).toBeNull()
+  // 보드는 모두에게 열려 있고 운영진의 기본은 품목 현황이다.
+  expect(screen.getByRole('tab', { name: '처리 단계' }).getAttribute('aria-selected')).toBe('false')
   expect(within(lane('검토 중')).getByRole('button', { name: '생수' })).toBeTruthy()
   expect(within(lane('확인 필요')).getByText('반려')).toBeTruthy()
   expect(within(lane('구매 준비')).getByRole('button', { name: '네임펜' })).toBeTruthy()
@@ -72,9 +73,14 @@ test('운영진은 품목 현황 칸반을 보고, 품목은 진행 단계 열�
   await waitFor(() => expect(window.location.pathname).toBe(`/purchases/${COUNCIL_ID}/${R1}`))
 })
 
+const finance = () =>
+  councilView(COUNCIL_ID, { councilRank: null, permissions: FINANCE_PERMISSIONS })
+
 test('재정부는 처리 단계가 기본이고, 업무 영역과 요청 기록 표를 오간다', async () => {
-  mockApi().on('GET', `${base}/purchase-requests?view=all`, () => list())
-  show(councilView(COUNCIL_ID, { councilRank: null, permissions: FINANCE_PERMISSIONS }))
+  const api = mockApi()
+  api.on('GET', `${base}/purchase-requests?view=all`, () => list())
+  api.on('GET', `${base}/purchase-requests?view=pending`, () => list([]))
+  show(finance())
   const areas = await screen.findByRole('group', { name: '업무 영역' })
   await within(lane('검토 대기')).findByText('생수')
   expect(
@@ -146,4 +152,45 @@ test('읽기에 실패하면 다시 시도할 수 있다', async () => {
   api.on('GET', `${base}/purchase-requests?view=all`, () => list())
   fireEvent.click(retry)
   expect(await screen.findByRole('button', { name: '생수' })).toBeTruthy()
+})
+
+test('처리 단계는 최근 목록 밖으로 밀려난 오래된 결재 대기 요청도 검토 대기에 보인다', async () => {
+  const api = mockApi()
+  api.on('GET', `${base}/purchase-requests?view=all`, () => list([]))
+  api.on('GET', `${base}/purchase-requests?view=pending`, () =>
+    list([purchaseSummary('old', { itemBriefs: [brief('오래된 대기')] })]),
+  )
+  show(finance())
+  expect(
+    await within(await screen.findByRole('region', { name: '검토 대기' })).findByText(
+      '오래된 대기',
+    ),
+  ).toBeTruthy()
+})
+
+test('재정부도 내 요청 주소로 열면 품목 현황의 내 요청이다', async () => {
+  window.history.replaceState(null, '', `/purchases/${COUNCIL_ID}?view=mine`)
+  const api = mockApi()
+  api.on('GET', `${base}/purchase-requests?view=mine`, () => list())
+  show(finance())
+  await screen.findByRole('button', { name: '생수' })
+  expect(screen.getByRole('tab', { name: '품목 현황' }).getAttribute('aria-selected')).toBe('true')
+  expect(api.calls.some(call => call.path.endsWith('view=all'))).toBe(false)
+})
+
+test('내 구매 요청을 읽지 못하면 없음 대신 안내와 다시 시도를 보인다', async () => {
+  window.history.replaceState(null, '', `/purchases/${COUNCIL_ID}?page=mine`)
+  const api = mockApi()
+  api.on('GET', `${base}/purchase-requests?view=mine`, () => json({ error: 'INTERNAL' }, 500))
+  show()
+  const retry = await screen.findByRole('button', { name: '다시 시도' })
+  expect(screen.queryByText('구매 요청 없음')).toBeNull()
+  api.on('GET', `${base}/purchase-requests?view=mine`, () =>
+    list([
+      purchaseSummary('m', { title: '배송비 모름', estimate: { subtotal: 10000, total: null } }),
+    ]),
+  )
+  fireEvent.click(retry)
+  const row = (await screen.findByRole('button', { name: '배송비 모름' })).closest('tr')
+  expect(row?.textContent).toContain('상품 10,000원 · 배송비 미확인')
 })

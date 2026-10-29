@@ -31,6 +31,9 @@ function setup(tab: string, budget = budgetWithPeriod()) {
   api.on('GET', `${ORG}/purchase-requests?view=all`, () =>
     json({ requests: [purchaseSummary('0199d1a0-0000-7000-8000-00000000a001')], truncated: false }),
   )
+  api.on('GET', `${ORG}/purchase-requests?view=pending`, () =>
+    json({ requests: [purchaseSummary('0199d1a0-0000-7000-8000-00000000a001')], truncated: false }),
+  )
   api.on('GET', `${ORG}/purchase-requests/0199d1a0-0000-7000-8000-00000000a001`, () =>
     json({
       request: purchaseDetail('0199d1a0-0000-7000-8000-00000000a001', {

@@ -19,8 +19,6 @@ import { PurchaseRequestTable } from './PurchaseRequestTable'
 export type WorkView = 'all' | 'mine'
 type Props = {
   list: PurchaseList
-  // 재정부(결재 권한)는 처리 단계와 요청 기록도 본다.
-  canProcess: boolean
   board: PurchaseBoard
   area: PurchaseArea
   view: WorkView
@@ -32,6 +30,7 @@ type Props = {
 }
 
 // 구매 메뉴와 행사 구매 탭이 같이 쓰는 작업 구역: 보드 탭(품목 현황·처리 단계·구매 요청 기록)과 그 본문.
+// 보드는 모두에게 열려 있다(읽기는 권한으로 가리지 않는다). 처리 버튼이 생기면 그 버튼만 권한으로 가른다.
 export function PurchaseWork(props: Props) {
   const { list } = props
   const requests = list.state.kind === 'ready' ? list.state.requests : []
@@ -46,7 +45,6 @@ export function PurchaseWork(props: Props) {
 }
 
 function BoardTabs({
-  canProcess,
   board,
   onBoard,
   itemCount,
@@ -65,16 +63,12 @@ function BoardTabs({
   return (
     <div className="flex items-end justify-between gap-4 border-b">
       <div role="tablist" aria-label="구매 보드" className="flex items-end gap-4">
-        <TabGroup label={canProcess ? '작업 보드' : null}>
+        <TabGroup label="작업 보드">
           {tab('items', '품목 현황')}
-          {canProcess && tab('process', '처리 단계')}
+          {tab('process', '처리 단계')}
         </TabGroup>
-        {canProcess && (
-          <>
-            <span aria-hidden className="mb-2 h-8 w-px bg-border-default" />
-            <TabGroup label="기록">{tab('records', '구매 요청', requestCount)}</TabGroup>
-          </>
-        )}
+        <span aria-hidden className="mb-2 h-8 w-px bg-border-default" />
+        <TabGroup label="기록">{tab('records', '구매 요청', requestCount)}</TabGroup>
       </div>
       {board === 'items' && (
         <span className="mb-2 rounded-full border border-primary-border bg-primary-surface px-2.5 py-0.5 text-xs font-semibold text-primary-strong tabular-nums">
@@ -85,10 +79,10 @@ function BoardTabs({
   )
 }
 
-function TabGroup({ label, children }: { label: string | null; children: ReactNode }) {
+function TabGroup({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="flex flex-col">
-      {label && <span className="px-4 text-xs text-fg-faint">{label}</span>}
+      <span className="px-4 text-xs text-fg-faint">{label}</span>
       <div className="flex">{children}</div>
     </div>
   )

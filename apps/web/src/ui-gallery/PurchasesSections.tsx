@@ -22,7 +22,14 @@ export function PurchasesSection() {
         <PurchaseProcessBoard cards={cards} area={area} onArea={setArea} onOpen={noop} />
         <PurchaseRequestTable requests={REQUESTS} variant="records" onOpen={noop} />
         <MyPurchaseRequests
-          requests={REQUESTS.filter(row => row.requestedBy.name === '박해랑')}
+          list={{
+            state: {
+              kind: 'ready',
+              requests: REQUESTS.filter(row => row.requestedBy.name === '박해랑'),
+              truncated: false,
+            },
+            reload: async () => {},
+          }}
           who="박해랑 · 운영부"
           onBack={noop}
           onCreate={noop}
