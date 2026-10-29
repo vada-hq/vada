@@ -5,6 +5,7 @@ import {
   type MeetingStatus,
   type MeetingSummary,
 } from '@vada/contracts'
+import { MY_MEETING_TODO } from './meeting-text'
 
 const TIME_START = KOREAN_DATE_LENGTH + 1
 const MINUTE_MS = 60_000
@@ -33,6 +34,21 @@ const order = (a: MeetingSummary, b: MeetingSummary, now: string) => {
   const nextB = upcoming(b, now)
   if (nextA !== nextB) return nextA ? -1 : 1
   return nextA ? a.heldAt.localeCompare(b.heldAt) : b.heldAt.localeCompare(a.heldAt)
+}
+// 행사 회의 탭은 한 묶음이라 회의 메뉴 묶음 안과 같은 차례만 쓴다.
+export const sortedMeetings = (items: MeetingSummary[], now: string) =>
+  [...items].sort((a, b) => order(a, b, now))
+// 내 회의 줄의 할 일(MEET-MY-01 '진행 중·회의록 정리 필요·참석 예정'). 진행 권한을 따로 두지 않아(DEC-104 ②)
+// 와이어프레임의 '진행 중 · 진행 권한'은 '진행 중'만 남긴다. 서버의 mine에는 완료·취소가 없다.
+const MY_TODO_ORDER: MeetingStatus[] = ['in_progress', 'wrapping_up', 'scheduled']
+export function myMeetingRows(items: MeetingSummary[]) {
+  const rank = (meeting: MeetingSummary) => {
+    const index = MY_TODO_ORDER.indexOf(meeting.status)
+    return index < 0 ? MY_TODO_ORDER.length : index
+  }
+  return [...items]
+    .sort((a, b) => rank(a) - rank(b) || a.heldAt.localeCompare(b.heldAt))
+    .map(meeting => ({ meeting, todo: MY_MEETING_TODO[meeting.status] }))
 }
 export type MeetingGroup = {
   id: string

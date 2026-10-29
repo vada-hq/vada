@@ -14,6 +14,7 @@ import RoomSwitch from '../chat/RoomSwitch'
 import { shownRoomOf, unreadSum } from '../chat/space-rooms'
 import SpaceMessages from '../chat/SpaceMessages'
 import { useEventRooms, type EventRooms } from '../chat/useEventRooms'
+import { EventMeetings } from '../meetings/EventMeetings'
 import { RegistrationTab } from '../registrations/RegistrationTab'
 import TasksPage from '../tasks/TasksPage'
 import { backLabel } from './event-back'
@@ -28,11 +29,13 @@ import { useEventDetail } from './useEventDetail'
 
 type Tab = EventTab
 // 탭 이름과 차례는 와이어프레임 EVT-02(DEC-93): 구매가 인원 관리 앞이다. 주소 값(money, registrations)은 그대로다.
-// 메시지가 맨 앞이고 기본 탭이다(DEC-90, 와이어프레임 EVT-MSG-01, 022 정한 것 28).
+// 메시지가 맨 앞이고 기본 탭이다(DEC-90, 와이어프레임 EVT-MSG-01, 022 정한 것 28). 회의는 업무 다음이다(EVT-MEET-01, 029).
+// 와이어프레임의 일정·문서 탭은 아직 그릴 내용이 없어 두지 않는다.
 const TABS: { tab: Tab; label: string }[] = [
   { tab: 'messages', label: '메시지' },
   { tab: 'overview', label: '개요' },
   { tab: 'tasks', label: '업무' },
+  { tab: 'meetings', label: '회의' },
   { tab: 'money', label: '구매' },
   { tab: 'registrations', label: '인원 관리' },
 ]
@@ -59,7 +62,7 @@ type Props = EventDialogHandlers & {
 
 const tabLabelOf = (tab: Tab) => TABS.find(item => item.tab === tab)?.label ?? ''
 
-// 메시지 탭 옆 배지는 그 행사 방들의 안 읽은 수 합이다(DEC-90). 휴대폰 폭에서 다섯 탭이 넘치지 않게 좌우 여백을 줄인다.
+// 메시지 탭 옆 배지는 그 행사 방들의 안 읽은 수 합이다(DEC-90). 휴대폰 폭에서 여섯 탭이 넘치지 않게 좌우 여백을 줄인다.
 function EventTabs({
   tab,
   unread,
@@ -113,7 +116,7 @@ function useDetailState(onTab: (tab: Tab) => void) {
   }
 }
 
-// 행사 하나: 머리(이름 줄, 탭, 요약 줄)와 탭 넷(개요, 업무, 구매, 인원 관리)의 내용. 업무 탭은 업무 화면을 그 행사로 좁혀 보인다.
+// 행사 하나: 머리(이름 줄, 탭, 요약 줄)와 탭(메시지, 개요, 업무, 회의, 구매, 인원 관리)의 내용. 업무 탭은 업무 화면을 그 행사로 좁혀 보인다.
 // 행사를 읽기 전에는 머리에 탭만 보인다.
 export default function EventDetailView({ view, eventId, tab, onTab, from, ...props }: Props) {
   const state = useDetailState(onTab)
@@ -196,7 +199,7 @@ type PanelProps = Omit<Props, 'from' | 'onTab' | 'room' | 'onRoom'> & {
   onEdit: (focus: EventFieldFocus) => void
 }
 
-// 탭 하나의 내용. 메시지, 개요, 업무, 구매, 인원 관리.
+// 탭 하나의 내용. 메시지, 개요, 업무, 회의, 구매, 인원 관리.
 function EventPanel({ tab, view, eventId, detail, ...props }: PanelProps) {
   const handlers = { onLost: props.onLost, onForbidden: props.onForbidden }
   const councilId = view.council.id
@@ -227,6 +230,8 @@ function EventPanel({ tab, view, eventId, detail, ...props }: PanelProps) {
             void detail.reload()
           }}
         />
+      ) : tab === 'meetings' ? (
+        <EventMeetings councilId={councilId} eventId={eventId} onForbidden={props.onForbidden} />
       ) : tab === 'registrations' ? (
         <RegistrationTab
           view={view}

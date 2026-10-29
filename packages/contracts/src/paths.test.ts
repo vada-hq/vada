@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import {
   APP_MENUS,
+  EVENT_TABS,
   appPath,
   ENTRY_PATHS,
   eventRoomPath,
@@ -24,9 +25,14 @@ test('회의 목록·만들기·기록 주소를 왕복하고 새로고침 진�
   }
   assert.equal(menuPath('meetings', C, { compose: 'new' }), `/meetings/${C}/new`)
   assert.equal(appPath(parseAppPath(`/meetings/${C}?compose=new`)!), `/meetings/${C}/new`)
-  assert.deepEqual(parseAppPath(`/meetings/${C}?status=cancelled&tab=mine&q=총회`)?.query, {
+  // 탭 둘(학생회 회의·내 회의, MEET-MY-01). 상태 거르기는 학생회 회의 탭에만 남는다.
+  assert.deepEqual(parseAppPath(`/meetings/${C}?status=cancelled&tab=council&q=총회`)?.query, {
     status: 'cancelled',
   })
+  assert.deepEqual(parseAppPath(`/meetings/${C}?status=cancelled&tab=mine`)?.query, {
+    tab: 'mine',
+  })
+  assert.equal(menuPath('meetings', C, { tab: 'mine' }), `/meetings/${C}?tab=mine`)
   assert.deepEqual(parseAppPath(`/meetings/${C}?status=unknown`)?.query, {})
   const detail = parseAppPath(`/meetings/${C}/${R}?agenda=${P}&mode=edit`)!
   assert.deepEqual(detail.query, { agenda: P, mode: 'edit' })
@@ -181,6 +187,16 @@ test('탭과 거르기는 쿼리로 오가고, 기본값은 주소에 두지 않
     query: { tab: 'money' },
   })
   assert.equal(event, `/events/${C}/${R}?tab=money`)
+  // 행사 회의 탭(EVT-MEET-01)은 업무 다음이다.
+  assert.deepEqual(EVENT_TABS, [
+    'messages',
+    'overview',
+    'tasks',
+    'meetings',
+    'money',
+    'registrations',
+  ])
+  assert.deepEqual(parseAppPath(`/events/${C}/${R}?tab=meetings`)?.query, { tab: 'meetings' })
   assert.deepEqual(parseAppPath(event), {
     type: 'record',
     record: 'events',

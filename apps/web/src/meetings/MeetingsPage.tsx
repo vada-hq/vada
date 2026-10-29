@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react'
 import {
   appPath,
+  MEETING_TABS,
   menuPath,
   recordPath,
   statusOf,
@@ -17,10 +18,13 @@ import { Button } from '@/components/ui/button'
 import { navigate, useHere } from '@/lib/app-location'
 import { postJson } from '@/lib/api'
 import { openRecord } from '@/lib/go-to'
-import { useMenuQuery } from '@/lib/use-menu-query'
+import { pickQuery, useMenuQuery } from '@/lib/use-menu-query'
 import { usePolledRead } from '@/lib/use-polled-read'
 import { useAskingGuard } from '@/lib/use-asking-guard'
 import { MeetingList } from './MeetingList'
+import { MeetingReadFailure } from './MeetingReadFailure'
+import { MeetingTabs } from './MeetingTabs'
+import { MyMeetingList } from './MyMeetingList'
 import { MeetingDetail } from './MeetingDetail'
 import { MeetingCancelDialog } from './MeetingCancelDialog'
 import { MeetingEditor } from './MeetingEditor'
@@ -30,41 +34,50 @@ import { meetingMinutesPath } from './minutes-path'
 import { MEETING_LOAD_FAILED, MEETING_LOST, meetingError } from './meeting-text'
 
 type Props = { view: CouncilView; onForbidden: () => void }
-function ReadFailure({ message, onRetry }: { message: string; onRetry: () => void }) {
-  return (
-    <div className="flex flex-col items-start gap-3">
-      <StateMessage kind="error">{message}</StateMessage>
-      <Button variant="outline" touch onClick={onRetry}>
-        다시 시도
-      </Button>
-    </div>
-  )
-}
+// 학생회 회의는 학생회의 모든 회의, 내 회의는 서버의 mine(참가자이거나 다루는 사람인, 완료·취소가 아닌 회의)이다.
 function MeetingsListPage({ view, onForbidden }: Props) {
   const councilId = view.council.id
   const url = useMenuQuery('meetings', councilId)
+  const tab = pickQuery(MEETING_TABS, url.query['tab'], 'council')
   const read = usePolledRead<MeetingsResponse>(
-    `/api/organizations/${councilId}/meetings?view=council`,
+    `/api/organizations/${councilId}/meetings?view=${tab}`,
     status => {
       if (status === statusOf('FORBIDDEN')) onForbidden()
     },
   )
+  const onOpen = (id: string) => openRecord('meetings', councilId, id)
+  let body
   if (read.state.kind === 'loading')
-    return <StateMessage kind="loading">회의 불러오는 중…</StateMessage>
-  if (read.state.kind === 'failed')
-    return <ReadFailure message={MEETING_LOAD_FAILED} onRetry={() => void read.reload()} />
+    body = <StateMessage kind="loading">회의 불러오는 중…</StateMessage>
+  else if (read.state.kind === 'failed')
+    body = <MeetingReadFailure message={MEETING_LOAD_FAILED} onRetry={() => void read.reload()} />
+  else if (tab === 'mine')
+    body = (
+      <MyMeetingList
+        meetings={read.state.data.meetings}
+        onOpen={onOpen}
+        onAll={() => url.set({ tab: null })}
+      />
+    )
+  else
+    body = (
+      <MeetingList
+        data={read.state.data}
+        status={(url.query['status'] as MeetingStatus | undefined) ?? null}
+        onStatus={status => url.set({ status })}
+        onOpen={onOpen}
+        onCreate={
+          view.permissions.includes('meeting.create')
+            ? () => navigate(menuPath('meetings', councilId, { compose: 'new' }))
+            : undefined
+        }
+      />
+    )
   return (
-    <MeetingList
-      data={read.state.data}
-      status={(url.query['status'] as MeetingStatus | undefined) ?? null}
-      onStatus={status => url.set({ status })}
-      onOpen={id => openRecord('meetings', councilId, id)}
-      onCreate={
-        view.permissions.includes('meeting.create')
-          ? () => navigate(menuPath('meetings', councilId, { compose: 'new' }))
-          : undefined
-      }
-    />
+    <>
+      <MeetingTabs tab={tab} onTab={next => url.set({ tab: next, status: null })} />
+      {body}
+    </>
   )
 }
 function LostMeeting({ councilId }: { councilId: string }) {
@@ -127,7 +140,7 @@ function MeetingRecord({
   if (lost) return <LostMeeting councilId={councilId} />
   if (!meeting)
     return read.state.kind === 'failed' ? (
-      <ReadFailure message={MEETING_LOAD_FAILED} onRetry={() => void read.reload()} />
+      <MeetingReadFailure message={MEETING_LOAD_FAILED} onRetry={() => void read.reload()} />
     ) : (
       <StateMessage kind="loading">회의 불러오는 중…</StateMessage>
     )

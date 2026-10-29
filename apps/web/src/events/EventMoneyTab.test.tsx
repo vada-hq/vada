@@ -12,6 +12,7 @@ import { eventDetail, eventSummary } from '@/test-support/event-fixtures'
 import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
 import { settlementOf } from '@/test-support/settlement-fixtures'
 import { settle } from '@/test-support/settle'
+import { meetingSample } from '@/meetings/test-support/meeting-samples'
 import {
   COMPLETION_BLOCKED,
   COMPLETION_ERRORS,
@@ -103,12 +104,13 @@ function openMoney(initial: EventDetail = event(), settlement = settlementOf()) 
 const button = (name: string) => screen.getByRole('button', { name })
 const posts = (api: ReturnType<typeof mockApi>) => api.calls.filter(call => call.method === 'POST')
 
-test('탭은 메시지, 개요, 업무, 구매, 인원 관리이고 구매 탭에 예산·실제·차이와 예산 항목이 보인다', async () => {
+test('탭은 메시지, 개요, 업무, 회의, 구매, 인원 관리이고 구매 탭에 예산·실제·차이와 예산 항목이 보인다', async () => {
   openMoney()
   expect(screen.getAllByRole('tab').map(tab => tab.textContent)).toEqual([
     '메시지',
     '개요',
     '업무',
+    '회의',
     '구매',
     '인원 관리',
   ])
@@ -504,4 +506,14 @@ test('완료한 행사의 구매 탭에는 더하기 버튼이 없다', async ()
   await screen.findByText('지출 예산')
   expect(screen.queryByRole('button', { name: '지출 적기' })).toBeNull()
   expect(screen.queryByRole('button', { name: '예산 편성' })).toBeNull()
+})
+
+test('회의 탭은 이 행사에 이은 회의를 읽어 보이고 새 회의 버튼이 없다', async () => {
+  const { api } = openMoney()
+  api.on('GET', `${ORG}/meetings?view=council&event=e1`, () =>
+    json({ meetings: [meetingSample({ title: '축제 준비 회의' })], truncated: false }),
+  )
+  fireEvent.click(screen.getByRole('tab', { name: '회의' }))
+  expect(await screen.findByText('축제 준비 회의')).toBeTruthy()
+  expect(screen.queryByRole('button', { name: '새 회의' })).toBeNull()
 })

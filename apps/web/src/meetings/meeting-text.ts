@@ -12,6 +12,14 @@ export const MEETING_STATUS: Record<
   done: { label: '완료', tone: 'neutral' },
   cancelled: { label: '취소', tone: 'neutral' },
 }
+// 내 회의 줄의 할 일 문구와 색(와이어프레임 MEET-MY-01: 파랑·주황·회색). 완료·취소는 mine에 오지 않지만 상태 이름으로 둔다.
+export const MY_MEETING_TODO: Record<MeetingStatus, { label: string; className: string }> = {
+  in_progress: { label: '진행 중', className: 'text-blue-700' },
+  wrapping_up: { label: '회의록 정리 필요', className: 'text-orange-700' },
+  scheduled: { label: '참석 예정', className: 'text-muted-foreground' },
+  done: { label: '완료', className: 'text-muted-foreground' },
+  cancelled: { label: '취소', className: 'text-muted-foreground' },
+}
 export const MINUTES_STATUS = { none: '작성 전', draft: '작성 중', confirmed: '정리 완료' }
 export const MEETING_LOAD_FAILED = '회의를 불러오지 못했어요. 연결을 확인해 주세요.'
 export const MEETING_OPTIONS_FAILED = '선택지를 불러오지 못했어요. 다시 시도해 주세요.'

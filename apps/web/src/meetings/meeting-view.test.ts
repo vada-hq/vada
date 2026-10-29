@@ -1,5 +1,11 @@
 import { expect, test } from 'vitest'
-import { meetingGroups, meetingTime, meetingDuration } from './meeting-view'
+import {
+  meetingGroups,
+  meetingTime,
+  meetingDuration,
+  myMeetingRows,
+  sortedMeetings,
+} from './meeting-view'
 import { meetingSample } from './test-support/meeting-samples'
 
 test('묶음 안은 다가오는 순·지난 최근 순이며 정기 묶음 다음 가장 가까운 행사 순이다', () => {
@@ -40,4 +46,29 @@ test('회의 일시와 예상 시간을 한국 시각으로 표시한다', () =>
   )
   expect(meetingDuration('2026-10-29T14:00', '2026-10-29T15:30')).toBe('1시간 30분')
   expect(meetingDuration('2026-10-29T14:00', null)).toBe('미정')
+})
+
+test('내 회의는 할 일 차례(진행 중·회의록 정리·참석 예정) 다음 이른 순이고 할 일 문구에 진행 권한이 없다', () => {
+  const rows = myMeetingRows([
+    meetingSample({ id: 'later', status: 'scheduled', heldAt: '2026-11-05T10:00' }),
+    meetingSample({ id: 'wrap', status: 'wrapping_up', heldAt: '2026-10-27T10:00' }),
+    meetingSample({ id: 'soon', status: 'scheduled', heldAt: '2026-10-30T10:00' }),
+    meetingSample({ id: 'now', status: 'in_progress', heldAt: '2026-10-29T11:00' }),
+  ])
+  expect(rows.map(row => [row.meeting.id, row.todo.label])).toEqual([
+    ['now', '진행 중'],
+    ['wrap', '회의록 정리 필요'],
+    ['soon', '참석 예정'],
+    ['later', '참석 예정'],
+  ])
+  expect(rows.every(row => !row.todo.label.includes('진행 권한'))).toBe(true)
+})
+
+test('행사 회의는 다가오는 순 다음 지난 최근 순이다', () => {
+  const now = '2026-10-29T12:00'
+  const items = [
+    meetingSample({ id: 'past', heldAt: '2026-10-20T12:00', endsAt: '2026-10-20T13:00' }),
+    meetingSample({ id: 'future', heldAt: '2026-10-30T12:00', endsAt: '2026-10-30T13:00' }),
+  ]
+  expect(sortedMeetings(items, now).map(item => item.id)).toEqual(['future', 'past'])
 })

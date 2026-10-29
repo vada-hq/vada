@@ -9,7 +9,6 @@ import {
   type MeetingSummary,
 } from '@vada/contracts'
 import PageActions from '@/components/PageActions'
-import PageHeading from '@/components/PageHeading'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -137,9 +136,6 @@ export function MeetingList({ data, status, onStatus, onOpen, onCreate, referenc
   const groups = meetingGroups(data.meetings, search, status, now)
   return (
     <>
-      <PageHeading trail={{ title: '회의', crumbs: [] }}>
-        <h1 className="text-xl font-semibold">회의</h1>
-      </PageHeading>
       {onCreate && (
         <PageActions>
           <Button touch onClick={onCreate}>

@@ -52,10 +52,57 @@ test('같은 목록은 권한과 관계없이 같고 새 회의 버튼만 달라
   rerender(page(['meeting.create']))
   expect(screen.getAllByText('학생회 정기 총회')).toHaveLength(1)
   expect(screen.getByRole('button', { name: '새 회의' })).toBeTruthy()
-  expect(screen.queryByRole('tab')).toBeNull()
+  expect(screen.getAllByRole('tab').map(tab => tab.textContent)).toEqual(['학생회 회의', '내 회의'])
   fireEvent.change(screen.getByRole('searchbox'), { target: { value: '없음' } })
   expect(screen.getByText('맞는 회의 없음')).toBeTruthy()
   expect(window.location.search).toBe('')
+})
+
+const mine = [
+  meetingSample({
+    id: '0199d1a0-0000-7000-8000-0000000000a7',
+    title: '정기 운영회의',
+    status: 'scheduled',
+    actions: [],
+  }),
+  meetingSample({
+    id: MEETING_ID,
+    title: '축제 기획회의',
+    status: 'wrapping_up',
+    heldAt: '2026-10-27T16:00',
+    event: { id: '0199d1a0-0000-7000-8000-0000000000e1', name: '가을 축제' },
+  }),
+  meetingSample({
+    id: '0199d1a0-0000-7000-8000-0000000000a8',
+    title: '운영 점검 회의',
+    status: 'in_progress',
+  }),
+]
+test('내 회의 탭은 내 회의만 읽어 할 일 문구 셋으로 보이고, 줄은 회의를 연다', async () => {
+  api.on('GET', `${base}?view=mine`, () => json({ meetings: mine, truncated: false }))
+  render(page())
+  fireEvent.click(await screen.findByRole('tab', { name: '내 회의' }))
+  expect(window.location.search).toBe('?tab=mine')
+  const list = await screen.findByRole('region', { name: '내 회의' })
+  expect(list.textContent).toContain('가을 축제')
+  expect(list.textContent).toContain('학생회')
+  const todos = ['진행 중', '회의록 정리 필요', '참석 예정']
+  for (const todo of todos) expect(screen.getByText(todo)).toBeTruthy()
+  expect(list.textContent).not.toContain('진행 권한')
+  expect(screen.queryByRole('searchbox')).toBeNull()
+  fireEvent.click(screen.getByRole('button', { name: /축제 기획회의/ }))
+  expect(window.location.pathname).toBe(`/meetings/${MEETING_COUNCIL}/${MEETING_ID}`)
+})
+
+test('내 회의는 주소로 바로 열리고 [학생회 회의 전체]로 첫 탭에 돌아간다', async () => {
+  window.history.replaceState(null, '', `/meetings/${MEETING_COUNCIL}?tab=mine`)
+  api.on('GET', `${base}?view=mine`, () => json({ meetings: [], truncated: false }))
+  render(page(['meeting.create']))
+  expect(await screen.findByText('내 회의 없음')).toBeTruthy()
+  expect(screen.getByRole('tab', { name: '내 회의' }).getAttribute('aria-selected')).toBe('true')
+  fireEvent.click(screen.getByRole('button', { name: '학생회 회의 전체' }))
+  expect(window.location.search).toBe('')
+  expect(await screen.findByText('학생회 정기 총회')).toBeTruthy()
 })
 
 test('예정 회의의 회의록 쓰기는 동작이 있을 때 열고 안건을 주소에 남긴다', async () => {

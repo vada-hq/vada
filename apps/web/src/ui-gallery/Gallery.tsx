@@ -87,6 +87,8 @@ import { CalendarSection } from './CalendarSections'
 import { CalendarFeedSection } from './CalendarFeedSections'
 import {
   MeetingListSection,
+  MyMeetingSection,
+  EventMeetingsSection,
   MeetingCreateSection,
   MeetingScheduledSection,
   MeetingCancelledSection,
@@ -133,6 +135,8 @@ export const gallerySections = [
   CalendarSection,
   CalendarFeedSection,
   MeetingListSection,
+  MyMeetingSection,
+  EventMeetingsSection,
   MeetingCreateSection,
   MeetingScheduledSection,
   MeetingCancelledSection,

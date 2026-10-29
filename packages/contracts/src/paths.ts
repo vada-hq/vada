@@ -27,7 +27,15 @@ export type AppMenu = (typeof APP_MENUS)[number]
 
 // 화면의 탭·보기 타입이 이 목록에서 나온다. 한쪽에만 탭을 더하면 주소가 그 탭을 기본값으로 읽는다.
 // 메시지가 행사의 첫 탭이자 기본 탭이다(DEC-90 "행사 화면의 첫 탭은 메시지다", 022 정한 것 28).
-export const EVENT_TABS = ['messages', 'overview', 'tasks', 'registrations', 'money'] as const
+// 차례는 화면의 탭 차례다. 회의는 업무 다음, 구매가 인원 관리 앞이다(와이어프레임 EVT-02·EVT-MEET-01, 029 정한 것).
+export const EVENT_TABS = [
+  'messages',
+  'overview',
+  'tasks',
+  'meetings',
+  'money',
+  'registrations',
+] as const
 export type EventTab = (typeof EVENT_TABS)[number]
 // 행사 안에서는 그 행사의 전체 요청과 내 요청만 본다(메뉴 v7 S3).
 export const EVENT_PURCHASE_VIEWS = [
@@ -37,6 +45,9 @@ export const EVENT_PURCHASE_VIEWS = [
 // 메뉴 v7 업무의 탭 둘(설계 3.1). 학생회 업무가 첫 탭이자 기본이다.
 export const TASK_TABS = ['council', 'mine'] as const
 export type TaskTab = (typeof TASK_TABS)[number]
+// 회의 메뉴의 탭 둘(M-24, MEET-MY-01). 학생회 회의가 첫 탭이자 기본이다.
+export const MEETING_TABS = ['council', 'mine'] as const
+export type MeetingTab = (typeof MEETING_TABS)[number]
 const MY_TASK_STATES = ['todo', 'in_progress'] as const satisfies readonly TaskStatus[]
 // 업무 화면의 배치(DEC-94). 기본은 보드이고, list는 기능 018의 표(화면 이름 '표')다.
 export const TASK_LAYOUTS = ['board', 'list', 'calendar'] as const
@@ -135,7 +146,13 @@ const MENU_QUERY: Record<AppMenu, QuerySpec> = {
     state: { values: MY_TASK_STATES, fallback: null, onlyWith: { key: 'tab', value: 'mine' } },
   },
   meetings: {
-    status: { values: MEETING_STATUSES, fallback: null },
+    tab: { values: MEETING_TABS, fallback: 'council' },
+    // 내 회의는 할 일이 있는 회의만이라 상태 거르기가 없다.
+    status: {
+      values: MEETING_STATUSES,
+      fallback: null,
+      onlyWith: { key: 'tab', value: 'council' },
+    },
     compose: { values: ['new'], fallback: null },
   },
   calendar: {
