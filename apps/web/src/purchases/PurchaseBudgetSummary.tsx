@@ -90,10 +90,10 @@ function FeeLine({ actual }: { actual: EventSettlement['actual'] }) {
 function ItemsBox({ items }: { items: EventSettlement['budget']['items'] }) {
   return (
     <section aria-label="예산 항목별 현황" className={cn(cardClass, 'flex flex-col')}>
-      <header className="flex flex-wrap items-center justify-between gap-2 border-b border-border-subtle px-4 py-3">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border-subtle px-4 py-3">
         <h3 className="text-sm font-semibold text-fg">예산 항목별 현황</h3>
         <span className="text-xs text-fg-muted">배정 − 실제 지출 − 지출 예정</span>
-      </header>
+      </div>
       <ul className="grid divide-border-subtle sm:grid-cols-3 sm:divide-x">
         {items.map(item => (
           <li key={item.id} className="flex flex-col gap-1 px-4 py-3 break-keep">
