@@ -6,6 +6,7 @@ import { ROOMS_LOAD_FAILED } from '@/lib/messages'
 import RoomRow from './RoomRow'
 import { DIRECT_EMPTY, DIRECT_LIST_TITLE, DIRECT_ROOMS_LABEL, DIRECT_START } from './message-text'
 import { directRooms } from './space-rooms'
+import { SidePanelCloseButton } from './SidePanelClose'
 
 type ListProps = {
   state: RoomListHook['state']
@@ -30,7 +31,7 @@ function DirectRooms({ state, now, onOpen }: ListProps) {
   return (
     <ul
       aria-label={DIRECT_ROOMS_LABEL}
-      className="min-h-0 flex-1 divide-y divide-personal-border overflow-y-auto"
+      className="min-h-0 flex-1 divide-y divide-border-subtle overflow-y-auto"
     >
       {rooms.map(room => (
         <RoomRow
@@ -57,13 +58,14 @@ export default function SideChatListView({
 }) {
   return (
     <section aria-label="1:1 대화" className="flex h-full min-h-0 flex-col break-keep">
-      <header className="flex min-h-14 shrink-0 items-center justify-between gap-2 border-b border-personal-border bg-personal-surface px-4 py-2">
-        <h2 className="text-sm font-semibold text-personal-fg">{DIRECT_LIST_TITLE}</h2>
+      <header className="flex min-h-14 shrink-0 items-center gap-2 border-b bg-white py-2 pr-2 pl-4">
+        <h2 className="min-w-0 flex-1 text-base font-semibold text-fg">{DIRECT_LIST_TITLE}</h2>
         {canDirect && (
           <Button variant="ghost" size="icon" touch aria-label={DIRECT_START} onClick={onStart}>
             <Plus aria-hidden />
           </Button>
         )}
+        <SidePanelCloseButton />
       </header>
       {note && (
         <StateMessage kind="notice" className="p-4">

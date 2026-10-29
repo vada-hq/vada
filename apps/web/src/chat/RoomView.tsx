@@ -292,13 +292,7 @@ export default function RoomView({
   const readOnly = readOnlyOf(state, rooms)
   return (
     // 흐름은 옅은 회색 바탕에 흰 말풍선이다(와이어프레임 MSG-03, 카카오톡·iMessage처럼 바탕과 말풍선 색을 나눈다).
-    <div
-      className={cn(
-        'flex h-full min-h-0 flex-col',
-        side ? 'bg-personal-surface/60' : 'bg-surface-subtle',
-        className,
-      )}
-    >
+    <div className={cn('flex h-full min-h-0 flex-col bg-surface-subtle', className)}>
       {!bare && (
         <SideChatRoomTitle
           name={roomName(state.room)}
