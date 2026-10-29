@@ -280,7 +280,7 @@ test(
 
 test('배포 시연 학생회는 학교 이름이 달라도 학생회 id로 시연 학생회다', () => {
   const [demo] = DEMO_COUNCIL_IDS
-  assert.equal(isDemoCouncil({ id: demo!, schoolName: '서울과학기술대학교' }), true)
+  assert.equal(isDemoCouncil({ id: demo, schoolName: '서울과학기술대학교' }), true)
   assert.equal(
     isDemoCouncil({ id: '01900000-0000-7000-8000-000000000001', schoolName: '서울과학기술대학교' }),
     false,
