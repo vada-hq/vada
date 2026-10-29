@@ -10,6 +10,7 @@ export const REGISTRATION_LOAD_FAILED = '불러오지 못했어요. 연결을 �
 export const APPLY_ERRORS: Record<string, string> = {
   REGISTRATION_NOT_OPEN: '지금은 신청을 받지 않아요. 화면을 새로 불러왔어요.',
   REGISTRATION_FULL: '정원이 다 찼어요. 화면을 새로 불러왔어요.',
+  DUPLICATE_STUDENT_ID: '이 학번으로 이미 신청했어요',
   FORM_CHANGED: '신청 양식이 바뀌었어요. 새로 불러왔으니 확인하고 다시 신청해 주세요.',
   TOO_MANY_REQUESTS: '너무 빨리 보내고 있어요. 잠시 뒤에 다시 시도해 주세요.',
   INVALID_INPUT: '보낼 수 없는 내용이에요. 입력을 확인해 주세요.',

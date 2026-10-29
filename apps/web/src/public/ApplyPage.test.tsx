@@ -49,12 +49,23 @@ test('받는 중이면 학교·행사·참가비·안내와 칸이 보이고, �
 })
 
 // 참가비가 있는 양식만 입금을 대조하므로 고지의 목적에 입금 확인이 붙는다(DEC-93이 DEC-75를 고쳤다). 무료 양식에는 입금이 없다.
-test('버튼 아래 고지의 목적: 참가비가 있으면 입금 확인까지, 없으면 참가 신청과 출석 확인만', async () => {
+// 학번을 받는 양식은 같은 양식의 중복 신청을 학번으로 막으므로 그 목적이 붙는다(DEC-107).
+const DUPLICATE_PURPOSE = '같은 양식의 중복 신청 확인'
+test('버튼 아래 고지의 목적: 참가비가 있으면 입금 확인, 학번을 받으면 중복 신청 확인까지', async () => {
   setup()
+  expect(
+    await screen.findByText(
+      new RegExp(`목적: 행사 참가 신청, 출석 확인, 입금 확인, ${DUPLICATE_PURPOSE} ·`),
+    ),
+  ).toBeTruthy()
+  cleanup()
+  setup(publicForm({ payerFee: 3000, nonPayerFee: 3000, collectsStudentId: false }))
   expect(await screen.findByText(/목적: 행사 참가 신청, 출석 확인, 입금 확인 ·/)).toBeTruthy()
   cleanup()
-  setup(publicForm({ payerFee: 0, nonPayerFee: 5000 }))
-  expect(await screen.findByText(/목적: 행사 참가 신청, 출석 확인, 입금 확인 ·/)).toBeTruthy()
+  setup(publicForm({ payerFee: null, nonPayerFee: null, collectsStudentId: true }))
+  expect(
+    await screen.findByText(new RegExp(`목적: 행사 참가 신청, 출석 확인, ${DUPLICATE_PURPOSE} ·`)),
+  ).toBeTruthy()
   for (const free of [
     { payerFee: null, nonPayerFee: null },
     { payerFee: 0, nonPayerFee: 0 },
@@ -63,6 +74,7 @@ test('버튼 아래 고지의 목적: 참가비가 있으면 입금 확인까지
     setup(publicForm({ ...free, collectsStudentId: false }))
     expect(await screen.findByText(/목적: 행사 참가 신청, 출석 확인 ·/)).toBeTruthy()
     expect(screen.queryByText(/입금 확인/)).toBeNull()
+    expect(screen.queryByText(new RegExp(DUPLICATE_PURPOSE))).toBeNull()
   }
 })
 
@@ -321,6 +333,14 @@ test('422 COMMAND_REUSED는 문구를 보이고 다음에는 새 번호를 보�
   await press()
   const [first, second] = idsOf(api)
   expect(second).not.toBe(first)
+})
+
+test('409 DUPLICATE_STUDENT_ID는 이미 신청한 학번이라고 알린다(DEC-107)', async () => {
+  const { api } = setup()
+  api.on('POST', APPLY_PATH, () => json({ error: 'DUPLICATE_STUDENT_ID' }, 409))
+  await fillAll()
+  await press()
+  expect((await screen.findByRole('alert')).textContent).toBe('이 학번으로 이미 신청했어요')
 })
 
 test('409 COMMAND_CONFLICT는 양식을 다시 읽지 않고 같은 번호로 다시 보낼 수 있다', async () => {
