@@ -5,6 +5,7 @@ import PageHeading from '@/components/PageHeading'
 import { Button } from '@/components/ui/button'
 import { TabButton } from '@/components/ui/tab-button'
 import { TaskScopeChips } from './TaskScopeChips'
+import { TaskSortSelect } from './TaskSortSelect'
 import { CLEAR_FILTERS, filteredTasksText } from './task-chip-text'
 
 const TABS: { tab: TaskTab; label: string }[] = [
@@ -36,6 +37,8 @@ type Props = {
   // 목록을 좁힌 조건(부서, 담당자 없음)과 그것을 푸는 동작
   narrow?: { label: string; onClear: () => void } | undefined
   allowCalendar?: boolean | undefined
+  // 열·묶음 안의 차례. 달력은 날짜 칸이라 없다.
+  sort?: ComponentProps<typeof TaskSortSelect> | undefined
   // 1024px 아래는 보드와 표가 같은 상태 탭 목록이라 [표]를 두지 않는다. 고를 것이 하나뿐이면 전환이 없다.
   wide?: boolean | undefined
 }
@@ -88,13 +91,14 @@ export function TaskFilterBand({ label, onClear }: NonNullable<Props['narrow']>)
   )
 }
 
-// 끝남 거르기와 보기 모양 전환 줄. 둘 다 없으면 줄도 없다.
-function ViewControls({ showFilter = true, filter, onFilter, layout, ...props }: Props) {
+// 정렬, 끝남 거르기, 보기 모양 전환 줄. 셋 다 없으면 줄도 없다.
+function ViewControls({ showFilter = true, filter, onFilter, layout, sort, ...props }: Props) {
   const choices = layoutChoices(props)
   const switching = layout !== undefined && choices.length > 1
-  if (!showFilter && !switching) return null
+  if (!showFilter && !switching && !sort) return null
   return (
     <div className="ml-auto flex flex-wrap items-center gap-2 pb-2">
+      {sort && <TaskSortSelect {...sort} />}
       {showFilter && (
         <div role="group" aria-label="업무 거르기" className="flex gap-2">
           {FILTERS.map(item => (

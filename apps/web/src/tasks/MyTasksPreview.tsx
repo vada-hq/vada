@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { TaskFilter, TaskSummary } from '@vada/contracts'
 import { MyTasksView } from './MyTasksView'
+import type { TaskSort } from './task-sort'
 
 const EVENT_ID = '00000000-0000-4000-8000-0000000000e1'
 const DEPARTMENT_ID = '00000000-0000-4000-8000-0000000000d1'
@@ -37,6 +38,7 @@ export function MyTasksPreview({
   const [scope, setScope] = useState<string | null>(null)
   const [state, setState] = useState<string | null>(null)
   const [search, setSearch] = useState(filtered ? '없는 업무' : '')
+  const [sort, setSort] = useState<TaskSort>('department')
   const list = (done: boolean) => ({
     state: {
       kind: 'ready' as const,
@@ -53,6 +55,8 @@ export function MyTasksPreview({
       scope={scope}
       state={state}
       search={search}
+      sort={sort}
+      onSort={setSort}
       today="2026-10-25"
       events={[{ id: EVENT_ID, name: '신입생 환영회' }]}
       onFilter={setFilter}

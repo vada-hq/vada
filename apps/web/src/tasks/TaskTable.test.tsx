@@ -348,14 +348,17 @@ test('다시 읽어 줄이 다른 묶음으로 옮겨도 초점은 같은 업무
   cell('b', 2).focus()
   step = 1
   window.dispatchEvent(new Event(PUSH_ARRIVED_EVENT))
+  // 다시 읽은 목록: 기획부 묶음이 둘이 된다(묶음 차례는 조직의 부서 차례라 재정부가 앞이다).
   await waitFor(() =>
-    expect(document.querySelectorAll('tbody tr')[0]?.textContent).toContain('기획부'),
+    expect(document.querySelectorAll('tbody tr')[2]?.textContent).toContain('기획부2'),
   )
+  expect(document.querySelectorAll('tbody tr')[0]?.textContent).toContain('재정부1')
   expect(document.activeElement).toBe(cell('b', 2))
   step = 2
   window.dispatchEvent(new Event(PUSH_ARRIVED_EVENT))
   await waitFor(() => expect(document.querySelector('[data-row="b"]')).toBeNull())
-  await waitFor(() => expect(document.activeElement).toBe(cell('c', 2)))
+  // 재정부의 b 다음 줄은 기획부 묶음의 첫 줄 a다.
+  await waitFor(() => expect(document.activeElement).toBe(cell('a', 2)))
 })
 
 test('부서 거르기 보기에서도 고른 값이 옛 값으로 돌아가지 않는다', async () => {

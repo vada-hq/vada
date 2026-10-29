@@ -30,6 +30,7 @@ import { useTaskLists } from './useTaskLists'
 import { useTaskRemove } from './useTaskRemove'
 import { listNarrowOf, isNarrowed, useTaskChipData } from './useNarrowedTasks'
 import { useTaskOpeners } from './useTaskOpeners'
+import { useSortedTasks } from './useTaskSort'
 import { MyTasksPage } from './MyTasksPage'
 import { viewEmptyText } from './task-text'
 
@@ -67,7 +68,8 @@ function useTasksPage(props: Props) {
     listEvent: controls.listEvent,
     narrow,
   })
-  const { list, done, events } = lists
+  const team = useTeam(councilId, props.onForbidden)
+  const sorted = useSortedTasks(props.view, lists, team.data)
   const shape = pageLayoutOf(controls, wide)
   const { board, statusTabs } = shape
   const councilEmpty = useBoardEmpty({
@@ -76,14 +78,13 @@ function useTasksPage(props: Props) {
     view: controls.listView,
     narrowed: isNarrowed(narrow),
     board: board || statusTabs,
-    shown: [list, done],
+    shown: [lists.list, lists.done],
     onForbidden: props.onForbidden,
   })
-  const team = useTeam(councilId, props.onForbidden)
   const chips = useTaskChipData(lists, controls, props, team.data)
   const reloaded = async () => {
-    const reloads = [list.reload(), chips.reload()]
-    if (lists.both) reloads.push(done.reload())
+    const reloads = [lists.list.reload(), chips.reload()]
+    if (lists.both) reloads.push(lists.done.reload())
     props.onChanged()
     await Promise.all(reloads)
   }
@@ -109,6 +110,7 @@ function useTasksPage(props: Props) {
     onAssigned: undo.note,
     onEventChanged,
   })
+  const { events } = lists
   const eventList = events.state.kind === 'ready' ? events.state.data.events : null
   const lookups = { team: team.data, events: eventList, linkable: lists.linkable }
   const table: TableSetup = { wide, lookups, cells }
@@ -124,6 +126,7 @@ function useTasksPage(props: Props) {
   }
   return {
     controls,
+    ...sorted,
     ...shape,
     wide,
     councilEmpty,
@@ -131,8 +134,6 @@ function useTasksPage(props: Props) {
     chips,
     openEventFromTask: opened.openEventFromTask,
     dialogs,
-    list,
-    done,
     events,
     eventId: props.eventId,
     calendarEvent: props.calendarEvent,
@@ -274,6 +275,7 @@ function CouncilTasksPage(props: Props) {
         onFilter={controls.setFilter}
         narrow={page.chips.narrow}
         layout={{ value: layout, onChange: controls.setLayout }}
+        sort={layout === 'calendar' ? undefined : page.sort}
       />
       {page.adding && (
         <TaskQuickAdd

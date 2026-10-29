@@ -11,7 +11,7 @@ import {
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
 import { TASKS_LOAD_FAILED } from '@/lib/messages'
-import { byDue, groupByDepartment, groupByDue, type TaskSection } from './task-groups'
+import { groupByDepartment, groupByDue, type TaskSection } from './task-groups'
 import { TaskRow } from './TaskRow'
 import type { TaskDirect } from './TaskAssigneeName'
 import { TaskSectionList } from './TaskSectionList'
@@ -49,13 +49,19 @@ type Props = {
   emptyText?: string | undefined
 }
 
-// 내 업무(끝나지 않은 것)는 급한 순 묶음, 그 밖은 부서 묶음이다. 끝난 업무는 한 묶음이다.
-function sectionsOf(tasks: TaskSummary[], view: TaskView, filter: TaskFilter, today: string) {
+// 내 업무(끝나지 않은 것)는 급한 순 묶음, 그 밖은 조직의 부서 차례로 부서 묶음이다. 끝난 업무는 한 묶음이다.
+// 묶음 안은 받은 목록의 차례(고른 정렬)다.
+function sectionsOf(
+  tasks: TaskSummary[],
+  { view, filter, team }: Pick<Props, 'view' | 'filter' | 'team'>,
+  today: string,
+) {
+  const order = team?.departments
   if (filter === 'done') {
-    if (view !== 'mine') return groupByDepartment(tasks)
-    return [{ key: 'done', title: '끝남', tasks: [...tasks].sort(byDue) }] satisfies TaskSection[]
+    if (view !== 'mine') return groupByDepartment(tasks, order)
+    return [{ key: 'done', title: '끝남', tasks }] satisfies TaskSection[]
   }
-  return view === 'mine' ? groupByDue(tasks, today) : groupByDepartment(tasks)
+  return view === 'mine' ? groupByDue(tasks, today) : groupByDepartment(tasks, order)
 }
 
 type RowProps = Pick<
@@ -130,7 +136,7 @@ function Ready({
   const { patches, clearPatches } = table.cells
   const shown = tasks.map(task => patches[task.id] ?? task)
   useEffect(clearPatches, [tasks, clearPatches])
-  const sections = sectionsOf(shown, view, filter, today)
+  const sections = sectionsOf(shown, props, today)
   const summary = view !== 'mine' && filter === 'open'
   return (
     <>

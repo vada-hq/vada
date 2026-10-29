@@ -178,6 +178,23 @@ test('끝나지 않은 것은 마감 순(없으면 뒤)에 만든 순이고, sta
   }
 })
 
+test('목록의 줄마다 만든 시각이 있어 화면이 최신순으로 줄 세울 수 있다', async () => {
+  const t = await start()
+  try {
+    await t.make({ title: '먼저' })
+    await t.make({ title: '나중' })
+    const { tasks } = await t.list('view=all')
+    const created = tasks.map(row => row.createdAt ?? '')
+    assert.ok(
+      created.every(at => !Number.isNaN(Date.parse(at))),
+      JSON.stringify(created),
+    )
+    assert.ok(created[0]! <= created[1]!)
+  } finally {
+    await t.close()
+  }
+})
+
 test('끝나지 않은 것은 300개, 끝남은 50개까지 주고 넘치면 truncated이다', async () => {
   const t = await start()
   try {

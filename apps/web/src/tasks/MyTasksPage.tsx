@@ -18,6 +18,8 @@ import type { useTaskControls } from './useTaskControls'
 import { useTaskOpeners } from './useTaskOpeners'
 import { useTaskRemove } from './useTaskRemove'
 import { useTasks } from './useTasks'
+import { useSortedTasks } from './useTaskSort'
+import { useTeam } from '@/team/useTeam'
 
 type Props = {
   view: CouncilView
@@ -38,15 +40,9 @@ function useLostScope(controls: Props['controls'], lists: ReturnType<typeof useT
   }, [lost, setScope])
 }
 
-export function MyTasksPage({ view, initialTaskId, controls, onForbidden, onChanged }: Props) {
+// 내 업무 두 목록(끝나지 않은 것·끝난 것)과 고른 정렬.
+function useMyTaskLists(view: CouncilView, controls: Props['controls'], onForbidden: () => void) {
   const councilId = view.council.id
-  const entry = useTaskCreateEntry(
-    { view, taskView: 'mine', dept: null, eventId: undefined },
-    onForbidden,
-  )
-  const [search, setSearch] = useState('')
-  const dialogs = useRecordDialogs(initialTaskId)
-  const opened = useTaskOpeners(councilId, false)
   const open = useTasks(
     councilId,
     { view: 'mine', filter: 'open', eventId: controls.listEvent },
@@ -58,8 +54,23 @@ export function MyTasksPage({ view, initialTaskId, controls, onForbidden, onChan
     onForbidden,
     controls.filter === 'done',
   )
-  const events = useEvents(councilId, onForbidden)
   useLostScope(controls, [open, done])
+  const team = useTeam(councilId, onForbidden)
+  const sorted = useSortedTasks(view, { list: open, done }, team.data)
+  return { open, done, sorted }
+}
+
+export function MyTasksPage({ view, initialTaskId, controls, onForbidden, onChanged }: Props) {
+  const councilId = view.council.id
+  const entry = useTaskCreateEntry(
+    { view, taskView: 'mine', dept: null, eventId: undefined },
+    onForbidden,
+  )
+  const [search, setSearch] = useState('')
+  const dialogs = useRecordDialogs(initialTaskId)
+  const opened = useTaskOpeners(councilId, false)
+  const { open, done, sorted } = useMyTaskLists(view, controls, onForbidden)
+  const events = useEvents(councilId, onForbidden)
   const reload = async () => {
     onChanged()
     await Promise.all([open.reload(), done.reload()])
@@ -118,8 +129,10 @@ export function MyTasksPage({ view, initialTaskId, controls, onForbidden, onChan
         </div>
       )}
       <MyTasksView
-        open={open}
-        done={done}
+        open={sorted.list}
+        done={sorted.done}
+        sort={sorted.sort.value}
+        onSort={sorted.sort.onChange}
         filter={controls.filter}
         scope={controls.scope}
         state={controls.state}

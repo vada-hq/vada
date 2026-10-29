@@ -3,6 +3,7 @@ import { Field } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { NativeSelect } from '@/components/ui/native-select'
 import { COUNCIL_TASK_LABEL, STATUS_LABEL } from './task-view'
+import { TASK_SORT_LABEL, TASK_SORTS, type TaskSort } from './task-sort'
 
 export type MyTasksFilterProps = {
   filter: TaskFilter
@@ -13,6 +14,9 @@ export type MyTasksFilterProps = {
   onScope: (scope: string | null) => void
   onState: (state: string | null) => void
   onSearch: (search: string) => void
+  // 묶음(마감) 안의 차례. 거르기가 아니라 초기화에서 풀지 않는다.
+  sort: TaskSort
+  onSort: (sort: TaskSort) => void
 }
 
 export const hasMyTaskFilters = (props: MyTasksFilterProps) =>
@@ -54,6 +58,22 @@ export function MyTasksFilters(props: MyTasksFilterProps) {
           </NativeSelect>
         </Field>
       )}
+      <Field label="정렬" className="min-w-0 flex-1 sm:max-w-40">
+        <NativeSelect
+          className="max-sm:min-h-11"
+          value={props.sort}
+          onChange={event => {
+            const sort = TASK_SORTS.find(item => item === event.target.value)
+            if (sort) props.onSort(sort)
+          }}
+        >
+          {TASK_SORTS.map(sort => (
+            <option key={sort} value={sort}>
+              {TASK_SORT_LABEL[sort]}
+            </option>
+          ))}
+        </NativeSelect>
+      </Field>
       <Field label="검색" className="w-full min-w-0 sm:ml-auto sm:w-56">
         <Input
           type="search"

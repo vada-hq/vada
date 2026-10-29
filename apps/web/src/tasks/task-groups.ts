@@ -27,17 +27,14 @@ export function dueGroupOf(task: Pick<TaskSummary, 'dueDate' | 'overdue'>, today
   return days <= WEEK_DAYS ? 'week' : 'later'
 }
 
-// 마감이 이른 순, 마감 없는 업무는 뒤.
-export const byDue = (a: TaskSummary, b: TaskSummary) =>
-  (a.dueDate ?? '9999').localeCompare(b.dueDate ?? '9999')
-
 export type TaskSection = { key: string; title: string; tasks: TaskSummary[] }
 
+// 묶음 안은 받은 차례(고른 정렬, task-sort.ts) 그대로다.
 export function groupByDue(tasks: TaskSummary[], today: string): TaskSection[] {
   return DUE_ORDER.map(key => ({
     key,
     title: DUE_GROUP_LABEL[key],
-    tasks: tasks.filter(task => dueGroupOf(task, today) === key).sort(byDue),
+    tasks: tasks.filter(task => dueGroupOf(task, today) === key),
   })).filter(section => section.tasks.length > 0)
 }
 
@@ -50,8 +47,12 @@ export function sectionSummary(tasks: TaskSummary[]) {
   }
 }
 
-// 부서 이름순으로 묶고 부서 없는 업무('학생회 업무')는 맨 뒤에 둔다. 묶음 안은 마감 순이다.
-export function groupByDepartment(tasks: TaskSummary[]): TaskSection[] {
+// 조직의 부서 차례(order)로 묶고 부서 없는 업무('학생회 업무')는 맨 뒤에 둔다. 조직에 없는 부서는 아는 부서 뒤에 이름순이다.
+// 묶음 안은 받은 차례(고른 정렬, task-sort.ts) 그대로다.
+export function groupByDepartment(
+  tasks: TaskSummary[],
+  order: readonly { id: string }[] = [],
+): TaskSection[] {
   const groups = new Map<string, TaskSection>()
   for (const task of tasks) {
     const key = task.department?.id ?? ''
@@ -63,11 +64,12 @@ export function groupByDepartment(tasks: TaskSummary[]): TaskSection[] {
     group.tasks.push(task)
     groups.set(key, group)
   }
-  return [...groups.values()]
-    .map(group => ({ ...group, tasks: [...group.tasks].sort(byDue) }))
-    .sort((a, b) => {
-      if (a.key === '') return 1
-      if (b.key === '') return -1
-      return a.title.localeCompare(b.title, 'ko')
-    })
+  const rank = (key: string) => {
+    if (key === '') return order.length + 1
+    const index = order.findIndex(dept => dept.id === key)
+    return index === -1 ? order.length : index
+  }
+  return [...groups.values()].sort(
+    (a, b) => rank(a.key) - rank(b.key) || a.title.localeCompare(b.title, 'ko'),
+  )
 }

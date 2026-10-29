@@ -100,6 +100,8 @@ export interface TaskSummary {
   // 취소한 결과물은 세지 않고, 가장 최근에 바뀐 결과물 한 개만 싣는다.
   latestResult?: { kind: TaskResultKind; stage: TaskResultStage; changedAt: string } | null
   resultCount?: number
+  // 만든 시각(ISO). 업무 목록 응답에만 있다. 화면이 받은 목록 안에서 최신순·만든 순으로 줄 세운다.
+  createdAt?: string
 }
 
 // 판 사이에 바뀐 칸 하나. 내용은 값 없이 '고침'만 알리고, 부서와 사람은 지금 이름이다(name이 null이면 없앤 부서이거나 없는 사람).

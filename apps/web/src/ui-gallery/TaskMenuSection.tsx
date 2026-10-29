@@ -3,6 +3,7 @@ import type { TaskTab, TaskView } from '@vada/contracts'
 import { TaskTabs } from '@/tasks/TaskTabs'
 import { TaskUndoBar } from '@/tasks/TaskUndoBar'
 import { chipChange } from '@/tasks/task-chips'
+import type { TaskSort } from '@/tasks/task-sort'
 import { BOARD_SCOPE, CHIP_LABEL, NO_DEPARTMENT } from '@/tasks/task-chip-text'
 import { Section } from './GallerySection'
 
@@ -50,6 +51,7 @@ export function TaskScopeExample({
   const [assignee, setAssignee] = useState<string | null>(null)
   const [includeEvents, setEvents] = useState(false)
   const [due, setDue] = useState<string | null>(null)
+  const [sort, setSort] = useState<TaskSort>('department')
   const label = exampleLabel({ view, due, assignee, dept })
   return (
     <div className="w-full">
@@ -80,6 +82,7 @@ export function TaskScopeExample({
             : undefined
         }
         showFilter={false}
+        sort={{ value: sort, onChange: setSort }}
         scope={{
           inMenu: menu,
           dept,

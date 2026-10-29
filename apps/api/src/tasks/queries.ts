@@ -223,6 +223,7 @@ export async function taskListOf(
     tasks: shown.map(row => ({
       ...summaryOf(actor, row, now),
       ...(results.get(row.id) ?? EMPTY_RESULT_SUMMARY),
+      createdAt: row.createdAt.toISOString(),
     })),
     truncated: rows.length > limit,
   }

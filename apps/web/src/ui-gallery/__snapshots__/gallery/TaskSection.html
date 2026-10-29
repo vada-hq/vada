@@ -135,11 +135,21 @@
 <option value="in_progress">진행 중</option>
 </select>
 </div>
+<div class="flex flex-col gap-2 min-w-0 flex-1 sm:max-w-40">
+<div class="flex items-baseline gap-1">
+<label data-slot="label" class="text-xs font-medium text-gray-700" for="_id3_">정렬</label>
+</div>
+<select data-slot="native-select" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer max-sm:min-h-11" id="_id3_">
+<option value="department">부서별</option>
+<option value="due">마감 임박순</option>
+<option value="recent">최신순</option>
+</select>
+</div>
 <div class="flex flex-col gap-2 w-full min-w-0 sm:ml-auto sm:w-56">
 <div class="flex items-baseline gap-1">
-<label data-slot="label" class="text-xs font-medium text-gray-700" for="_id3_">검색</label>
+<label data-slot="label" class="text-xs font-medium text-gray-700" for="_id4_">검색</label>
 </div>
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50 max-sm:min-h-11" id="_id3_" type="search" value="">
+<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50 max-sm:min-h-11" id="_id4_" type="search" value="">
 </div>
 </div>
 <div role="tabpanel" class="flex min-w-0 flex-col gap-3">
@@ -300,9 +310,9 @@
 <div class="flex min-w-0 flex-wrap items-end gap-3">
 <div class="flex flex-col gap-2 min-w-0 flex-1 sm:max-w-64">
 <div class="flex items-baseline gap-1">
-<label data-slot="label" class="text-xs font-medium text-gray-700" for="_id4_">범위</label>
+<label data-slot="label" class="text-xs font-medium text-gray-700" for="_id5_">범위</label>
 </div>
-<select data-slot="native-select" class="w-full rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer min-w-0 max-sm:min-h-11" id="_id4_">
+<select data-slot="native-select" class="w-full rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer min-w-0 max-sm:min-h-11" id="_id5_">
 <option value="">전체</option>
 <option value="council">학생회 업무</option>
 <option value="00000000-0000-4000-8000-0000000000e1">신입생 환영회</option>
@@ -310,19 +320,29 @@
 </div>
 <div class="flex flex-col gap-2 min-w-0 flex-1 sm:max-w-40">
 <div class="flex items-baseline gap-1">
-<label data-slot="label" class="text-xs font-medium text-gray-700" for="_id5_">상태</label>
+<label data-slot="label" class="text-xs font-medium text-gray-700" for="_id6_">상태</label>
 </div>
-<select data-slot="native-select" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer max-sm:min-h-11" id="_id5_">
+<select data-slot="native-select" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer max-sm:min-h-11" id="_id6_">
 <option value="">전체 상태</option>
 <option value="todo">할 일</option>
 <option value="in_progress">진행 중</option>
 </select>
 </div>
+<div class="flex flex-col gap-2 min-w-0 flex-1 sm:max-w-40">
+<div class="flex items-baseline gap-1">
+<label data-slot="label" class="text-xs font-medium text-gray-700" for="_id7_">정렬</label>
+</div>
+<select data-slot="native-select" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer max-sm:min-h-11" id="_id7_">
+<option value="department">부서별</option>
+<option value="due">마감 임박순</option>
+<option value="recent">최신순</option>
+</select>
+</div>
 <div class="flex flex-col gap-2 w-full min-w-0 sm:ml-auto sm:w-56">
 <div class="flex items-baseline gap-1">
-<label data-slot="label" class="text-xs font-medium text-gray-700" for="_id6_">검색</label>
+<label data-slot="label" class="text-xs font-medium text-gray-700" for="_id8_">검색</label>
 </div>
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50 max-sm:min-h-11" id="_id6_" type="search" value="">
+<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50 max-sm:min-h-11" id="_id8_" type="search" value="">
 </div>
 </div>
 <div role="tabpanel" class="flex min-w-0 flex-col gap-3">
@@ -347,9 +367,9 @@
 <div class="flex min-w-0 flex-wrap items-end gap-3">
 <div class="flex flex-col gap-2 min-w-0 flex-1 sm:max-w-64">
 <div class="flex items-baseline gap-1">
-<label data-slot="label" class="text-xs font-medium text-gray-700" for="_id7_">범위</label>
+<label data-slot="label" class="text-xs font-medium text-gray-700" for="_id9_">범위</label>
 </div>
-<select data-slot="native-select" class="w-full rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer min-w-0 max-sm:min-h-11" id="_id7_">
+<select data-slot="native-select" class="w-full rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer min-w-0 max-sm:min-h-11" id="_id9_">
 <option value="">전체</option>
 <option value="council">학생회 업무</option>
 <option value="00000000-0000-4000-8000-0000000000e1">신입생 환영회</option>
@@ -357,19 +377,29 @@
 </div>
 <div class="flex flex-col gap-2 min-w-0 flex-1 sm:max-w-40">
 <div class="flex items-baseline gap-1">
-<label data-slot="label" class="text-xs font-medium text-gray-700" for="_id8_">상태</label>
+<label data-slot="label" class="text-xs font-medium text-gray-700" for="_id10_">상태</label>
 </div>
-<select data-slot="native-select" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer max-sm:min-h-11" id="_id8_">
+<select data-slot="native-select" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer max-sm:min-h-11" id="_id10_">
 <option value="">전체 상태</option>
 <option value="todo">할 일</option>
 <option value="in_progress">진행 중</option>
 </select>
 </div>
+<div class="flex flex-col gap-2 min-w-0 flex-1 sm:max-w-40">
+<div class="flex items-baseline gap-1">
+<label data-slot="label" class="text-xs font-medium text-gray-700" for="_id11_">정렬</label>
+</div>
+<select data-slot="native-select" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive cursor-pointer max-sm:min-h-11" id="_id11_">
+<option value="department">부서별</option>
+<option value="due">마감 임박순</option>
+<option value="recent">최신순</option>
+</select>
+</div>
 <div class="flex flex-col gap-2 w-full min-w-0 sm:ml-auto sm:w-56">
 <div class="flex items-baseline gap-1">
-<label data-slot="label" class="text-xs font-medium text-gray-700" for="_id9_">검색</label>
+<label data-slot="label" class="text-xs font-medium text-gray-700" for="_id12_">검색</label>
 </div>
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50 max-sm:min-h-11" id="_id9_" type="search" value="없는 업무">
+<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-gray-800 outline-none placeholder:text-gray-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-gray-50 disabled:text-gray-400 aria-invalid:border-destructive read-only:border-border read-only:bg-gray-50 max-sm:min-h-11" id="_id12_" type="search" value="없는 업무">
 </div>
 </div>
 <div role="tabpanel" class="flex min-w-0 flex-col gap-3">

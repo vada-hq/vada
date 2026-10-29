@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import { councilView } from '@/test-support/council-fixtures'
+import { councilView, teamResponse } from '@/test-support/council-fixtures'
 import { EVENT_ID, MEMBER, eventSummary } from '@/test-support/event-fixtures'
 import { taskDetail } from '@/test-support/task-detail-fixtures'
 import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
@@ -60,6 +60,7 @@ function setup(
     api.on('GET', path('done', scope), () => json({ tasks: completed, truncated: false }))
   }
   api.on('GET', `${base}/events`, () => json({ events: [eventSummary()], truncated: false }))
+  api.on('GET', `${base}/members`, () => json(teamResponse()))
   routes(api)
   render(<TasksPage view={councilView(COUNCIL_ID)} onForbidden={() => {}} onChanged={() => {}} />)
   return api
@@ -148,7 +149,7 @@ test('결과물은 가장 최근 한 줄과 외 N만 보이고 없으면 줄이 
   expect(within(card('장소 대관')).queryByText(/다음 행동/)).toBeNull()
 })
 
-test('끝내기는 done을 보내고 다시 읽은 카드가 사라지며 완료 목록은 서버 순서를 지킨다', async () => {
+test('끝내기는 done을 보내고 다시 읽은 카드가 사라지며 완료 목록도 고른 정렬(기본 부서별, 같은 부서 안은 마감 임박 순)을 따른다', async () => {
   const api = setup([rows[0]!])
   const pending = deferredResponse()
   api.on('POST', `${base}/tasks/yesterday/status`, () => pending.promise)
@@ -173,8 +174,8 @@ test('끝내기는 done을 보내고 다시 읽은 카드가 사라지며 완료
   fireEvent.click(screen.getByRole('tab', { name: '완료된 업무' }))
   await screen.findByText('최근 완료')
   expect(screen.getAllByRole('listitem').map(item => item.textContent)).toEqual([
-    expect.stringContaining('최근 완료'),
     expect.stringContaining('이전 완료'),
+    expect.stringContaining('최근 완료'),
   ])
   expect(screen.queryByRole('combobox', { name: '상태' })).toBeNull()
   expect(screen.queryByRole('button', { name: '끝내기' })).toBeNull()

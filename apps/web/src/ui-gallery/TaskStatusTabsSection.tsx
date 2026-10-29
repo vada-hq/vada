@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { TaskStatus, TaskSummary } from '@vada/contracts'
 import { groupByDepartment } from '@/tasks/task-groups'
+import { sortTasks } from '@/tasks/task-sort'
 import { TaskRow } from '@/tasks/TaskRow'
 import { TaskSectionList } from '@/tasks/TaskSectionList'
 import { TaskStatusTabs } from '@/tasks/TaskStatusTabs'
@@ -54,7 +55,7 @@ function Example({ start, truncated = false }: { start: TaskStatus; truncated?: 
         body={(shown, filter) =>
           shown.state.kind === 'ready' && (
             <TaskSectionList
-              sections={groupByDepartment(shown.state.tasks)}
+              sections={groupByDepartment(sortTasks(shown.state.tasks, 'department', []))}
               summary={filter === 'open'}
               row={item => (
                 <TaskRow
