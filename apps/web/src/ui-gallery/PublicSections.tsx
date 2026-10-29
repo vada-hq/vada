@@ -51,22 +51,39 @@ const mineOf = (extra: Partial<MyRegistration> = {}): MyRegistration => ({
   ...extra,
 })
 
-// 실제 공개 화면과 같은 max-w-md 틀로 1280px·390px에서 비교한다.
+// 실제 공개 화면과 같은 max-w-130 흰 단으로 1280px·390px에서 비교한다.
 export function PublicSection() {
-  const completed = [
-    mineOf(),
-    mineOf({ depositConfirmed: true }),
-    mineOf({ appliedFee: 0, account: null, attended: true, cancellable: false }),
-    mineOf({ event: { name: unbroken }, mine: { name: longName, studentId: null, phone: null } }),
-    mineOf({ answers: sampleAnswers }),
+  // [내 신청, 공개 양식(이 기기에 신청 코드가 있을 때), 행사 당일]
+  const completed: [MyRegistration, PublicRegistrationForm | null, boolean][] = [
+    [mineOf(), publicForm(), false],
+    [mineOf({ depositConfirmed: true }), null, false],
+    [mineOf({ appliedFee: 0, account: null, attended: true, cancellable: false }), null, false],
+    [
+      mineOf({ event: { name: unbroken }, mine: { name: longName, studentId: null, phone: null } }),
+      null,
+      false,
+    ],
+    [
+      mineOf({
+        answers: sampleAnswers,
+        mine: { name: '김새내', studentId: '20260001', phone: '01012345678' },
+      }),
+      publicForm(),
+      false,
+    ],
+    [mineOf(), publicForm(), true],
+    [mineOf({ depositConfirmed: true }), publicForm(), true],
   ]
   return (
     <Section title="참가 신청 화면">
-      <div className="flex w-full max-w-md flex-col gap-4">
+      <div className="flex w-full max-w-130 flex-col gap-4 bg-white px-6">
         <FormSummary data={publicForm()} />
       </div>
+      <div className="flex w-full max-w-130 flex-col gap-4 bg-white px-6">
+        <FormSummary data={publicForm({ event: { ...event, place: null, name: unbroken } })} />
+      </div>
       {(['before_open', 'full', 'paused', 'closed'] as const).map(status => (
-        <div key={status} className="w-full max-w-md">
+        <div key={status} className="flex w-full max-w-130 flex-col bg-white px-6">
           <RegistrationUnavailable
             data={publicForm({
               status,
@@ -76,10 +93,12 @@ export function PublicSection() {
           />
         </div>
       ))}
-      {completed.map((mine, index) => (
-        <div key={index} className="w-full max-w-md">
+      {completed.map(([mine, saved, day], index) => (
+        <div key={index} className="w-full max-w-130 bg-white px-6">
           <MyRegistrationView
             mine={mine}
+            form={saved}
+            day={day}
             cancel={{ busy: false, problem: '', run: async () => {} }}
           />
         </div>
@@ -91,7 +110,7 @@ export function PublicSection() {
 
 const emptyValues = { name: '', studentId: '', phone: '', answers: {} }
 
-// 신청 칸과 버튼 아래 고지. 참가비가 있으면 목적에 입금 확인이 붙고, 무료 양식에는 없다(DEC-93). 공개 화면과 같은 폭(max-w-md)이다.
+// 신청 칸과 버튼 아래 고지. 참가비가 있으면 목적에 입금 확인이 붙고, 무료 양식에는 없다(DEC-93). 공개 화면과 같은 폭(max-w-130)이다.
 export function ApplyNoticeSection() {
   const cases = [
     publicForm(),
@@ -107,7 +126,10 @@ export function ApplyNoticeSection() {
   return (
     <Section title="참가 신청 칸·고지(참가비 있음·없음)">
       {cases.map(data => (
-        <div key={`${data.payerFee}-${data.questions.length}`} className="w-full max-w-md">
+        <div
+          key={`${data.payerFee}-${data.questions.length}`}
+          className="flex w-full max-w-130 flex-col bg-white px-6"
+        >
           <ApplyFields
             data={data}
             values={emptyValues}

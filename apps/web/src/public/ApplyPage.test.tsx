@@ -39,7 +39,10 @@ test('받는 중이면 학교·행사·참가비·안내와 칸이 보이고, �
   expect(screen.getByText('소프트웨어학부 학생회')).toBeTruthy()
   expect(screen.getByText('학생회비 납부자 5,000원 · 미납자 10,000원')).toBeTruthy()
   expect(screen.getByText('10월 24일 (토) 14:00 ~ 18:00')).toBeTruthy()
-  expect(screen.getByText('남은 자리 12')).toBeTruthy()
+  expect(screen.getByText('대강당')).toBeTruthy()
+  expect(screen.getByText(publicForm().form.notice!)).toBeTruthy()
+  // 남은 자리는 학생 행동을 바꾸지 않아 싣지 않는다(내용 ①). 다 차면 정원 마감 자리가 맡는다.
+  expect(screen.queryByText(/남은 자리/)).toBeNull()
   expect(screen.queryByText('신청 받는 중')).toBeNull()
   expect(screen.getByLabelText('이름')).toBeTruthy()
   expect(screen.getByLabelText('학번')).toBeTruthy()
@@ -81,7 +84,7 @@ test('버튼 아래 고지의 목적: 참가비가 있으면 입금 확인, 학�
 // 학생이 언제까지 신청할지 알아야 미루지 않는다(notes/frontend-findings.md RG-4).
 test('받는 중이면 신청 마감이 보이고, 마감된 양식에는 없다', async () => {
   setup()
-  expect(await screen.findByText('10월 23일 (금) 18:00까지')).toBeTruthy()
+  expect(await screen.findByText('10월 23일 (금) 18:00까지 신청')).toBeTruthy()
   cleanup()
   setup(publicForm({ status: 'closed' }))
   await screen.findByText('신청이 마감됐어요.')
@@ -361,7 +364,7 @@ test('번호를 정하는 해시는 보내는 중 표시가 그려진 뒤에 돈
   api.on('POST', APPLY_PATH, () => json({ error: 'FAILED' }, 500))
   let busyAtHash: boolean | null = null
   vi.mocked(applyCommand.applyCommandId).mockImplementationOnce((code, body) => {
-    busyAtHash = screen.getByRole<HTMLButtonElement>('button', { name: '신청하기' }).disabled
+    busyAtHash = screen.getByRole<HTMLButtonElement>('button', { name: '신청하는 중' }).disabled
     return applyCommand.applyCommandId(code, body)
   })
   await fillAll()
@@ -399,7 +402,7 @@ test.each([
     expect(within(card).getByText(description)).toBeTruthy()
     expect(card.querySelector('svg[aria-hidden="true"]')).toBeTruthy()
     const button = within(card).getByRole('button', { name: '돌아가기' })
-    expect(button.className).toContain('max-sm:min-h-11')
+    expect(button.className).toContain('min-h-14')
     expect(screen.queryByRole('form')).toBeNull()
     fireEvent.click(button)
     expect(back).toHaveBeenCalledOnce()
@@ -407,3 +410,40 @@ test.each([
     back.mockRestore()
   },
 )
+
+test('장소가 비면 장소 미정이다', async () => {
+  setup(publicForm({ event: { ...publicForm().event, place: null } }))
+  expect(await screen.findByText('장소 미정')).toBeTruthy()
+})
+
+// 받지 않을 때는 머리 바로 아래(신청 칸 자리)에 상자 없는 상태가 온다. 큰 공백 뒤에 늦게 읽히지 않게 한다.
+test('받지 않을 때 상태는 머리 바로 다음에 상자 없이 오고 돌아가기가 그 안에 있다', async () => {
+  setup(publicForm({ status: 'full', remaining: 0 }))
+  const card = await screen.findByRole('region', { name: '정원 마감' })
+  const head = screen.getByRole('heading', { name: '신입생 환영회', level: 1 }).closest('header')!
+  expect(head.nextElementSibling).toBe(card)
+  expect(card.className).not.toMatch(/border|shadow/)
+  expect(within(card).getByRole('button', { name: '돌아가기' })).toBeTruthy()
+})
+
+test('보내는 중이면 버튼이 신청하는 중으로 바뀌고 거절 문구는 버튼 위에 있다', async () => {
+  const { api } = setup()
+  const pending = deferredResponse()
+  api.on('POST', APPLY_PATH, () => pending.promise)
+  await fillAll()
+  fireEvent.click(screen.getByRole('button', { name: '신청하기' }))
+  expect(await screen.findByRole('button', { name: '신청하는 중' })).toBeTruthy()
+  await act(async () => pending.resolve(json({ error: 'REGISTRATION_FULL' }, 409)))
+  const alert = await screen.findByRole('alert')
+  const button = screen.getByRole('button', { name: '신청하기' })
+  expect(alert.compareDocumentPosition(button) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+})
+
+test('휴대폰 번호는 치는 대로 하이픈을 넣어 보이고 전화 키패드를 연다', async () => {
+  setup(publicForm({ collectsPhone: true }))
+  const phone = (await screen.findByLabelText('휴대폰 번호')) as HTMLInputElement
+  fireEvent.change(phone, { target: { value: '01012345678' } })
+  expect(phone.value).toBe('010-1234-5678')
+  expect(phone.getAttribute('inputmode')).toBe('tel')
+  expect(phone.type).toBe('tel')
+})

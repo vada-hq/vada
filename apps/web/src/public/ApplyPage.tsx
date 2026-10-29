@@ -14,7 +14,7 @@ import { usePublicForm } from './usePublicForm'
 // 같은 기기가 이미 신청했으면 내 신청으로 가는 길을 보인다. 신청 칸은 그대로 둔다(친구 기기, 이미 취소한 신청).
 function AlreadyApplied({ token }: { token: string }) {
   return (
-    <Alert tone="info" className="flex flex-wrap items-center justify-between gap-2">
+    <Alert tone="info" className="mb-6 flex flex-wrap items-center justify-between gap-2">
       <span>이미 신청했어요.</span>
       <a
         href={mineHref(token)}
@@ -55,7 +55,7 @@ export default function ApplyPage({ code, onApplied }: Props) {
   const data = state.data
   const saved = savedToken(code)
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-1 flex-col">
       {saved && <AlreadyApplied token={saved} />}
       <FormSummary data={data} />
       {data.status !== 'open' ? (

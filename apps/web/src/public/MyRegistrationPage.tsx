@@ -1,48 +1,48 @@
-import { useState } from 'react'
-import type { MyRegistration } from '@vada/contracts'
-import { ConfirmDialog } from '@/components/ConfirmDialog'
+import type { MyRegistration, PublicRegistrationForm } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
 import { Alert } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { REGISTRATION_LOAD_FAILED, REGISTRATION_LOST } from '@/lib/registration-messages'
-import { AccountBlock, AttendanceBlock, MineFacts, SavedLinkBlock } from './MineDetails'
+import { Toast, useCopy } from './copy-toast'
+import { EntryQrHero, EntryQrRow } from './EntryQr'
+import { useEventDay } from './event-day'
+import { MineFooter, type Cancel } from './MineFooter'
+import { AccountPanel, DayResult, Result } from './MineResult'
+import { useMineForm } from './useMineForm'
 import { useMyRegistration } from './useMyRegistration'
 
-type Cancel = { busy: boolean; problem: string; run: () => Promise<void> }
-
-function CancelBlock({ cancel }: { cancel: Cancel }) {
-  const [asking, setAsking] = useState(false)
-  return (
-    <div className="flex flex-col gap-2">
-      <Button variant="outline" touch className="self-start" onClick={() => setAsking(true)}>
-        신청 취소
-      </Button>
-      <ConfirmDialog
-        open={asking}
-        title="신청을 취소할까요?"
-        description="취소하면 낸 이름과 연락처가 지워지고, 이 주소로 다시 볼 수 없어요. 마감 전이면 다시 신청할 수 있어요."
-        confirmLabel="신청 취소"
-        destructive
-        busy={cancel.busy}
-        onConfirm={() => {
-          void cancel.run().then(() => setAsking(false))
-        }}
-        onClose={() => setAsking(false)}
-      />
-    </div>
-  )
+// 상자 대신 단 폭 끝까지 가는 회색 띠로 구역을 가른다(앱 목록 화면의 굵은 구분 띠).
+function Band() {
+  return <div aria-hidden="true" className="-mx-6 h-2 bg-surface-muted" />
 }
 
-export function MyRegistrationView({ mine, cancel }: { mine: MyRegistration; cancel: Cancel }) {
+// 신청 직후·내 신청. 차례: 완료 → 참가비·계좌 → 입장 QR → 행사 정보·문의 → 다시 열기 → 취소 → 지우는 날(내용 ④).
+// 행사 당일(day)에는 입장 QR이 맨 위로 오고, 낼 돈이 남지 않았으면 완료와 계좌를 두 줄로 접는다.
+export function MyRegistrationView({
+  mine,
+  form,
+  day,
+  cancel,
+}: {
+  mine: MyRegistration
+  form: PublicRegistrationForm | null
+  day: boolean
+  cancel: Cancel
+}) {
+  const copy = useCopy()
+  const settled = day && (mine.appliedFee === 0 || mine.depositConfirmed)
   return (
-    <div className="flex flex-col gap-6">
-      <MineFacts mine={mine} />
-      <AttendanceBlock mine={mine} />
-      <AccountBlock mine={mine} />
-      <SavedLinkBlock mine={mine} />
-      {mine.cancellable && <CancelBlock cancel={cancel} />}
-      {/* 취소 오류는 취소 버튼이 사라져도(마감이 지나 cancellable이 false가 되면) 이유와 함께 남는다. */}
-      {cancel.problem && <StateMessage kind="error">{cancel.problem}</StateMessage>}
+    <div className="flex flex-col break-keep">
+      <div className={day ? 'flex flex-col gap-6 pb-8' : 'flex flex-col gap-6 pt-6 pb-8'}>
+        {day && <EntryQrHero mine={mine} />}
+        {day && <Band />}
+        {settled ? <DayResult mine={mine} /> : <Result mine={mine} compact={day} />}
+        {!settled && <AccountPanel mine={mine} copy={copy} />}
+        {!day && <EntryQrRow mine={mine} />}
+      </div>
+      <Band />
+      <MineFooter mine={mine} form={form} cancel={cancel} copy={copy} />
+      <Toast message={copy.message} />
     </div>
   )
 }
@@ -50,6 +50,8 @@ export function MyRegistrationView({ mine, cancel }: { mine: MyRegistration; can
 // 개인 링크(/r#토큰)로 여는 내 신청. 로그인이 없다.
 export default function MyRegistrationPage({ token }: { token: string }) {
   const { state, busy, problem, cancel, retry } = useMyRegistration(token)
+  const form = useMineForm(token)
+  const day = useEventDay(form, state)
   switch (state.kind) {
     case 'loading':
       return <StateMessage kind="loading">불러오는 중…</StateMessage>
@@ -67,6 +69,13 @@ export default function MyRegistrationPage({ token }: { token: string }) {
         </div>
       )
     case 'ready':
-      return <MyRegistrationView mine={state.data} cancel={{ busy, problem, run: cancel }} />
+      return (
+        <MyRegistrationView
+          mine={state.data}
+          form={form}
+          day={day}
+          cancel={{ busy, problem, run: cancel }}
+        />
+      )
   }
 }

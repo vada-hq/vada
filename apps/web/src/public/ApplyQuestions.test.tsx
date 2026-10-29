@@ -98,3 +98,22 @@ test('필수 여럿 고르기가 비면 그 묶음으로 초점이 간다', asyn
     expect(document.activeElement).toBe(screen.getByRole('group', { name: '참가 종목' })),
   )
 })
+
+// 고르는 표시(하나 고르기 동그라미, 여럿 고르기 네모)는 늘 왼쪽에 있고, 고른 줄은 표시가 찬다.
+test('선택지마다 고르는 표시가 있고 고른 줄만 고른 모양이다', async () => {
+  setup()
+  const sizes = await screen.findByRole('radiogroup', { name: '티셔츠 사이즈' })
+  expect(sizes.querySelectorAll('[data-mark="radio"]')).toHaveLength(2)
+  const sports = screen.getByRole('group', { name: '참가 종목' })
+  expect(sports.querySelectorAll('[data-mark="checkbox"]')).toHaveLength(2)
+  const row = (name: string) =>
+    screen.getByRole<HTMLInputElement>('radio', { name }).closest('label')!
+  expect(row('M').hasAttribute('data-checked')).toBe(false)
+  fireEvent.click(screen.getByRole('radio', { name: 'M' }))
+  expect(screen.getByRole<HTMLInputElement>('radio', { name: 'M' }).checked).toBe(true)
+  expect(row('M').hasAttribute('data-checked')).toBe(true)
+  expect(row('S').hasAttribute('data-checked')).toBe(false)
+  fireEvent.click(screen.getByRole('checkbox', { name: '농구' }))
+  const basketball = screen.getByRole('checkbox', { name: '농구' }).closest('label')!
+  expect(basketball.hasAttribute('data-checked')).toBe(true)
+})

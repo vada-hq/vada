@@ -27,7 +27,7 @@ export function FormPreview({
           미리보기
         </h3>
       )}
-      <div inert className="flex flex-col gap-6 rounded-xl border bg-white p-4 shadow-sm">
+      <div inert className="flex flex-col rounded-xl border bg-white px-6 pt-6 shadow-sm">
         <FormSummary data={data} />
         <ApplyFields
           data={data}
@@ -36,7 +36,7 @@ export function FormPreview({
           problem=""
           onValues={ignore}
           onSubmit={ignore}
-          notice={false}
+          preview
         />
       </div>
     </section>

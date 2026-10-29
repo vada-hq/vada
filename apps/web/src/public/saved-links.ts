@@ -38,3 +38,18 @@ export function forgetToken(token: string) {
     // 지우지 못해도 다음에 열 때 서버가 404로 답하고 다시 지운다.
   }
 }
+
+// 이 기기가 그 토큰으로 신청한 양식의 코드. 내 신청에는 행사 일시가 없어 공개 양식을 함께 읽을 때 쓴다. 모르면 null이다.
+export function savedCodeOf(token: string): string | null {
+  const local = store()
+  if (!local || token === '') return null
+  try {
+    for (let index = 0; index < local.length; index++) {
+      const key = local.key(index)
+      if (key?.startsWith(PREFIX) && local.getItem(key) === token) return key.slice(PREFIX.length)
+    }
+  } catch {
+    // 읽지 못하면 행사 일시 없이 보인다.
+  }
+  return null
+}
