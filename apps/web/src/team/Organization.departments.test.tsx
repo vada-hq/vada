@@ -699,3 +699,27 @@ test('직급 없는 운영진도 부서 카드의 부장·부원을 다 보고, 
   expect(screen.queryByRole('button', { name: '기획부 부장 지정' })).toBeNull()
   expect(screen.queryByRole('button', { name: '구성원 초대' })).toBeNull()
 })
+
+test('[부장 지정]으로 부장을 정하고 창을 닫으면 초점이 부장 칸의 그 사람 카드로 간다', async () => {
+  const api = serve()
+  const assigned = teamResponse()
+  assigned.members[2]!.departments = [{ id: 'd2', rank: 'head', actions: ['placement.remove'] }]
+  api.on('POST', '/api/organizations/c1/members/m3/departments', () => json(assigned))
+  render(<Harness permissions={LEADER_PERMISSIONS} />)
+  await loaded()
+  fireEvent.keyDown(within(group('기획부')).getByRole('button', { name: '기획부 부장 지정' }), {
+    key: 'Enter',
+  })
+  fireEvent.click(within(await screen.findByRole('menu')).getByRole('menuitem', { name: '박새내' }))
+  const dialog = await screen.findByRole('dialog', { name: '박새내의 부서' })
+  fireEvent.change(within(dialog).getByLabelText('부서'), { target: { value: 'd2' } })
+  fireEvent.change(within(dialog).getByLabelText('부서 직급'), { target: { value: 'head' } })
+  fireEvent.click(within(dialog).getByRole('button', { name: '부서에 넣기' }))
+  expect(await within(dialog).findByLabelText('기획부 부서 직급')).toBeTruthy()
+  fireEvent.keyDown(dialog, { key: 'Escape' })
+  await noDialog()
+  const head = within(screen.getByRole('list', { name: '기획부 부장' }))
+  await waitFor(() =>
+    expect(document.activeElement).toBe(head.getByRole('button', { name: '박새내 동작' })),
+  )
+})

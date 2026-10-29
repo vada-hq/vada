@@ -32,9 +32,17 @@ export function HeadPicker({ departmentName, headTitle, candidates, triggerRef, 
           {headTitle} 지정
         </Button>
       </MenuTrigger>
-      <MenuContent align="start">
+      {/* 후보가 수십 명이어도 화면 안에서 스크롤한다. */}
+      <MenuContent
+        align="start"
+        className="max-h-(--radix-dropdown-menu-content-available-height) overflow-y-auto"
+      >
         {candidates.map(member => (
-          <MenuItem key={member.id} onSelect={() => props.onPick(member)}>
+          <MenuItem
+            key={member.id}
+            className="max-sm:min-h-11"
+            onSelect={() => props.onPick(member)}
+          >
             {member.name}
           </MenuItem>
         ))}

@@ -27,7 +27,8 @@ export function peopleSlots({ people, team, view }: Context) {
           candidates={[...assignable.filter(inside), ...assignable.filter(m => !inside(m))]}
           saving={team.saving}
           triggerRef={people.menuFocus.triggerRef(key)}
-          onPick={member => people.openAssign(member, key)}
+          // 부장을 정하면 [부장 지정]이 사라지므로 초점은 부장 칸의 그 사람 카드로 돌아간다.
+          onPick={member => people.openAssign(member, [key, `${department.id}:${member.id}`])}
         />
       )
     },
