@@ -33,6 +33,7 @@ function MessageHomeSample() {
         onAll={noop}
         elsewhereUnread={3}
         direct={!split ? { active: false, unread: 2, onPick: noop } : undefined}
+        panel={split ? { open: false, unread: 2, onToggle: noop } : undefined}
       />
       <div className="flex h-96 flex-col bg-surface-subtle">
         <ul className="mt-auto flex flex-col overflow-y-auto px-2 py-3 sm:px-4">
@@ -82,9 +83,9 @@ function SideChatSample() {
   }
   return (
     <SideChatContext value={access}>
-      <div className="h-128 w-96 max-w-full border-l-2 border-personal-border-strong bg-personal-surface/60">
+      <div className="h-128 w-96 max-w-full border-l bg-white">
         {opened ? (
-          <div className="flex h-full flex-col">
+          <div className="flex h-full flex-col bg-surface-subtle">
             <SideChatRoomTitle
               name="정하늘"
               readOnly={false}
@@ -145,7 +146,7 @@ export function RoomRowSection() {
     <Section title="대화 목록 줄">
       <MessageHomeSample />
       <SideChatSample />
-      {/* 휴대폰은 1:1을 전체 화면으로 연다. 머리는 PC 오른쪽 칸과 같은 호박색이다(MSG-04). */}
+      {/* 휴대폰은 1:1을 전체 화면으로 연다. 머리는 PC 오른쪽 칸처럼 흰 머리에 '○○님과 1:1' 제목이다(MSG-04). */}
       <div className={cn(cardClass, 'w-97.5 overflow-hidden')}>
         <SideChatRoomTitle name="정하늘" readOnly={false} side={false} direct onBack={noop} />
       </div>

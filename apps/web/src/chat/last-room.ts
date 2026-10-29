@@ -5,16 +5,26 @@ import { councilRooms, firstRoomOf } from './space-rooms'
 // 저장소를 못 쓰는 브라우저(사생활 보호 모드 등)에서는 조용히 기억하지 않고 첫 방을 연다.
 const PREFIX = 'vada.chat.room.'
 const DIRECT_PREFIX = 'vada.chat.direct-tab.'
-const sideRooms = new Map<string, string>()
+// 열쇠가 있으면 칸이 열려 있다. 값은 칸에 연 1:1이고, null이면 1:1 목록이다.
+const sidePanels = new Map<string, string | null>()
 
 // 열린 칸은 로그인한 사람·학생회마다 메모리에만 둔다. 쓰던 글과 같이 기기 저장소에는 남기지 않는다.
+// 그래서 같은 탭에서 방·메뉴를 오가도 열린 채이고, 새로 들어오면 닫혀 있다.
 export const savedSideRoom = (councilId: string, meId: string) =>
-  sideRooms.get(`${councilId}:${meId}`) ?? null
+  sidePanels.get(`${councilId}:${meId}`) ?? null
 
-export function saveSideRoom(councilId: string, meId: string, roomId: string | null) {
+export const savedSideOpen = (councilId: string, meId: string) =>
+  sidePanels.has(`${councilId}:${meId}`)
+
+export function saveSideRoom(
+  councilId: string,
+  meId: string,
+  roomId: string | null,
+  open = roomId !== null,
+) {
   const key = `${councilId}:${meId}`
-  if (roomId) sideRooms.set(key, roomId)
-  else sideRooms.delete(key)
+  if (open) sidePanels.set(key, roomId)
+  else sidePanels.delete(key)
 }
 
 // 휴대폰 '1:1' 탭 기억은 기기를 돌려 쓰는 다른 운영진에게 이어지지 않게 사람마다 둔다.
