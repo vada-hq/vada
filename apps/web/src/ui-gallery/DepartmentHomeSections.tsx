@@ -105,7 +105,7 @@ const busy: HomeDepartmentBoard = {
     ],
     total: 1,
   },
-  budget: { name: '가을 축제 상금', amount: 600_000, remaining: 600_000 },
+  budget: { name: '기말고사 간식행사 간식비', amount: 300_000, remaining: 300_000 },
 }
 
 // 평소: ① 0건(머리 한 문장), 할 일 없음, 시연 학생회가 아니라 예산 한 줄 없음

@@ -88,14 +88,18 @@ test('평소: ①이 0건이면 머리 한 문장으로 합치고, 예산 한 �
   expect(await screen.findByText('김회장님, 확인이 필요한 운영 상황 없어요')).toBeTruthy()
   expect(screen.queryByRole('region', { name: '확인이 필요한 운영 상황' })).toBeNull()
   expect(screen.queryByRole('region', { name: '사용 가능' })).toBeNull()
-  expect(screen.queryByRole('region', { name: '가을 축제 상금' })).toBeNull()
+  expect(screen.queryByRole('region', { name: '기말고사 간식행사 간식비' })).toBeNull()
 })
 
 test('시연 학생회의 우리 부서 예산 한 줄은 금액과 남음을 싣고 재정으로 간다', async () => {
-  open(departmentHome({ budget: { name: '가을 축제 상금', amount: 600_000, remaining: 600_000 } }))
-  const line = await screen.findByRole('region', { name: '가을 축제 상금' })
-  expect(line.textContent).toContain('가을 축제 상금 600,000원')
-  expect(line.textContent).toContain('남음 600,000원')
+  open(
+    departmentHome({
+      budget: { name: '기말고사 간식행사 간식비', amount: 300_000, remaining: 300_000 },
+    }),
+  )
+  const line = await screen.findByRole('region', { name: '기말고사 간식행사 간식비' })
+  expect(line.textContent).toContain('기말고사 간식행사 간식비 300,000원')
+  expect(line.textContent).toContain('남음 300,000원')
   fireEvent.click(within(line).getByRole('button', { name: /재정 보기/ }))
   expect(window.location.pathname).toBe(`/finance/${C}`)
 })

@@ -7,22 +7,29 @@ import type { Db } from '../db/types.js'
 // 섭외와 리허설에서 보이는 시연 학생회의 학교 이름(scripts/demo-data.ts가 이 이름으로 만들고 찾는다).
 export const DEMO_SCHOOL_NAME = 'VADA 시연 학교'
 
+// 시연용 임시: 시연 뒤 budget_item 담당 부서로 바꾸고 이 목록을 지움.
+// 배포 사이트의 시연 학생회(컴퓨터공학과)는 실제 학교 이름으로 만들어 학교 이름으로 가를 수 없어 id로 가른다.
+export const DEMO_COUNCIL_IDS = ['01a17871-9e96-7d0e-b615-16ebca860100'] as const
+
 // 시연용 임시: 시연 뒤 budget_item 담당 부서로 바꿈(대표 10/30, notes dept-home-content.md '우리 부서가 맡은 예산').
-// 그때까지 부장 홈의 이 한 줄만 고정값이고, 실제 학생회에는 오지 않는다.
-const DEMO_PRIZE = 600_000
+// 그때까지 부장 홈의 이 한 줄만 고정값이고(시연 학생회의 기말고사 간식행사), 실제 학생회에는 오지 않는다.
+const DEMO_SNACK_BUDGET = 300_000
 const DEMO_DEPARTMENT_BUDGET: HomeDepartmentBudget = {
-  name: '가을 축제 상금',
-  amount: DEMO_PRIZE,
-  remaining: DEMO_PRIZE,
+  name: '기말고사 간식행사 간식비',
+  amount: DEMO_SNACK_BUDGET,
+  remaining: DEMO_SNACK_BUDGET,
 }
+
+export const isDemoCouncil = (row: { id: string; schoolName: string }) =>
+  row.schoolName === DEMO_SCHOOL_NAME || (DEMO_COUNCIL_IDS as readonly string[]).includes(row.id)
 
 export async function departmentBudgetOf(
   db: Pick<Db, 'select'>,
   actor: Actor,
 ): Promise<HomeDepartmentBudget | null> {
   const [row] = await db
-    .select({ schoolName: council.schoolName })
+    .select({ id: council.id, schoolName: council.schoolName })
     .from(council)
     .where(eq(council.id, actor.councilId))
-  return row?.schoolName === DEMO_SCHOOL_NAME ? DEMO_DEPARTMENT_BUDGET : null
+  return row && isDemoCouncil(row) ? DEMO_DEPARTMENT_BUDGET : null
 }

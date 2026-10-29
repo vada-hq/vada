@@ -4,7 +4,7 @@ import type { HomeDepartmentBoard, HomeResponse } from '@vada/contracts'
 import { createApp } from '../app.js'
 import { caller, ORIGIN, testSession } from '../test-support/http.js'
 import { withSettlement, type SettlementKit } from '../test-support/settlement.js'
-import { DEMO_SCHOOL_NAME } from './demo-budget.js'
+import { DEMO_COUNCIL_IDS, DEMO_SCHOOL_NAME, isDemoCouncil } from './demo-budget.js'
 import { createHomeRoutes } from './routes.js'
 
 // 부장 홈(HOME-01D, 10/30 확정): 회장단 홈 구역에 부장 범위의 데이터만. 한국 시각 2026-10-25(일) 12:00.
@@ -271,9 +271,22 @@ test(
       t.council.councilId,
     ])
     assert.deepEqual((await h.board()).budget, {
-      name: '가을 축제 상금',
-      amount: 600_000,
-      remaining: 600_000,
+      name: '기말고사 간식행사 간식비',
+      amount: 300_000,
+      remaining: 300_000,
     })
   }),
 )
+
+test('배포 시연 학생회는 학교 이름이 달라도 학생회 id로 시연 학생회다', () => {
+  const [demo] = DEMO_COUNCIL_IDS
+  assert.equal(isDemoCouncil({ id: demo!, schoolName: '서울과학기술대학교' }), true)
+  assert.equal(
+    isDemoCouncil({ id: '01900000-0000-7000-8000-000000000001', schoolName: '서울과학기술대학교' }),
+    false,
+  )
+  assert.equal(
+    isDemoCouncil({ id: '01900000-0000-7000-8000-000000000001', schoolName: DEMO_SCHOOL_NAME }),
+    true,
+  )
+})
