@@ -61,8 +61,8 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  /* 의미 색. 화면은 이 이름만 쓰고 팔레트 단계(text-gray-700 등)를 직접 쓰지 않는다(pnpm palette가 막는다). 값은 팔레트
-     변수를 그대로 가리켜(inline) text-gray-900을 text-fg로 바꿔도 만들어지는 CSS가 같다. 위의 shadcn 이름(muted, border,
+  /* 의미 색. 화면은 이 이름만 쓰고 팔레트 단계(gray-700 등)를 직접 쓰지 않는다(pnpm palette가 막는다). 값은 팔레트
+     변수를 그대로 가리켜(inline) gray-900 자리를 fg로 바꿔도 만들어지는 CSS가 같다. 위의 shadcn 이름(muted, border,
      primary, destructive)은 hex라 글자 가장자리 픽셀이 조금 달라 팔레트 자리에 쓰지 않았다. 새 색은 쓰임을 말하는 이름을
      여기에 먼저 더한다. 값이 같아도 쓰임이 다르면(글자와 선, 위험과 알림) 이름을 나눈다. 이름마다 위 줄이 쓰임이다. */
   /* ── 글자 ── */

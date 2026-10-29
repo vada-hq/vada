@@ -73,7 +73,7 @@
 - 버튼·입력칸·선택칸·여러 줄 입력·라벨·칩·카드·배너·대화상자·옆 메뉴·메뉴 항목·탭은 `apps/web/src/components/ui`의 부품을 쓴다. 날것의 `<button>`·`<input>`에 직접 모양을 주지 않는다. 체크박스만 브라우저 기본 모양에 `size-4 accent-primary-emphasis`를 준다.
 - 여러 기능이 같이 쓰는 표시용 부품은 `src/components`에 둔다(API 호출 금지). 기능 화면과 데이터 훅은 기능 폴더에 둔다.
 - 모양은 Tailwind 클래스로만 준다. 새 CSS 파일을 만들지 않는다. 토큰과 전역 기본값은 `src/index.css` 하나에 둔다.
-- 색은 `src/index.css`에 정의한 의미 이름만 쓴다(글자 `fg`·`fg-secondary`·`fg-muted`, 면 `surface-subtle`·`surface-muted`, 선 `border-default`·`border-subtle`, 상태 `danger`·`warning`·`success`, 부서 `category-*` 등, 이름마다 쓰임은 그 파일의 주석). Tailwind 팔레트 단계(`text-gray-700`, `bg-red-50`)와 팔레트 변수(`var(--color-gray-500)`)를 직접 쓰지 않는다(`pnpm palette`가 막는다). 새 색이 필요하면 `index.css`에 쓰임을 말하는 이름을 먼저 더한다. 값이 같아도 쓰임이 다르면(글자와 선, 위험과 알림) 이름을 나눈다.
+- 색은 `src/index.css`에 정의한 의미 이름만 쓴다(글자 `fg`·`fg-secondary`·`fg-muted`, 면 `surface-subtle`·`surface-muted`, 선 `border-default`·`border-subtle`, 상태 `danger`·`warning`·`success`, 부서 `category-*` 등, 이름마다 쓰임은 그 파일의 주석). Tailwind 팔레트 단계(`text-gray-700`, `bg-red-50`), 팔레트 변수(`var(--color-gray-500)`), 임의 색 값(`bg-[#fff]`)을 직접 쓰지 않는다(`pnpm palette`가 막는다). 단계가 없는 `white`·`black`·`transparent`·`current`는 그대로 쓴다. 새 색이 필요하면 `index.css`에 쓰임을 말하는 이름을 먼저 더한다. 값이 같아도 쓰임이 다르면(글자와 선, 위험과 알림) 이름을 나눈다.
 - 크기와 간격은 Tailwind 스케일(`p-6`, `max-w-148`처럼 0.25rem 배수)만 쓴다. `bg-[#…]`, `text-[13px]`, `p-[7px]` 같은 임의 값은 쓰지 않는다.
 - 기준 글자 크기는 브라우저 기본 16px이다(본문 `text-sm` 14px, 보조 글 `text-xs` 12px, 페이지 제목 `text-xl` 20px). 와이어프레임은 0.875 축척이라 값을 그대로 옮기지 않고 1/0.875배로 읽는다.
 - 줄바꿈 없는 긴 글(링크, 이름)이 들어갈 수 있는 곳에는 `wrap-anywhere`를 준다.

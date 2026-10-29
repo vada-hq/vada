@@ -37,7 +37,7 @@ export function MenuItem({
   return (
     <MenuPrimitive.Item
       className={cn(
-        'flex cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-sm wrap-anywhere text-fg-secondary outline-none select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-45 data-[highlighted]:bg-border-subtle [&_svg]:size-4 [&_svg]:shrink-0',
+        'flex cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-sm wrap-anywhere text-fg-secondary outline-none select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-45 data-[highlighted]:bg-surface-muted [&_svg]:size-4 [&_svg]:shrink-0',
         destructive && 'text-destructive',
         className,
       )}
