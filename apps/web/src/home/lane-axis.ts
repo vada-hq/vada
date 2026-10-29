@@ -1,4 +1,4 @@
-import { useLayoutEffect, useState, type RefObject } from 'react'
+import { useLayoutEffect, useState } from 'react'
 import { DAY_MS } from '@vada/contracts'
 
 // ② 행사의 가로 시간 축 기하(e6 확정 시안). 묶음 안쪽 폭 W를 재서 오늘(0일)부터 days-1일까지의 x를 낸다.
@@ -51,18 +51,19 @@ export function axisOf(width: number): Axis {
 }
 
 // 폭을 재고 바뀌면 다시 잰다(그리기 전에 한 번 재서 깜박임이 없다). ResizeObserver가 없는 환경(시험)은 첫 폭만 쓴다.
-export function useAxis(ref: RefObject<HTMLElement | null>): Axis {
+// 0건 띠에서 행사가 생기면 묶음이 나중에 붙으므로, 붙는 요소를 콜백 ref로 받아 그때 재고 관찰한다.
+export function useAxis() {
+  const [el, setEl] = useState<HTMLElement | null>(null)
   const [width, setWidth] = useState(0)
   useLayoutEffect(() => {
-    const el = ref.current
     if (!el) return
     setWidth(el.clientWidth)
     if (typeof ResizeObserver === 'undefined') return
     const observer = new ResizeObserver(() => setWidth(el.clientWidth))
     observer.observe(el)
     return () => observer.disconnect()
-  }, [ref])
-  return axisOf(width)
+  }, [el])
+  return [setEl, axisOf(width)] as const
 }
 
 // 축 머리 날짜: 홈의 오늘(서버가 준 한국 날짜)부터 days일. 브라우저 시계를 쓰지 않는다.

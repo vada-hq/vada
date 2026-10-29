@@ -1,4 +1,4 @@
-import { useId, useRef } from 'react'
+import { useId } from 'react'
 import { CalendarDays, ChevronRight, Plus } from 'lucide-react'
 import { HOME_COUNCIL_EVENT_CARDS, type HomeEventLane, type HomeEventLanes } from '@vada/contracts'
 import { Tray, TrayHead } from '@/components/Tray'
@@ -65,8 +65,7 @@ export default function EventLanesCard({
   onNewEvent,
 }: Props) {
   const headId = useId()
-  const frame = useRef<HTMLDivElement>(null)
-  const axis = useAxis(frame)
+  const [frame, axis] = useAxis()
   if (lanes.total === 0) return <Empty onNewEvent={onNewEvent} />
   return (
     <Tray labelledBy={headId}>

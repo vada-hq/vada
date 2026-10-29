@@ -201,15 +201,15 @@ test('정산이 남은 행사 정리 줄은 재정부장이 연락할 사람이�
 test('줄은 상한까지 싣고 갈래별 수와 전체 수는 전체를 센다', async () => {
   await withSettlement(async t => {
     const h = open(t)
-    for (let i = 0; i < 12; i += 1)
+    for (let i = 0; i < 52; i += 1)
       await h.task({
         title: `지남 ${i}`,
         dueAt: due('2026-10-20'),
         assigneeId: h.people.president.memberId,
       })
     const todo = await h.todo()
-    assert.equal(todo.rows.length, 10)
-    assert.equal(todo.counts.task_late, 12)
-    assert.equal(todo.total, 12)
+    assert.equal(todo.rows.length, 50)
+    assert.equal(todo.counts.task_late, 52)
+    assert.equal(todo.total, 52)
   })()
 })

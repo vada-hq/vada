@@ -18,6 +18,8 @@ type Props = {
   // 제목 아래 사실('3일 지남'). danger면 위험 색(지남·오늘만)
   fact: string
   danger?: boolean
+  // 사실 글이 길 수 있으면(③ 행사 정리의 남은 것) 줄을 바꾼다. 짧은 사실('3일 지남')은 한 줄로 둔다.
+  wrapFact?: boolean
   // 사실 뒤 흐린 글(행사 이름, 말줄임)
   detail?: string | null | undefined
   who?: ReactNode
@@ -27,7 +29,7 @@ type Props = {
 }
 
 export default function TwoColumnRow(props: Props) {
-  const { icon, title, fact, danger, detail, who, trailing, onOpen } = props
+  const { icon, title, fact, danger, wrapFact, detail, who, trailing, onOpen } = props
   return (
     <li
       className={cn(
@@ -52,7 +54,8 @@ export default function TwoColumnRow(props: Props) {
           <p className="mt-0.5 flex min-w-0 items-baseline gap-1.5 text-row-sub">
             <span
               className={cn(
-                'shrink-0 font-semibold whitespace-nowrap',
+                'font-semibold',
+                wrapFact ? 'min-w-0 break-keep wrap-anywhere' : 'shrink-0 whitespace-nowrap',
                 danger ? 'text-danger' : 'text-fg-tertiary',
               )}
             >

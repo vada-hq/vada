@@ -1,6 +1,6 @@
 import {
-  HOME_LIST_LIMIT,
   HOME_TODO_KINDS,
+  HOME_TODO_ROW_LIMIT,
   daysBetween,
   koreanDateOf,
   type HomeCouncilBoard,
@@ -69,7 +69,7 @@ export async function todoOf(
   // 행사 정리는 후속 정리 행사를 상한까지만 읽어 오므로 수는 그 읽기의 전체 수다.
   counts.event_tidy = board.followUp.total
   return {
-    rows: rows.slice(0, HOME_LIST_LIMIT),
+    rows: rows.slice(0, HOME_TODO_ROW_LIMIT),
     counts,
     total: HOME_TODO_KINDS.reduce((sum, kind) => sum + counts[kind], 0),
     meTint: people.tints.get(actor.memberId) ?? 0,
