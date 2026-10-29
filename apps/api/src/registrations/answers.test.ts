@@ -266,3 +266,33 @@ test(
     assert.equal(otherUser.status, 404)
   }),
 )
+
+// 되돌린 배포에서 이 표를 모르는 옛 코드가 돌아도 답이 남지 않는다(0027의 트리거와 연쇄 지우기).
+test(
+  '옛 코드처럼 신청을 취소하거나 이름만 비워도, 신청·양식 행을 지워도 답과 질문이 남지 않는다',
+  withRegistrations(async t => {
+    const { form } = await questionForm(t)
+    for (let n = 0; n < 3; n++)
+      await t.applied(form.publicCode, { ...person, answers: answersOf(form) })
+    const ids = (
+      await t.pg.query<{ id: string }>('SELECT id FROM registration ORDER BY id')
+    ).rows.map(row => row.id)
+    await t.pg.query(
+      'UPDATE registration SET cancelled_at = now(), student_id = NULL WHERE id = $1',
+      [ids[0]],
+    )
+    await t.pg.query('UPDATE registration SET name = NULL, student_id = NULL WHERE id = $1', [
+      ids[1],
+    ])
+    assert.equal(await answerRows(t), 4)
+    // 옛 학생회 파기는 새 표를 모르고 신청·양식 행을 지운다.
+    await t.pg.query('DELETE FROM registration_link')
+    await t.pg.query('DELETE FROM command_receipt')
+    await t.pg.query('DELETE FROM record_version WHERE record_id = ANY($1::uuid[])', [ids])
+    await t.pg.query('DELETE FROM registration WHERE id = ANY($1::uuid[])', [ids])
+    assert.equal(await answerRows(t), 0)
+    await t.pg.query('DELETE FROM registration_form WHERE id = $1', [form.id])
+    assert.equal(await t.count('SELECT count(*) AS n FROM registration_question'), 0)
+    assert.equal(await t.count('SELECT count(*) AS n FROM registration_question_choice'), 0)
+  }),
+)

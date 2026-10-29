@@ -5,9 +5,13 @@
 -- 그래서 답과 어긋난 옛 질문이 생기지 않아 판이 지킬 이력이 없고, 신청 0명일 때 바꾸면 행을 지우고 다시 넣는다.
 -- 답은 신청자 정보다. 판을 두지 않고 비울 때(입금 전·후 취소, 기한, 학생회 파기) 행을 지워 어디에도 남지 않게 한다(DEC-55).
 -- 같은 학생회인지는 양식·신청 기록의 학생회로 앱이 확인한다(RULE-50과 같은 꼴).
+-- 되돌린 배포(Render rollback)에서 이 표를 모르는 옛 코드가 돌아도 답이 남지 않게 DB가 지킨다:
+-- 양식·신청 행을 지우면(옛 학생회 파기) 질문·선택지·답이 따라 지워지고(ON DELETE CASCADE),
+-- 신청을 취소하거나 이름을 비우면(옛 취소·기한 비우기) 아래 트리거가 그 신청의 답을 지운다.
+-- 답→질문, 답→선택지 외래 키는 막는 채로 둔다. 답이 있는 질문을 지우는 일은 앱이 409로 막고, 이 키가 마지막 방어선이다.
 CREATE TABLE registration_question (
   id uuid PRIMARY KEY DEFAULT uuidv7(),
-  form_id uuid NOT NULL CONSTRAINT registration_question_form_id_fk REFERENCES registration_form (id),
+  form_id uuid NOT NULL CONSTRAINT registration_question_form_id_fk REFERENCES registration_form (id) ON DELETE CASCADE,
   position integer NOT NULL CONSTRAINT registration_question_position_check CHECK (position > 0),
   kind text NOT NULL CONSTRAINT registration_question_kind_check CHECK (kind IN ('short_text', 'single_choice', 'multiple_choice')),
   title text NOT NULL CONSTRAINT registration_question_title_check CHECK (char_length(title) BETWEEN 1 AND 100),
@@ -26,7 +30,7 @@ CREATE TABLE registration_question_choice (
   label text NOT NULL CONSTRAINT registration_question_choice_label_check CHECK (char_length(label) BETWEEN 1 AND 50),
   CONSTRAINT registration_question_choice_question_position_key UNIQUE (question_id, position),
   CONSTRAINT registration_question_choice_id_question_key UNIQUE (id, question_id),
-  CONSTRAINT registration_question_choice_question_fk FOREIGN KEY (question_id, form_id) REFERENCES registration_question (id, form_id)
+  CONSTRAINT registration_question_choice_question_fk FOREIGN KEY (question_id, form_id) REFERENCES registration_question (id, form_id) ON DELETE CASCADE
 );
 --> statement-breakpoint
 CREATE INDEX registration_question_choice_form_id_idx ON registration_question_choice (form_id);
@@ -34,7 +38,7 @@ CREATE INDEX registration_question_choice_form_id_idx ON registration_question_c
 -- 답 한 행: 짧은 답은 글 하나, 하나 고르기는 선택지 하나, 여럿 고르기는 고른 선택지마다 한 행이다. 답하지 않은 질문은 행이 없다.
 CREATE TABLE registration_answer (
   id uuid PRIMARY KEY DEFAULT uuidv7(),
-  registration_id uuid NOT NULL CONSTRAINT registration_answer_registration_id_fk REFERENCES registration (id),
+  registration_id uuid NOT NULL CONSTRAINT registration_answer_registration_id_fk REFERENCES registration (id) ON DELETE CASCADE,
   question_id uuid NOT NULL CONSTRAINT registration_answer_question_id_fk REFERENCES registration_question (id),
   choice_id uuid,
   text_value text CONSTRAINT registration_answer_text_value_check CHECK (char_length(text_value) BETWEEN 1 AND 200),
@@ -46,3 +50,15 @@ CREATE TABLE registration_answer (
 CREATE INDEX registration_answer_question_id_idx ON registration_answer (question_id);
 --> statement-breakpoint
 CREATE INDEX registration_answer_choice_id_idx ON registration_answer (choice_id);
+--> statement-breakpoint
+-- 취소(cancelled_at)나 이름 비우기(name NULL)가 일어난 신청의 답을 지운다. 지금 코드도 같은 거래에서 먼저 지우므로 보통은 지울 것이 없다.
+CREATE FUNCTION registration_answer_clear() RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+  DELETE FROM registration_answer WHERE registration_id = NEW.id;
+  RETURN NULL;
+END
+$$;
+--> statement-breakpoint
+CREATE TRIGGER registration_answer_clear AFTER UPDATE OF cancelled_at, name ON registration
+  FOR EACH ROW WHEN (NEW.cancelled_at IS NOT NULL OR NEW.name IS NULL)
+  EXECUTE FUNCTION registration_answer_clear();
