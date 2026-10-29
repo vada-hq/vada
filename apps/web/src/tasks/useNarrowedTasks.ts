@@ -1,44 +1,32 @@
-import { useMemo } from 'react'
 import {
-  koreanDateOf,
+  TASK_NARROW_KEYS,
   type CouncilView,
   type TeamResponse,
   type TaskSummary,
 } from '@vada/contracts'
-import { useNow } from '@/lib/use-now'
 import { recalledDepartment } from '@/lib/menu-memory'
-import {
-  homeScopeActive,
-  homeScopeLabel,
-  inHomeTaskScope,
-  type HomeTaskScope,
-} from './home-task-scope'
+import type { TaskNarrow } from './task-api'
+import { homeScopeActive, homeScopeLabel } from './home-task-scope'
 import { useTasks, type TaskList } from './useTasks'
-import { chipCounts, matchesTaskChips, type TaskChipCounts, type TaskChipScope } from './task-chips'
+import { chipCounts, type TaskChipCounts } from './task-chips'
 import { BOARD_SCOPE, CHIP_LABEL, MY_DEPARTMENT, NO_DEPARTMENT } from './task-chip-text'
 import type { useTaskControls } from './useTaskControls'
 
-// 부서를 고른 보기는 그 부서의 업무만 남긴다(홈의 부서 줄이 연다).
-// 새 배열이 렌더마다 만들어지면 표가 목록이 바뀐 줄로 알고 고른 값을 지우므로, 읽은 목록이 바뀔 때만 다시 만든다.
-export function useNarrowed(
-  list: TaskList,
-  department: string | null,
-  scope: HomeTaskScope & TaskChipScope,
-  council: CouncilView,
-): TaskList {
-  const { state, reload } = list
-  const today = koreanDateOf(useNow())
-  const { heads, attention, week, assignee, due, view } = scope
-  return useMemo(() => {
-    if (state.kind !== 'ready') return { state, reload }
-    const tasks = state.tasks.filter(
-      task =>
-        matchesTaskChips(task, department, { due, view }, council.me.memberId) &&
-        inHomeTaskScope(task, { heads, attention, week, assignee }, council, today),
-    )
-    return { reload, state: { ...state, tasks } }
-  }, [state, reload, department, heads, attention, week, assignee, due, view, council, today])
+type Controls = ReturnType<typeof useTaskControls>
+
+// 칩·홈 범위(부서, 마감, 담당자, 확인 필요, 직급 부서)는 서버가 목록 상한 전에 거른다. 화면은 다시 거르지 않는다.
+// 담당자 없음은 보기(listView=unassigned)가 이미 실으므로 담당자 키로는 사람만 보낸다.
+export function listNarrowOf(controls: Controls): TaskNarrow {
+  return {
+    dept: controls.dept,
+    due: controls.due,
+    assignee: controls.assignee === 'none' ? null : controls.assignee,
+    attention: controls.attention ? 'true' : null,
+    heads: controls.heads ? 'true' : null,
+  }
 }
+
+export const isNarrowed = (narrow: TaskNarrow) => TASK_NARROW_KEYS.some(key => narrow[key])
 
 export type TaskChipData = {
   counts: TaskChipCounts | null
@@ -46,7 +34,6 @@ export type TaskChipData = {
   departments: { id: string; name: string }[]
   members: { id: string; name: string }[]
 }
-type Controls = ReturnType<typeof useTaskControls>
 
 type ChipSource = TaskChipData & { tasks: TaskSummary[] }
 
@@ -105,14 +92,18 @@ function chipSource(
   }
 }
 
-// 표의 끝남이나 서버가 거른 목록을 보더라도 칩 수는 전체 열린 업무에서 센다. 기본 목록이 전체·열림이면 같은 응답을 다시 쓴다.
+// 표의 끝남이나 서버가 거른 목록을 보더라도 칩 수는 전체 열린 업무에서 센다. 기본 목록이 거르지 않은 전체·열림이면 같은 응답을 다시 쓴다.
+// 따로 읽을 때는 업무를 바꾼 뒤 그 목록도 다시 읽는다(reload).
 export function useTaskChipData(
   lists: { list: TaskList; both: boolean },
   controls: Controls,
   props: { view: CouncilView; onForbidden: () => void },
   team: TeamResponse | null,
 ) {
-  const extra = controls.listView !== 'all' || (!lists.both && controls.filter === 'done')
+  const extra =
+    controls.listView !== 'all' ||
+    isNarrowed(listNarrowOf(controls)) ||
+    (!lists.both && controls.filter === 'done')
   const open = useTasks(
     props.view.council.id,
     { view: 'all', filter: 'open', eventId: controls.listEvent },
@@ -122,5 +113,9 @@ export function useTaskChipData(
   const { state } = extra ? open : lists.list
   const data = chipSource(state, controls, props.view.me.memberId, team)
   const label = narrowLabel(controls, props.view, data)
-  return { data, narrow: label ? { label, onClear: controls.clearNarrow } : undefined }
+  return {
+    data,
+    narrow: label ? { label, onClear: controls.clearNarrow } : undefined,
+    reload: async () => (extra ? open.reload() : undefined),
+  }
 }

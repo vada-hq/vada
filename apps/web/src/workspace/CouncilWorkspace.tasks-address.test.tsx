@@ -7,6 +7,7 @@ import { roomList } from '@/test-support/chat-fixtures'
 import { EVENT_ID, eventDetail, eventSummary } from '@/test-support/event-fixtures'
 import { homeResponse, homeTask, homeWithTasks, onHomeExtras } from '@/test-support/home-fixtures'
 import { json, mockApi } from '@/test-support/mock-api'
+import { narrowedTasksResponse } from '@/test-support/task-list-fake'
 import { taskDetail } from '@/test-support/task-detail-fixtures'
 import { COUNCIL_ID, WorkspaceAt } from '@/test-support/workspace-at'
 import { resetWindowHistory, windowHistoryIdle } from '@/lib/use-window-history'
@@ -81,6 +82,21 @@ function setup(
   for (const status of ['open', 'done'])
     api.on('GET', list('unassigned', status), () => json({ tasks: [], truncated: false }))
 
+  // 부서 칩을 켠 목록은 서버가 상한 전에 거른다. 가짜 서버가 같은 거르기를 건다.
+  api.onPrefix(
+    'GET',
+    `${base}/tasks?`,
+    narrowedTasksResponse(
+      path =>
+        path.includes('status=done')
+          ? []
+          : [
+              task(T1, { department: planning }),
+              task(T2, { department: finance, title: '정산 업무' }),
+            ],
+      { memberId: 'm1' },
+    ),
+  )
   api.on('GET', list('department'), () =>
     json({
       tasks: [

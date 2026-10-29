@@ -38,3 +38,33 @@ test('같은 키 두 번, 모르는 키, 틀린 값, 빠진 view는 INVALID_INPU
       JSON.stringify(query),
     )
 })
+
+test('거르기 키는 화면 주소와 같은 값을 받고 부서·담당자 번호는 소문자로 읽는다', () => {
+  const id = '0199D1A0-0000-7000-8000-0000000000D1'
+  assert.deepEqual(
+    listQueryOf({
+      view: ['all'],
+      dept: [id],
+      due: ['week'],
+      assignee: ['none'],
+      attention: ['true'],
+      heads: ['true'],
+    }),
+    {
+      view: 'all',
+      status: 'open',
+      dept: id.toLowerCase(),
+      due: 'week',
+      assignee: 'none',
+      attention: 'true',
+      heads: 'true',
+    },
+  )
+  for (const bad of [
+    { due: ['soon'] },
+    { dept: ['x'] },
+    { attention: ['1'] },
+    { heads: ['false'] },
+  ])
+    assert.throws(() => listQueryOf({ view: ['all'], ...bad }), ApiError, JSON.stringify(bad))
+})

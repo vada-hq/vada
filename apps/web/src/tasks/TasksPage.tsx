@@ -28,7 +28,7 @@ import { useTaskAssign } from './useTaskAssign'
 import { useTaskCells } from './useTaskCells'
 import { useTaskLists } from './useTaskLists'
 import { useTaskRemove } from './useTaskRemove'
-import { useNarrowed, useTaskChipData } from './useNarrowedTasks'
+import { listNarrowOf, isNarrowed, useTaskChipData } from './useNarrowedTasks'
 import { useTaskOpeners } from './useTaskOpeners'
 import { MyTasksPage } from './MyTasksPage'
 import { viewEmptyText } from './task-text'
@@ -54,33 +54,35 @@ function useTasksPage(props: Props) {
   const councilId = props.view.council.id
   const inEvent = props.eventId !== undefined
   const controls = useTaskControls(councilId, props.eventId, props.view.me.memberId)
-  const { view, filter, layout, dept } = controls
+  const { view, filter, layout } = controls
   const dialogs = useRecordDialogs(props.initialTaskId)
   const opened = useTaskOpeners(councilId, inEvent)
   const wide = useSplit()
+  const narrow = listNarrowOf(controls)
   const lists = useTaskLists(props, {
     view: controls.listView,
     filter,
     layout,
     wide,
     listEvent: controls.listEvent,
+    narrow,
   })
-  const list = useNarrowed(lists.list, dept, controls, props.view)
-  const done = useNarrowed(lists.done, dept, controls, props.view)
-  const { events } = lists
+  const { list, done, events } = lists
   const shape = pageLayoutOf(controls, wide)
   const { board, statusTabs } = shape
   const councilEmpty = useBoardEmpty({
     councilId,
     eventId: controls.listEvent,
     view: controls.listView,
+    narrowed: isNarrowed(narrow),
     board: board || statusTabs,
-    raw: [lists.list, lists.done],
     shown: [list, done],
     onForbidden: props.onForbidden,
   })
+  const team = useTeam(councilId, props.onForbidden)
+  const chips = useTaskChipData(lists, controls, props, team.data)
   const reloaded = async () => {
-    const reloads = [list.reload()]
+    const reloads = [list.reload(), chips.reload()]
     if (lists.both) reloads.push(done.reload())
     props.onChanged()
     await Promise.all(reloads)
@@ -98,8 +100,6 @@ function useTasksPage(props: Props) {
   const eventUndo = useTaskEventUndo(councilId, changed, props.onForbidden)
   const onEventChanged = controls.listEvent === 'none' ? eventUndo.note : undefined
   const assign = useTaskAssign(councilId, changed, props.onForbidden, undo.note)
-  const team = useTeam(councilId, props.onForbidden)
-  const chips = useTaskChipData(lists, controls, props, team.data)
   const cells = useTaskCells(councilId, {
     onDone: changed,
     onForbidden: props.onForbidden,

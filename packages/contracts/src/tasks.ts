@@ -18,12 +18,29 @@ export type TaskView = (typeof TASK_VIEWS)[number]
 export const TASK_FILTERS = ['open', 'done'] as const
 export type TaskFilter = (typeof TASK_FILTERS)[number]
 
+// 업무 화면의 마감 칩: 지남, 마감 없음, 오늘부터 7일째(HOME_SOON_DAYS)까지. 셋 다 끝나지 않은 업무만 남긴다.
+export const TASK_DUE_FILTERS = ['week', 'overdue', 'none'] as const
+const recordOrNone = z.union([recordIdInput, z.literal('none')])
+
+// 화면의 칩·홈 범위를 목록 상한 전에 서버가 건다(상한 뒤 업무가 거른 결과에서 빠지지 않게). 키와 값은 화면 주소(paths.ts)와 같다.
+// dept: 그 부서(none은 부서 없음). assignee: 그 사람(none은 담당자 없음, view=unassigned와 같다).
+// attention: 지남이거나 담당자 없음. heads: 내가 직급을 가진 부서. 다른 학생회의 부서·사람 번호는 빈 목록이다.
+export const TASK_NARROW_KEYS = ['dept', 'due', 'assignee', 'attention', 'heads'] as const
+const TaskNarrowShape = {
+  dept: recordOrNone.optional(),
+  due: z.enum(TASK_DUE_FILTERS).optional(),
+  assignee: recordOrNone.optional(),
+  attention: z.literal('true').optional(),
+  heads: z.literal('true').optional(),
+} satisfies Record<(typeof TASK_NARROW_KEYS)[number], z.ZodType>
+
 // 업무 목록의 쿼리. 모르는 키와 틀린 값은 400이다. 같은 키를 두 번 주는 것은 서버가 먼저 막는다.
 export const TaskListQuerySchema = z.strictObject({
   view: z.enum(TASK_VIEWS),
   status: z.enum(TASK_FILTERS).default('open'),
   // none은 행사 없는 업무만, 식별자는 그 행사의 업무만. 다른 학생회 행사는 서버가 404로 답한다.
-  event: z.union([recordIdInput, z.literal('none')]).optional(),
+  event: recordOrNone.optional(),
+  ...TaskNarrowShape,
 })
 export type TaskListQuery = z.infer<typeof TaskListQuerySchema>
 

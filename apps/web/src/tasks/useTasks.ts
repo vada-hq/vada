@@ -4,7 +4,7 @@ import { getJson } from '@/lib/api'
 import { useActive } from '@/lib/use-active'
 import { useLatest } from '@/lib/use-latest'
 import { LIST_POLL_MS, useVisiblePoll } from '@/lib/use-visible-poll'
-import { tasksPath } from './task-api'
+import { tasksPath, type TaskNarrow } from './task-api'
 
 // notFound: 거르기로 준 행사가 없다(지워졌거나 다른 학생회). 화면이 거르기를 풀 수 있게 알린다.
 type Loaded =
@@ -12,15 +12,21 @@ type Loaded =
   | { kind: 'ready'; tasks: TasksResponse['tasks']; truncated: boolean }
 type TasksState = { kind: 'loading' } | Loaded
 
-// 업무 목록 하나(보기와 거르기). 화면이 보이는 동안 15초마다, 화면이 다시 보일 때, 알림이 올 때 다시 읽는다.
+// 업무 목록 하나(보기와 거르기, 서버가 거르는 칩·홈 범위). 화면이 보이는 동안 15초마다, 화면이 다시 보일 때, 알림이 올 때 다시 읽는다.
 // 탭을 바꾸면 이전 탭의 늦은 응답은 버린다. 읽다 실패해도 보이던 목록은 그대로 둔다. 권한이 바뀌었으면(403) 학생회를 다시 읽게 한다.
 export function useTasks(
   councilId: string,
-  { view, filter, eventId }: { view: TaskView; filter: TaskFilter; eventId?: string | undefined },
+  {
+    view,
+    filter,
+    eventId,
+    narrow = {},
+  }: { view: TaskView; filter: TaskFilter; eventId?: string | undefined; narrow?: TaskNarrow },
   onForbidden: () => void,
   enabled = true,
 ) {
-  const key = `${councilId}|${view}|${filter}|${eventId ?? ''}`
+  // 주소가 보기·거르기·행사·범위를 모두 담으므로 읽기의 열쇠로 쓴다(렌더마다 새 narrow 객체여도 같은 글자다).
+  const key = tasksPath(councilId, { view, status: filter, eventId }, narrow)
   const [loaded, setLoaded] = useState<{ key: string; state: Loaded } | null>(null)
   const forbidden = useLatest(onForbidden)
   const latestKey = useLatest(key)
@@ -30,8 +36,8 @@ export function useTasks(
     // 꺼질 때도 차례를 올려, 꺼지기 전에 보낸 읽기의 늦은 응답을 버린다.
     const seq = ++issued.current
     if (!enabled) return
-    const mine = latestKey.current
-    const result = await getJson<TasksResponse>(tasksPath(councilId, view, filter, eventId))
+    const mine = key
+    const result = await getJson<TasksResponse>(mine)
     // 더 나중에 보낸 읽기가 있거나(탭을 바꿈 포함) 화면이 사라졌거나 보낸 뒤 거르기가 바뀌었으면 이 응답은 버린다.
     if (seq !== issued.current || !isActive() || mine !== latestKey.current) return
     if (result.ok) {
@@ -46,7 +52,7 @@ export function useTasks(
         ? before
         : { key: mine, state: { kind: 'failed', notFound } },
     )
-  }, [councilId, view, filter, eventId, enabled, forbidden, isActive, latestKey])
+  }, [key, enabled, forbidden, isActive, latestKey])
   useEffect(() => {
     void load()
   }, [load])

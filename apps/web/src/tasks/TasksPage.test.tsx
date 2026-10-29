@@ -207,15 +207,15 @@ test('부서가 없으면 내 부서 탭이 없고, 있으면 내 부서 업무�
     }),
   )
   api.on('GET', listPath('mine'), () => list([]))
-  api.on('GET', listPath('department'), () =>
-    list([
-      task('1', {
-        department: { id: '0199d1a0-0000-7000-8000-0000000000d2', name: '기획부' },
-        status: 'in_progress',
-        next: 'done',
-      }),
-    ]),
-  )
+  const planning = planningHead.me.departments[0]!.id
+  const planned = task('1', {
+    department: { id: planning, name: '기획부' },
+    status: 'in_progress',
+    next: 'done',
+  })
+  api.on('GET', listPath('department'), () => list([planned]))
+  // 부서 칩은 서버가 상한 전에 거른다.
+  api.on('GET', `${listPath('department')}&dept=${planning}`, () => list([planned]))
   const { unmount } = render(
     <TasksPage view={councilView(COUNCIL_ID)} onForbidden={() => {}} onChanged={() => {}} />,
   )

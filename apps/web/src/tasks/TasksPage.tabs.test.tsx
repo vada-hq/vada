@@ -6,6 +6,7 @@ import { councilView, teamResponse } from '@/test-support/council-fixtures'
 import { COUNCIL_ID } from '@/test-support/workspace-at'
 import { EVENT_ID } from '@/test-support/event-fixtures'
 import { json, mockApi } from '@/test-support/mock-api'
+import { narrowedTasksResponse } from '@/test-support/task-list-fake'
 import { withTaskTab } from '@/lib/task-layout'
 import { taskDetail } from '@/test-support/task-detail-fixtures'
 import TasksPage from './TasksPage'
@@ -28,11 +29,14 @@ function setup(
 ) {
   const api = mockApi()
   const base = `/api/organizations/${COUNCIL_ID}`
-  for (const view of ['all', 'mine', 'unassigned', 'department'])
-    for (const event of ['', '&event=none', `&event=${EVENT_ID}`])
-      api.on('GET', `${base}/tasks?view=${view}&status=open${event}`, () =>
-        json({ tasks, truncated }),
-      )
+  // 보기(내 업무·담당자 없음)와 칩은 서버가 상한 전에 거른다. 서버처럼 적용해 답한다(행사는 가리지 않는다).
+  const me = councilView(COUNCIL_ID, options).me
+  const heads = me.departments.filter(dept => dept.rank !== null).map(dept => dept.id)
+  api.onPrefix(
+    'GET',
+    `${base}/tasks?`,
+    narrowedTasksResponse(() => tasks, { memberId: me.memberId, heads }, truncated),
+  )
   api.on('GET', `${base}/members`, () => {
     const team = teamResponse()
     return json({

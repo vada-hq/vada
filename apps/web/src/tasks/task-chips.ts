@@ -1,11 +1,10 @@
-import type { TaskSummary, TaskView } from '@vada/contracts'
+import type { TaskSummary } from '@vada/contracts'
 import { isUnassignedTask } from './task-unassigned'
 
 export type TaskChipCounts = { overdue: number; mine: number; unassigned: number; noDue: number }
-export type TaskChipScope = { due?: string | null | undefined; view?: TaskView | undefined }
 export type TaskChip = 'overdue' | 'unassigned' | 'none'
 
-// 수의 원문은 그 탭·행사 범위의 열린 목록이다. 누른 칩과 부서·사람·토글은 이 목록에 적용하지 않는다.
+// 수의 원문은 그 탭·행사 범위의 열린 목록이다. 누른 칩과 부서·사람·토글은 이 목록에 적용하지 않는다(서버가 거른 보이는 목록과 따로 읽는다).
 export function chipCounts(tasks: TaskSummary[], memberId: string): TaskChipCounts {
   const open = tasks.filter(task => task.status !== 'done')
   return {
@@ -14,24 +13,6 @@ export function chipCounts(tasks: TaskSummary[], memberId: string): TaskChipCoun
     unassigned: open.filter(isUnassignedTask).length,
     noDue: open.filter(task => task.dueDate === null).length,
   }
-}
-
-export function matchesTaskChips(
-  task: TaskSummary,
-  department: string | null,
-  scope: TaskChipScope,
-  memberId: string,
-) {
-  const dept = department === 'none' ? task.department === null : task.department?.id === department
-  if (department !== null && !dept) return false
-  if (scope.view === 'mine' && task.assignee?.id !== memberId) return false
-  return matchesDue(task, scope.due)
-}
-
-function matchesDue(task: TaskSummary, due: TaskChipScope['due']) {
-  if (due === 'overdue') return task.status !== 'done' && task.overdue
-  if (due === 'none') return task.status !== 'done' && task.dueDate === null
-  return true
 }
 
 // 담당자 없음과 마감 칩은 둘 중 하나만 남긴다. UUID 담당자는 마감 칩과 겹쳐 걸 수 있다.

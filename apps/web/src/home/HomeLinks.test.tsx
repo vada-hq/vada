@@ -11,6 +11,7 @@ import {
   noRooms,
 } from '@/test-support/home-fixtures'
 import { json, mockApi } from '@/test-support/mock-api'
+import { narrowedTasksResponse } from '@/test-support/task-list-fake'
 import { taskDetail } from '@/test-support/task-detail-fixtures'
 import { rememberTaskTab } from '@/lib/task-layout'
 import TasksPage from '@/tasks/TasksPage'
@@ -112,14 +113,16 @@ function departmentBoard(items: TaskSummary[]): HomeDepartmentBoard {
   }
 }
 
-function taskSource(task: TaskSummary, source: string) {
-  if (source === '&event=none') return task.event === null
-  return source !== `&event=${E}` || task.event?.id === E
-}
-
-function taskScope(task: TaskSummary, scope: string) {
-  if (scope === 'mine') return task.assignee?.id === person.id
-  return scope !== 'unassigned' || task.assignee === null || !task.assignee.current
+// 행사(event)와 상태(status)로 고른 거르기 전 목록. 보기·칩은 가짜 서버(narrowedTasksResponse)가 건다.
+function listOf(list: TaskSummary[], path: string) {
+  const query = new URL(path, 'http://localhost').searchParams
+  const event = query.get('event')
+  const done = query.get('status') === 'done'
+  return list.filter(
+    task =>
+      (task.status === 'done') === done &&
+      (event === null || (event === 'none' ? task.event === null : task.event?.id === event)),
+  )
 }
 
 function setup(home: HomeResponse, list = tasks) {
@@ -137,21 +140,14 @@ function setup(home: HomeResponse, list = tasks) {
     return json({ ...team, departments: [department, other] })
   })
   // jsdom 폭은 1024px 아래라 도착 화면은 상태 탭이고, 끝남 탭 수를 세려고 끝난 업무도 읽는다.
-  for (const scope of ['all', 'unassigned', 'mine']) {
-    for (const source of ['', '&event=none', `&event=${E}`]) {
-      for (const status of ['open', 'done'] as const) {
-        const scoped = list.filter(
-          task =>
-            (task.status === 'done') === (status === 'done') &&
-            taskSource(task, source) &&
-            taskScope(task, scope),
-        )
-        api.on('GET', `${base}/tasks?view=${scope}&status=${status}${source}`, () =>
-          json({ tasks: scoped, truncated: false }),
-        )
-      }
-    }
-  }
+  api.onPrefix(
+    'GET',
+    `${base}/tasks?`,
+    narrowedTasksResponse(path => listOf(list, path), {
+      memberId: person.id,
+      heads: [department.id],
+    }),
+  )
   const shown = render(
     <HomePage
       view={view}

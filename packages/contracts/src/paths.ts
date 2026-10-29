@@ -3,7 +3,8 @@ import { CALENDAR_KINDS } from './calendar.js'
 import { MEETING_STATUSES } from './meetings.js'
 import { isUuid } from './input.js'
 import { PURCHASE_STAGES, PURCHASE_VIEWS } from './purchases.js'
-import { TASK_FILTERS, TASK_STATUSES, TASK_VIEWS, type TaskStatus, type TaskView } from './tasks.js'
+import { TASK_DUE_FILTERS, TASK_FILTERS, TASK_STATUSES, TASK_VIEWS } from './tasks.js'
+import type { TaskStatus, TaskView } from './tasks.js'
 
 // 화면 주소의 원문(기능 016). 서버 진입 목록(web.ts), 알림 주소(push.ts), 화면 해석기가 모두 이것만 쓴다.
 // 주소는 볼 권한을 주지 않는다. 학생회 격리는 서버의 읽기가 요청마다 지킨다.
@@ -97,7 +98,7 @@ const taskQuery = (startView: TaskView | null, onlyWith?: QueryRule['onlyWith'])
     assignee: { values: 'uuid', also: ['none'], fallback: null, onlyWith },
     heads: { values: ['true'], fallback: null, onlyWith },
     attention: { values: ['true'], fallback: null, onlyWith },
-    due: { values: ['week', 'overdue', 'none'], fallback: null, onlyWith },
+    due: { values: TASK_DUE_FILTERS, fallback: null, onlyWith },
     // 1024px 아래에서 보드 대신 고른 상태 탭(026 조각 4). 내 업무의 state와 겹치지 않게 따로 둔다.
     col: { values: TASK_STATUSES, fallback: 'todo', onlyWith },
   }) satisfies QuerySpec

@@ -1,5 +1,8 @@
 import { and, asc, eq, exists, inArray, isNull, ne, or, sql, type SQL } from 'drizzle-orm'
 import {
+  DAY_MS,
+  HOME_SOON_DAYS,
+  koreanDateOf,
   TASK_DONE_LIMIT,
   TASK_OPEN_LIMIT,
   type TaskDetail,
@@ -129,6 +132,48 @@ function viewCondition(db: Reader, actor: Actor, view: TaskView, now: Date): SQL
   return unassignedCondition(db, actor, now)
 }
 
+// 화면의 칩·홈 범위(TaskNarrow)를 상한 전에 건다. 지남·마감·확인 필요·담당자 없음은 끝나지 않은 업무만이라 끝남 목록에서는 비어 있다.
+// 지남은 isOverdue(due.ts)와 같은 판단(오늘 한국 날짜가 마감일 뒤)을 SQL로 쓴 것이다. 상한 전에 걸러야 해서 따로 둔다.
+// 날짜는 한국 날짜 글자로 넘긴다(raw sql에 Date를 넘기면 운영 드라이버가 깨진다).
+const dueDay = sql`(${task.dueAt} at time zone 'Asia/Seoul')::date`
+const open = ne(task.status, 'done')
+const overdueCondition = (today: string) => and(open, sql`${dueDay} < ${today}::date`)
+
+function dueCondition(due: TaskListQuery['due'], now: Date) {
+  if (due === undefined) return undefined
+  if (due === 'none') return and(open, isNull(task.dueAt))
+  const today = koreanDateOf(now)
+  if (due === 'overdue') return overdueCondition(today)
+  const last = koreanDateOf(new Date(now.getTime() + HOME_SOON_DAYS * DAY_MS))
+  return and(open, sql`${dueDay} between ${today}::date and ${last}::date`)
+}
+
+const deptCondition = (dept: TaskListQuery['dept']) =>
+  dept === 'none' ? isNull(task.departmentId) : dept ? eq(task.departmentId, dept) : undefined
+
+function assigneeCondition(db: Reader, actor: Actor, query: TaskListQuery, now: Date) {
+  if (query.assignee === 'none') return unassignedCondition(db, actor, now)
+  return query.assignee ? eq(task.assigneeId, query.assignee) : undefined
+}
+
+// 직급 부서는 학생회 응답(council.me.departments)의 rank와 같은 원천이다. 없으면 빈 목록이다.
+function headsCondition(actor: Actor) {
+  const ids = actor.departments.filter(item => item.rank !== null).map(item => item.departmentId)
+  return ids.length > 0 ? inArray(task.departmentId, ids) : sql`false`
+}
+
+function narrowCondition(db: Reader, actor: Actor, query: TaskListQuery, now: Date) {
+  return and(
+    deptCondition(query.dept),
+    dueCondition(query.due, now),
+    assigneeCondition(db, actor, query, now),
+    query.attention
+      ? or(overdueCondition(koreanDateOf(now)), unassignedCondition(db, actor, now))
+      : undefined,
+    query.heads ? headsCondition(actor) : undefined,
+  )
+}
+
 // 끝나지 않은 것은 마감 순(없으면 뒤)에 만든 순, 끝남은 마지막으로 바뀐 순이다. 한 개 더 읽어 넘쳤는지 안다.
 function listRows(db: Reader, actor: Actor, query: TaskListQuery, now: Date) {
   const scope = and(
@@ -140,6 +185,7 @@ function listRows(db: Reader, actor: Actor, query: TaskListQuery, now: Date) {
       : query.event
         ? eq(task.eventId, query.event)
         : undefined,
+    narrowCondition(db, actor, query, now),
   )
   const base = taskSelect(db, actor, now)
   if (query.status === 'open')

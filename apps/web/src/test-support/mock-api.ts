@@ -27,6 +27,8 @@ export function mockApi() {
   const routes = new Map<string, Handler>([
     ['GET /api/me/agreement', () => json(agreementResponse())],
   ])
+  // 정확한 주소가 없을 때 쓰는 앞부분 처리(쿼리를 서버처럼 읽는 가짜 목록 등). 먼저 단 것이 먼저다.
+  const prefixes: [string, Handler][] = []
   const unexpected: string[] = []
   const calls: ApiCall[] = []
   vi.stubGlobal(
@@ -35,8 +37,11 @@ export function mockApi() {
       const { url, call } = describeRequest(input, init)
       const { method, path } = call
       calls.push(call)
+      const key = `${method} ${path}`
       const handler =
-        url.origin === 'http://localhost' ? routes.get(`${method} ${path}`) : undefined
+        url.origin === 'http://localhost'
+          ? (routes.get(key) ?? prefixes.find(([prefix]) => key.startsWith(prefix))?.[1])
+          : undefined
       if (!handler) {
         const message = `Unregistered API request: ${method} ${url.href}`
         unexpected.push(message)
@@ -49,6 +54,9 @@ export function mockApi() {
     calls,
     on(method: string, path: string, handler: Handler) {
       routes.set(`${method.toUpperCase()} ${path}`, handler)
+    },
+    onPrefix(method: string, prefix: string, handler: Handler) {
+      prefixes.push([`${method.toUpperCase()} ${prefix}`, handler])
     },
     assertNoUnexpectedRequests() {
       if (unexpected.length) throw new Error(unexpected.join('\n'))
