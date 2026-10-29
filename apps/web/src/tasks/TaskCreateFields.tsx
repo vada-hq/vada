@@ -1,6 +1,7 @@
 import type { Dispatch, SetStateAction } from 'react'
 import { TASK_BODY_MAX, TASK_TITLE_MAX, type TaskCreateOptionsResponse } from '@vada/contracts'
 import { Field } from '@/components/ui/field'
+import { DateField } from '@/components/ui/date-field'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import type { FieldErrors } from '@/lib/use-form-check'
@@ -83,12 +84,11 @@ function Assignment(props: Props) {
           onChange={assigneeId => onValues(before => ({ ...before, assigneeId }))}
         />
         <Field label={text.dueDate} optional error={errors.dueDate}>
-          <Input
-            type="date"
-            className={inputClass}
+          <DateField
+            clearable
             value={values.dueDate}
             disabled={busy}
-            onChange={event => onValues(before => ({ ...before, dueDate: event.target.value }))}
+            onChange={dueDate => onValues(before => ({ ...before, dueDate }))}
           />
         </Field>
       </div>

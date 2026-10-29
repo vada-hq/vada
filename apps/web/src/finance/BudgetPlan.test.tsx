@@ -60,7 +60,8 @@ test('회계 기간 만들기는 오늘이 든 학기로 채워진다(4월이면
   show(FINANCE_PERMISSIONS, budgetWithoutPeriod())
   fireEvent.click(await screen.findByRole('button', { name: '회계 기간 만들기' }))
   await screen.findByRole('form', { name: '회계 기간 만들기' })
-  expect([input('이름').value, input('시작일').value, input('끝일').value]).toEqual([
+  const value = (label: string) => screen.getByLabelText(label).getAttribute('value')
+  expect([input('이름').value, value('시작일'), value('끝일')]).toEqual([
     '2026년 1학기',
     '2026-01-01',
     '2026-06-30',

@@ -9,6 +9,7 @@ import {
 import { json, mockApi } from '@/test-support/mock-api'
 import CouncilSettings from './CouncilSettings'
 import { asElement } from '@/test-support/elements'
+import { pickDate } from '@/test-support/date-field'
 
 afterEach(() => {
   cleanup()
@@ -79,8 +80,8 @@ test('임기 시작이 오늘 뒤면 저장하지 못한 까닭을 보인다', a
     />,
   )
   const form = screen.getByRole('form', { name: '지금 기수' })
-  fireEvent.change(within(form).getByLabelText('임기 시작'), { target: { value: '2027-03-01' } })
-  fireEvent.change(within(form).getByLabelText('임기 끝'), { target: { value: '2028-02-29' } })
+  await pickDate(within(form).getByLabelText('임기 시작'), '2027-03-01')
+  await pickDate(within(form).getByLabelText('임기 끝'), '2028-02-29')
   fireEvent.click(within(form).getByRole('button', { name: '기수 저장' }))
   expect(await within(form).findByText('임기 시작은 오늘이나 그 전이어야 해요.')).toBeTruthy()
   expect(api.calls[0]?.body).toEqual({ name: '2026', startsOn: '2027-03-01', endsOn: '2028-02-29' })
@@ -97,8 +98,8 @@ test('임기 시작을 지난 기수보다 앞으로 옮기면 저장하지 못�
     />,
   )
   const form = screen.getByRole('form', { name: '지금 기수' })
-  fireEvent.change(within(form).getByLabelText('임기 시작'), { target: { value: '2024-01-01' } })
-  fireEvent.change(within(form).getByLabelText('임기 끝'), { target: { value: '2024-06-30' } })
+  await pickDate(within(form).getByLabelText('임기 시작'), '2024-01-01')
+  await pickDate(within(form).getByLabelText('임기 끝'), '2024-06-30')
   fireEvent.click(within(form).getByRole('button', { name: '기수 저장' }))
   expect(
     await within(form).findByText('임기 시작을 지난 기수보다 앞으로 옮길 수 없어요.'),
@@ -211,7 +212,7 @@ test('저장했어요 문구는 다시 고치는 순간 사라진다', async () 
   expect(within(form).queryByText('저장했어요.')).toBeNull()
 })
 
-test('임기 끝이 시작보다 뒤가 아니면 기수 저장을 눌러도 보내지 않고 임기 끝 칸 아래에 까닭을 보인다', () => {
+test('임기 끝이 시작보다 뒤가 아니면 기수 저장을 눌러도 보내지 않고 임기 끝 칸 아래에 까닭을 보인다', async () => {
   const api = mockApi()
   render(
     <CouncilSettings
@@ -223,7 +224,7 @@ test('임기 끝이 시작보다 뒤가 아니면 기수 저장을 눌러도 보
   const form = screen.getByRole('form', { name: '지금 기수' })
   const save = within(form).getByRole('button', { name: '기수 저장' }) as HTMLButtonElement
   const reason = '임기 시작보다 뒤의 날짜를 입력해 주세요'
-  fireEvent.change(within(form).getByLabelText('임기 끝'), { target: { value: '2025-12-31' } })
+  await pickDate(within(form).getByLabelText('임기 끝'), '2025-12-31')
   // 누르기 전에는 보이지 않는다.
   expect(within(form).queryByText(reason)).toBeNull()
   expect(save.disabled).toBe(false)
@@ -231,9 +232,9 @@ test('임기 끝이 시작보다 뒤가 아니면 기수 저장을 눌러도 보
   expect(within(form).getByText(reason)).toBeTruthy()
   expect(within(form).getByLabelText('임기 끝').getAttribute('aria-invalid')).toBe('true')
   // 같은 날도 뒤가 아니다.
-  fireEvent.change(within(form).getByLabelText('임기 끝'), { target: { value: '2026-01-01' } })
+  await pickDate(within(form).getByLabelText('임기 끝'), '2026-01-01')
   expect(within(form).getByText(reason)).toBeTruthy()
-  fireEvent.change(within(form).getByLabelText('임기 끝'), { target: { value: '2026-06-30' } })
+  await pickDate(within(form).getByLabelText('임기 끝'), '2026-06-30')
   expect(within(form).queryByText(reason)).toBeNull()
   expect(api.calls.some(call => call.method === 'POST')).toBe(false)
 })

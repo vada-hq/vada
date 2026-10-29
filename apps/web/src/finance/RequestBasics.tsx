@@ -1,4 +1,5 @@
 import { Field } from '@/components/ui/field'
+import { DateField } from '@/components/ui/date-field'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import type { FieldErrors } from '@/lib/use-form-check'
@@ -67,11 +68,11 @@ export function RequestBasics({
       )}
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label="필요한 때" optional>
-          <Input
-            type="date"
+          <DateField
+            clearable
             value={values.neededBy}
             disabled={saving}
-            onChange={event => onChange({ neededBy: event.target.value })}
+            onChange={neededBy => onChange({ neededBy })}
           />
         </Field>
       </div>

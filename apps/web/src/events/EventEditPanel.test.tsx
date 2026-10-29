@@ -108,15 +108,19 @@ test('종료 시간 미정·장소 미정을 체크하면 그 칸이 꺼지고 �
   const panel = await openPanel()
   const end = within(panel).getByLabelText('종료 일시')
   const place = within(panel).getByLabelText('장소명')
-  expect(end).toHaveProperty('value', '2026-10-24T18:00')
+  expect(end).toHaveProperty('value', '2026-10-24')
+  expect(within(panel).getByRole('combobox', { name: '종료 시각' })).toHaveProperty(
+    'value',
+    '18:00',
+  )
   fireEvent.click(within(panel).getByRole('checkbox', { name: '종료 시간 미정' }))
   fireEvent.click(within(panel).getByRole('checkbox', { name: '장소 미정' }))
   expect(end).toHaveProperty('disabled', true)
   expect(end).toHaveProperty('value', '')
   expect(place).toHaveProperty('disabled', true)
-  // 장소 미정이면 칸을 숨기고, 종료 미정은 날짜 꼴 없는 막힌 빈칸이다.
+  // 장소 미정이면 칸을 숨기고, 종료 미정은 막힌 빈칸이다.
   expect(place).toHaveProperty('hidden', true)
-  expect(end.getAttribute('type')).toBe('text')
+  expect(end.textContent).toBe('')
   fireEvent.click(within(panel).getByRole('button', { name: '저장' }))
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
   expect(api.calls.find(call => call.method === 'POST')?.body).toEqual({

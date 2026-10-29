@@ -72,7 +72,11 @@ const fill = (label: string, value: string) =>
   fireEvent.change(screen.getByLabelText(label), { target: { value } })
 const value = (label: string) => {
   const field = screen.getByLabelText(label)
-  return field instanceof HTMLInputElement || field instanceof HTMLSelectElement ? field.value : ''
+  return field instanceof HTMLInputElement ||
+    field instanceof HTMLSelectElement ||
+    field instanceof HTMLButtonElement
+    ? field.value
+    : ''
 }
 
 test('지출 적기는 finance.manage가 있을 때만 메뉴에 있다', async () => {

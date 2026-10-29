@@ -14,6 +14,7 @@ import {
   MEETING_DEPARTMENT,
 } from './test-support/meeting-samples'
 import MeetingsPage from './MeetingsPage'
+import { pickDate } from '@/test-support/date-field'
 
 const base = `/api/organizations/${MEETING_COUNCIL}/meetings`
 let api: ReturnType<typeof mockApi>
@@ -230,9 +231,9 @@ test('부서를 바꾸면 서버 기본 참가자로 채우고 직접 고친 뒤
   fireEvent.click(other)
   fireEvent.change(screen.getByLabelText('주관 부서'), { target: { value: '' } })
   await waitFor(() => expect((other as HTMLInputElement).checked).toBe(true))
+  await pickDate(screen.getByLabelText('날짜'), '2026-11-03')
   for (const [label, value] of [
     ['회의명', '새 총회'],
-    ['날짜', '2026-11-03'],
     ['시작', '14:00'],
     ['끝', '15:30'],
     ['장소', '학생회실'],

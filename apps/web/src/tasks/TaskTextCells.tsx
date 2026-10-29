@@ -1,10 +1,13 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Pencil } from 'lucide-react'
-import type { TaskSummary } from '@vada/contracts'
+import { koreanDateOf, type TaskSummary } from '@vada/contracts'
 import { Button } from '@/components/ui/button'
+import { focusCalendarDay } from '@/components/ui/calendar'
 import { Input } from '@/components/ui/input'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { cn } from '@/lib/utils'
 import { dueLabel } from './task-view'
+import { TaskDuePicker } from './TaskDuePicker'
 import type { TextField } from './task-table-cells'
 import { useTextCell } from './useTextCell'
 
@@ -78,40 +81,45 @@ export function TitleCell(props: TextCellProps) {
   )
 }
 
-// 마감 칸. 고칠 수 있으면 글자를 눌러(또는 F2) 날짜 칸으로 고치고, 비우면 '마감 없음'이다. 아니면 글자다.
+// 마감 칸. 고칠 수 있으면 글자를 눌러(또는 F2) 업무 상세와 같은 마감 고르기 창(앱 달력)을 열고, 마감 없음이면 비운다. 아니면 글자다.
+// 고르면 바로 보내고 닫는다. 닫히면 초점은 칸으로 돌아와 칸 이동 키를 그대로 쓴다.
 export function DueCell(props: TextCellProps) {
   const { task } = props
-  const edit = useTextCell({
-    field: 'dueDate',
-    original: task.dueDate ?? '',
-    busy: props.busy,
-    onSave: props.onSave,
-    onInvalid: props.onInvalid,
-  })
-  const inputRef = useFocusOnEdit(edit.editing)
+  const [open, setOpen] = useState(false)
+  const [today] = useState(() => koreanDateOf(new Date()))
+  const trigger = useRef<HTMLButtonElement>(null)
   const text = cn('text-xs text-fg-muted', task.overdue && 'font-medium text-danger-emphasis')
-  if (edit.editing)
-    return (
-      <Input
-        ref={inputRef}
-        type="date"
-        aria-label={`${task.title} 마감`}
-        className={cn(inputClass, props.busy && 'opacity-45')}
-        value={edit.value}
-        {...edit.inputProps}
-      />
-    )
   if (!props.editable) return <span className={text}>{dueLabel(task.dueDate)}</span>
+  const pick = (dueDate: string | null) => {
+    setOpen(false)
+    if (dueDate !== task.dueDate) void props.onSave('dueDate', dueDate ?? '')
+  }
   return (
-    <Button
-      variant="ghost"
-      tabIndex={-1}
-      data-edit-start
-      aria-label={`${task.title} 마감 고치기`}
-      className={cn(text, 'h-auto justify-start px-1 py-0.5')}
-      onClick={edit.start}
-    >
-      {dueLabel(task.dueDate)}
-    </Button>
+    // 보내는 중에는 열지 않는다(전에는 날짜 칸이 읽기 전용이 되었다).
+    <Popover open={open} onOpenChange={next => setOpen(next && !props.busy)}>
+      <PopoverTrigger asChild>
+        <Button
+          ref={trigger}
+          variant="ghost"
+          tabIndex={-1}
+          data-edit-start
+          aria-label={`${task.title} 마감 고치기`}
+          className={cn(text, 'h-auto justify-start px-1 py-0.5', props.busy && 'opacity-45')}
+        >
+          {dueLabel(task.dueDate)}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent
+        className="w-80"
+        aria-label={`${task.title} 마감`}
+        onOpenAutoFocus={focusCalendarDay}
+        onCloseAutoFocus={event => {
+          event.preventDefault()
+          trigger.current?.closest<HTMLElement>('[role="gridcell"]')?.focus()
+        }}
+      >
+        <TaskDuePicker value={task.dueDate} today={today} onPick={pick} />
+      </PopoverContent>
+    </Popover>
   )
 }

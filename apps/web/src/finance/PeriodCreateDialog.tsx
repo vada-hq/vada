@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { CreateFiscalPeriodSchema, koreanDateOf, semesterOf } from '@vada/contracts'
 import { Field } from '@/components/ui/field'
+import { DateField } from '@/components/ui/date-field'
 import { Input } from '@/components/ui/input'
 import { requiredText, useFormCheck } from '@/lib/use-form-check'
 import { BudgetFormDialog } from './BudgetFormDialog'
@@ -52,20 +53,14 @@ export function PeriodCreateDialog({ councilId, onClose, ...handlers }: Props) {
         />
       </Field>
       <Field label="시작일" required error={fieldErrors.startsOn}>
-        <Input
-          type="date"
+        <DateField
           value={values.startsOn}
           disabled={saving}
-          onChange={event => set({ startsOn: event.target.value })}
+          onChange={startsOn => set({ startsOn })}
         />
       </Field>
       <Field label="끝일" required error={fieldErrors.endsOn}>
-        <Input
-          type="date"
-          value={values.endsOn}
-          disabled={saving}
-          onChange={event => set({ endsOn: event.target.value })}
-        />
+        <DateField value={values.endsOn} disabled={saving} onChange={endsOn => set({ endsOn })} />
       </Field>
     </BudgetFormDialog>
   )

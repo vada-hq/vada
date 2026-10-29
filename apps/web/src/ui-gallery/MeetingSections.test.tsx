@@ -2,6 +2,7 @@
 import { afterEach, expect, test } from 'vitest'
 import { cleanup, fireEvent, render, screen, within, waitFor } from '@testing-library/react'
 import { resetLeaveGuard } from '@/lib/leave-guard'
+import { pickDate } from '@/test-support/date-field'
 import {
   MeetingCreateSection,
   MeetingScheduledSection,
@@ -23,9 +24,9 @@ test('예정 회의 견본은 취소 사유를 확인하고 취소 화면까지 
 test('만들기 견본 참가자 UUID는 실제 계약을 통과해 제출한다', async () => {
   render(<MeetingCreateSection />)
   await screen.findByRole('checkbox', { name: '김회장' })
+  await pickDate(screen.getByLabelText('날짜'), '2026-11-03')
   for (const [label, value] of [
     ['회의명', '견본 총회'],
-    ['날짜', '2026-11-03'],
     ['시작', '14:00'],
     ['끝', '15:00'],
     ['장소', '학생회실'],

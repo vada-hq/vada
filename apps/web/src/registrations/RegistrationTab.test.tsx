@@ -27,6 +27,7 @@ import type { AccountItem, EventDetail, FormListAction } from '@vada/contracts'
 import { hasUnsavedInput } from '@/lib/leave-guard'
 import { eventDetail } from '@/test-support/event-fixtures'
 import { RegistrationTab } from './RegistrationTab'
+import { pickDateTime } from '@/test-support/date-field'
 
 afterEach(() => {
   cleanup()
@@ -276,13 +277,11 @@ test('[신청 양식 만들기]는 서버가 준 행사 동작에 관리 권한�
   expect(screen.queryByRole('button', { name: '참여 설문 만들기' })).toBeNull()
 })
 
-async function openCreate(api: ReturnType<typeof mockApi>) {
+async function openCreate(api: ReturnType<typeof mockApi>, { closes = true } = {}) {
   fireEvent.click(await screen.findByRole('button', { name: '참여 설문 만들기' }))
   const form = await screen.findByRole('form', { name: '신청 양식 만들기' })
   fireEvent.change(within(form).getByLabelText('양식 이름'), { target: { value: '환영회 신청' } })
-  fireEvent.change(within(form).getByLabelText('신청 마감'), {
-    target: { value: '2026-10-23T18:00' },
-  })
+  if (closes) await pickDateTime(within(form).getByLabelText('신청 마감'), '2026-10-23T18:00')
   return { api, form }
 }
 const submit = (form: HTMLElement) => within(form).getByRole('button', { name: '만들기' })
@@ -349,7 +348,7 @@ test('만들기: 납부자 별도 금액이면 두 참가비를 받고 학번은
   api.on('POST', FORMS_PATH, () => pending.promise)
   const { form } = await openCreate(api)
   // 참가비를 적기 전에는 계좌 칸이 없다
-  expect(within(form).queryByRole('combobox')).toBeNull()
+  expect(within(form).queryByRole('combobox', { name: '참가비 받을 계좌' })).toBeNull()
   fireEvent.click(within(form).getByLabelText('있음'))
   fireEvent.click(within(form).getByLabelText('학생회비 납부자 별도 금액'))
   expect(within(form).getByRole('checkbox', { name: '학번' })).toHaveProperty('disabled', true)
@@ -430,16 +429,15 @@ test('초안은 계좌 없이 참가비를 저장하고 링크는 공개하지 �
 test('만들기: 참가비가 없으면 계좌를 보내지 않는다. 마감이 비면 눌러도 보내지 않고 마감 칸 아래에 알리며 그 칸으로 옮긴다', async () => {
   const { api } = setup({ forms: [], actions: ['form.create'] })
   api.on('POST', FORMS_PATH, () => json({ form: staffForm() }, 201))
-  const { form } = await openCreate(api)
+  const { form } = await openCreate(api, { closes: false })
   const closes = within(form).getByLabelText('신청 마감')
-  fireEvent.change(closes, { target: { value: '' } })
   expect(submit(form)).toHaveProperty('disabled', false)
   fireEvent.click(submit(form))
   expect(within(form).getByText('신청 마감을 입력해 주세요')).toBeTruthy()
   expect(closes.getAttribute('aria-invalid')).toBe('true')
   await waitFor(() => expect(document.activeElement).toBe(closes))
   expect(posts(api)).toHaveLength(0)
-  fireEvent.change(closes, { target: { value: '2026-10-23T18:00' } })
+  await pickDateTime(closes, '2026-10-23T18:00')
   expect(within(form).queryByText('신청 마감을 입력해 주세요')).toBeNull()
   fireEvent.click(submit(form))
   await waitFor(() => expect(posts(api)).toHaveLength(1))

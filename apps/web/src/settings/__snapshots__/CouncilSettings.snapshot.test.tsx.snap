@@ -78,13 +78,13 @@ exports[`권한 없음: 보기만 1`] = `
 <div class="flex items-baseline gap-1">
 <label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id9_">임기 시작</label>
 </div>
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-surface-subtle" readonly="" id="_id9_" type="date" value="2026-01-01">
+<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-surface-subtle" id="_id9_" readonly="" value="1월 1일 (목)">
 </div>
 <div class="flex flex-col gap-2">
 <div class="flex items-baseline gap-1">
 <label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id10_">임기 끝</label>
 </div>
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-surface-subtle" readonly="" id="_id10_" type="date" value="2026-12-31">
+<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-surface-subtle" id="_id10_" readonly="" value="12월 31일 (목)">
 </div>
 </div>
 </form>
@@ -181,14 +181,62 @@ exports[`성공 1`] = `
 <label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id9_">임기 시작</label>
 <span aria-hidden="true" class="text-sm leading-4 text-danger-emphasis">*</span>
 </div>
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-surface-subtle" id="_id9_" aria-required="true" type="date" value="2026-01-01">
+<button type="button" role="combobox" aria-haspopup="dialog" aria-expanded="false" value="2026-01-01" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 flex cursor-pointer items-center justify-between gap-2 text-left" id="_id9_" aria-required="true" data-state="closed">
+<span class="truncate">1월 1일 (목)</span>
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar-days size-4 shrink-0 text-fg-subtle" aria-hidden="true">
+<path d="M8 2v3">
+</path>
+<path d="M16 2v3">
+</path>
+<rect x="3" y="3" width="18" height="18" rx="2">
+</rect>
+<path d="M3 9h18">
+</path>
+<path d="M8 13h.01">
+</path>
+<path d="M12 13h.01">
+</path>
+<path d="M16 13h.01">
+</path>
+<path d="M8 17h.01">
+</path>
+<path d="M12 17h.01">
+</path>
+<path d="M16 17h.01">
+</path>
+</svg>
+</button>
 </div>
 <div class="flex flex-col gap-2">
 <div class="flex items-baseline gap-1">
 <label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id10_">임기 끝</label>
 <span aria-hidden="true" class="text-sm leading-4 text-danger-emphasis">*</span>
 </div>
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-surface-subtle" id="_id10_" aria-required="true" type="date" value="2026-12-31">
+<button type="button" role="combobox" aria-haspopup="dialog" aria-expanded="false" value="2026-12-31" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 flex cursor-pointer items-center justify-between gap-2 text-left" id="_id10_" aria-required="true" data-state="closed">
+<span class="truncate">12월 31일 (목)</span>
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar-days size-4 shrink-0 text-fg-subtle" aria-hidden="true">
+<path d="M8 2v3">
+</path>
+<path d="M16 2v3">
+</path>
+<rect x="3" y="3" width="18" height="18" rx="2">
+</rect>
+<path d="M3 9h18">
+</path>
+<path d="M8 13h.01">
+</path>
+<path d="M12 13h.01">
+</path>
+<path d="M16 13h.01">
+</path>
+<path d="M8 17h.01">
+</path>
+<path d="M12 17h.01">
+</path>
+<path d="M16 17h.01">
+</path>
+</svg>
+</button>
 </div>
 </div>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-primary text-primary-foreground hover:bg-primary-strong px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11 self-start" type="submit">기수 저장</button>
@@ -286,14 +334,62 @@ exports[`오류: 권한을 잃음 1`] = `
 <label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id9_">임기 시작</label>
 <span aria-hidden="true" class="text-sm leading-4 text-danger-emphasis">*</span>
 </div>
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-surface-subtle" id="_id9_" aria-required="true" type="date" value="2026-01-01">
+<button type="button" role="combobox" aria-haspopup="dialog" aria-expanded="false" value="2026-01-01" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 flex cursor-pointer items-center justify-between gap-2 text-left" id="_id9_" aria-required="true" data-state="closed">
+<span class="truncate">1월 1일 (목)</span>
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar-days size-4 shrink-0 text-fg-subtle" aria-hidden="true">
+<path d="M8 2v3">
+</path>
+<path d="M16 2v3">
+</path>
+<rect x="3" y="3" width="18" height="18" rx="2">
+</rect>
+<path d="M3 9h18">
+</path>
+<path d="M8 13h.01">
+</path>
+<path d="M12 13h.01">
+</path>
+<path d="M16 13h.01">
+</path>
+<path d="M8 17h.01">
+</path>
+<path d="M12 17h.01">
+</path>
+<path d="M16 17h.01">
+</path>
+</svg>
+</button>
 </div>
 <div class="flex flex-col gap-2">
 <div class="flex items-baseline gap-1">
 <label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id10_">임기 끝</label>
 <span aria-hidden="true" class="text-sm leading-4 text-danger-emphasis">*</span>
 </div>
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-surface-subtle" id="_id10_" aria-required="true" type="date" value="2026-12-31">
+<button type="button" role="combobox" aria-haspopup="dialog" aria-expanded="false" value="2026-12-31" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 flex cursor-pointer items-center justify-between gap-2 text-left" id="_id10_" aria-required="true" data-state="closed">
+<span class="truncate">12월 31일 (목)</span>
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar-days size-4 shrink-0 text-fg-subtle" aria-hidden="true">
+<path d="M8 2v3">
+</path>
+<path d="M16 2v3">
+</path>
+<rect x="3" y="3" width="18" height="18" rx="2">
+</rect>
+<path d="M3 9h18">
+</path>
+<path d="M8 13h.01">
+</path>
+<path d="M12 13h.01">
+</path>
+<path d="M16 13h.01">
+</path>
+<path d="M8 17h.01">
+</path>
+<path d="M12 17h.01">
+</path>
+<path d="M16 17h.01">
+</path>
+</svg>
+</button>
 </div>
 </div>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-primary text-primary-foreground hover:bg-primary-strong px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11 self-start" type="submit">기수 저장</button>
@@ -390,14 +486,62 @@ exports[`오류: 임기 시작 전 1`] = `
 <label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id9_">임기 시작</label>
 <span aria-hidden="true" class="text-sm leading-4 text-danger-emphasis">*</span>
 </div>
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-surface-subtle" id="_id9_" aria-required="true" type="date" value="2026-01-01">
+<button type="button" role="combobox" aria-haspopup="dialog" aria-expanded="false" value="2026-01-01" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 flex cursor-pointer items-center justify-between gap-2 text-left" id="_id9_" aria-required="true" data-state="closed">
+<span class="truncate">1월 1일 (목)</span>
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar-days size-4 shrink-0 text-fg-subtle" aria-hidden="true">
+<path d="M8 2v3">
+</path>
+<path d="M16 2v3">
+</path>
+<rect x="3" y="3" width="18" height="18" rx="2">
+</rect>
+<path d="M3 9h18">
+</path>
+<path d="M8 13h.01">
+</path>
+<path d="M12 13h.01">
+</path>
+<path d="M16 13h.01">
+</path>
+<path d="M8 17h.01">
+</path>
+<path d="M12 17h.01">
+</path>
+<path d="M16 17h.01">
+</path>
+</svg>
+</button>
 </div>
 <div class="flex flex-col gap-2">
 <div class="flex items-baseline gap-1">
 <label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id10_">임기 끝</label>
 <span aria-hidden="true" class="text-sm leading-4 text-danger-emphasis">*</span>
 </div>
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-surface-subtle" id="_id10_" aria-required="true" type="date" value="2026-12-31">
+<button type="button" role="combobox" aria-haspopup="dialog" aria-expanded="false" value="2026-12-31" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 flex cursor-pointer items-center justify-between gap-2 text-left" id="_id10_" aria-required="true" data-state="closed">
+<span class="truncate">12월 31일 (목)</span>
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar-days size-4 shrink-0 text-fg-subtle" aria-hidden="true">
+<path d="M8 2v3">
+</path>
+<path d="M16 2v3">
+</path>
+<rect x="3" y="3" width="18" height="18" rx="2">
+</rect>
+<path d="M3 9h18">
+</path>
+<path d="M8 13h.01">
+</path>
+<path d="M12 13h.01">
+</path>
+<path d="M16 13h.01">
+</path>
+<path d="M8 17h.01">
+</path>
+<path d="M12 17h.01">
+</path>
+<path d="M16 17h.01">
+</path>
+</svg>
+</button>
 </div>
 </div>
 <p role="alert" class="text-sm wrap-anywhere text-destructive">임기 시작은 오늘이나 그 전이어야 해요.</p>
@@ -495,14 +639,62 @@ exports[`임기 순서 오류 1`] = `
 <label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id9_">임기 시작</label>
 <span aria-hidden="true" class="text-sm leading-4 text-danger-emphasis">*</span>
 </div>
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-surface-subtle" id="_id9_" aria-required="true" type="date" value="2026-01-01">
+<button type="button" role="combobox" aria-haspopup="dialog" aria-expanded="false" value="2026-01-01" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 flex cursor-pointer items-center justify-between gap-2 text-left" id="_id9_" aria-required="true" data-state="closed">
+<span class="truncate">1월 1일 (목)</span>
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar-days size-4 shrink-0 text-fg-subtle" aria-hidden="true">
+<path d="M8 2v3">
+</path>
+<path d="M16 2v3">
+</path>
+<rect x="3" y="3" width="18" height="18" rx="2">
+</rect>
+<path d="M3 9h18">
+</path>
+<path d="M8 13h.01">
+</path>
+<path d="M12 13h.01">
+</path>
+<path d="M16 13h.01">
+</path>
+<path d="M8 17h.01">
+</path>
+<path d="M12 17h.01">
+</path>
+<path d="M16 17h.01">
+</path>
+</svg>
+</button>
 </div>
 <div class="flex flex-col gap-2">
 <div class="flex items-baseline gap-1">
 <label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id10_">임기 끝</label>
 <span aria-hidden="true" class="text-sm leading-4 text-danger-emphasis">*</span>
 </div>
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-surface-subtle" id="_id10_" aria-required="true" type="date" value="2025-12-31" aria-invalid="true" aria-describedby="_id10_-error">
+<button type="button" role="combobox" aria-haspopup="dialog" aria-expanded="false" value="2025-12-31" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 flex cursor-pointer items-center justify-between gap-2 text-left" id="_id10_" aria-required="true" data-state="closed" aria-invalid="true" aria-describedby="_id10_-error">
+<span class="truncate">2025년 12월 31일 (수)</span>
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar-days size-4 shrink-0 text-fg-subtle" aria-hidden="true">
+<path d="M8 2v3">
+</path>
+<path d="M16 2v3">
+</path>
+<rect x="3" y="3" width="18" height="18" rx="2">
+</rect>
+<path d="M3 9h18">
+</path>
+<path d="M8 13h.01">
+</path>
+<path d="M12 13h.01">
+</path>
+<path d="M16 13h.01">
+</path>
+<path d="M8 17h.01">
+</path>
+<path d="M12 17h.01">
+</path>
+<path d="M16 17h.01">
+</path>
+</svg>
+</button>
 <p id="_id10_-error" class="text-xs text-danger-emphasis">임기 시작보다 뒤의 날짜를 입력해 주세요</p>
 </div>
 </div>
@@ -600,14 +792,62 @@ exports[`입력 전: 회장단 1`] = `
 <label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id9_">임기 시작</label>
 <span aria-hidden="true" class="text-sm leading-4 text-danger-emphasis">*</span>
 </div>
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-surface-subtle" id="_id9_" aria-required="true" type="date" value="2026-01-01">
+<button type="button" role="combobox" aria-haspopup="dialog" aria-expanded="false" value="2026-01-01" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 flex cursor-pointer items-center justify-between gap-2 text-left" id="_id9_" aria-required="true" data-state="closed">
+<span class="truncate">1월 1일 (목)</span>
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar-days size-4 shrink-0 text-fg-subtle" aria-hidden="true">
+<path d="M8 2v3">
+</path>
+<path d="M16 2v3">
+</path>
+<rect x="3" y="3" width="18" height="18" rx="2">
+</rect>
+<path d="M3 9h18">
+</path>
+<path d="M8 13h.01">
+</path>
+<path d="M12 13h.01">
+</path>
+<path d="M16 13h.01">
+</path>
+<path d="M8 17h.01">
+</path>
+<path d="M12 17h.01">
+</path>
+<path d="M16 17h.01">
+</path>
+</svg>
+</button>
 </div>
 <div class="flex flex-col gap-2">
 <div class="flex items-baseline gap-1">
 <label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id10_">임기 끝</label>
 <span aria-hidden="true" class="text-sm leading-4 text-danger-emphasis">*</span>
 </div>
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-surface-subtle" id="_id10_" aria-required="true" type="date" value="2026-12-31">
+<button type="button" role="combobox" aria-haspopup="dialog" aria-expanded="false" value="2026-12-31" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 flex cursor-pointer items-center justify-between gap-2 text-left" id="_id10_" aria-required="true" data-state="closed">
+<span class="truncate">12월 31일 (목)</span>
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar-days size-4 shrink-0 text-fg-subtle" aria-hidden="true">
+<path d="M8 2v3">
+</path>
+<path d="M16 2v3">
+</path>
+<rect x="3" y="3" width="18" height="18" rx="2">
+</rect>
+<path d="M3 9h18">
+</path>
+<path d="M8 13h.01">
+</path>
+<path d="M12 13h.01">
+</path>
+<path d="M16 13h.01">
+</path>
+<path d="M8 17h.01">
+</path>
+<path d="M12 17h.01">
+</path>
+<path d="M16 17h.01">
+</path>
+</svg>
+</button>
 </div>
 </div>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-primary text-primary-foreground hover:bg-primary-strong px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11 self-start" type="submit">기수 저장</button>
@@ -704,14 +944,62 @@ exports[`진행 중 1`] = `
 <label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id9_">임기 시작</label>
 <span aria-hidden="true" class="text-sm leading-4 text-danger-emphasis">*</span>
 </div>
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-surface-subtle" id="_id9_" aria-required="true" type="date" value="2026-01-01">
+<button type="button" role="combobox" aria-haspopup="dialog" aria-expanded="false" value="2026-01-01" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 flex cursor-pointer items-center justify-between gap-2 text-left" id="_id9_" aria-required="true" data-state="closed">
+<span class="truncate">1월 1일 (목)</span>
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar-days size-4 shrink-0 text-fg-subtle" aria-hidden="true">
+<path d="M8 2v3">
+</path>
+<path d="M16 2v3">
+</path>
+<rect x="3" y="3" width="18" height="18" rx="2">
+</rect>
+<path d="M3 9h18">
+</path>
+<path d="M8 13h.01">
+</path>
+<path d="M12 13h.01">
+</path>
+<path d="M16 13h.01">
+</path>
+<path d="M8 17h.01">
+</path>
+<path d="M12 17h.01">
+</path>
+<path d="M16 17h.01">
+</path>
+</svg>
+</button>
 </div>
 <div class="flex flex-col gap-2">
 <div class="flex items-baseline gap-1">
 <label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id10_">임기 끝</label>
 <span aria-hidden="true" class="text-sm leading-4 text-danger-emphasis">*</span>
 </div>
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-surface-subtle" id="_id10_" aria-required="true" type="date" value="2026-12-31">
+<button type="button" role="combobox" aria-haspopup="dialog" aria-expanded="false" value="2026-12-31" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 flex cursor-pointer items-center justify-between gap-2 text-left" id="_id10_" aria-required="true" data-state="closed">
+<span class="truncate">12월 31일 (목)</span>
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar-days size-4 shrink-0 text-fg-subtle" aria-hidden="true">
+<path d="M8 2v3">
+</path>
+<path d="M16 2v3">
+</path>
+<rect x="3" y="3" width="18" height="18" rx="2">
+</rect>
+<path d="M3 9h18">
+</path>
+<path d="M8 13h.01">
+</path>
+<path d="M12 13h.01">
+</path>
+<path d="M16 13h.01">
+</path>
+<path d="M8 17h.01">
+</path>
+<path d="M12 17h.01">
+</path>
+<path d="M16 17h.01">
+</path>
+</svg>
+</button>
 </div>
 </div>
 <button data-slot="button" class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-sm border font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 border-transparent bg-primary text-primary-foreground hover:bg-primary-strong px-4 py-2 text-sm [&amp;_svg]:size-4 max-sm:min-h-11 self-start" type="submit" disabled="" aria-busy="true">기수 저장</button>

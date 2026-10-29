@@ -2,6 +2,7 @@ import { useId, type Dispatch, type SetStateAction } from 'react'
 import { EXPENSE_METHODS } from '@vada/contracts'
 import { Button } from '@/components/ui/button'
 import { Field } from '@/components/ui/field'
+import { DateField } from '@/components/ui/date-field'
 import { Input } from '@/components/ui/input'
 import { NativeSelect } from '@/components/ui/native-select'
 import type { FieldErrors } from '@/lib/use-form-check'
@@ -87,14 +88,13 @@ export function PaymentFields({
     <>
       <div className="flex flex-col gap-2">
         <Field label="결제일" required error={errors.paidOn}>
-          <Input
-            type="date"
-            className="max-sm:min-h-11"
+          <DateField
+            today={today}
             max={today}
             value={values.paidOn}
             disabled={disabled}
             aria-describedby={paidOnNotice ? noticeId : undefined}
-            onChange={event => onChange({ ...values, paidOn: event.target.value })}
+            onChange={paidOn => onChange({ ...values, paidOn })}
           />
         </Field>
         {paidOnNotice && (

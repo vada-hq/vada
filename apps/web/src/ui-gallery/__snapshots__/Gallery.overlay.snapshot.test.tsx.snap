@@ -65,7 +65,83 @@ exports[`기본정보 수정 패널 열기 1`] = `
 <label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id5_">시작 일시</label>
 <span class="text-xs text-fg-muted">(선택)</span>
 </div>
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-surface-subtle" id="_id5_" type="datetime-local" value="2026-10-24T14:00" name="startsAt">
+<div data-slot="date-time-field" class="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] gap-2">
+<button type="button" role="combobox" aria-haspopup="dialog" aria-expanded="false" value="2026-10-24" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 flex cursor-pointer items-center justify-between gap-2 text-left" name="startsAt" id="_id5_" data-state="closed">
+<span class="truncate">10월 24일 (토)</span>
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar-days size-4 shrink-0 text-fg-subtle" aria-hidden="true">
+<path d="M8 2v3">
+</path>
+<path d="M16 2v3">
+</path>
+<rect x="3" y="3" width="18" height="18" rx="2">
+</rect>
+<path d="M3 9h18">
+</path>
+<path d="M8 13h.01">
+</path>
+<path d="M12 13h.01">
+</path>
+<path d="M16 13h.01">
+</path>
+<path d="M8 17h.01">
+</path>
+<path d="M12 17h.01">
+</path>
+<path d="M16 17h.01">
+</path>
+</svg>
+</button>
+<select data-slot="native-select" class="min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 cursor-pointer w-24" aria-label="시작 시각">
+<option value="00:00">00:00</option>
+<option value="00:30">00:30</option>
+<option value="01:00">01:00</option>
+<option value="01:30">01:30</option>
+<option value="02:00">02:00</option>
+<option value="02:30">02:30</option>
+<option value="03:00">03:00</option>
+<option value="03:30">03:30</option>
+<option value="04:00">04:00</option>
+<option value="04:30">04:30</option>
+<option value="05:00">05:00</option>
+<option value="05:30">05:30</option>
+<option value="06:00">06:00</option>
+<option value="06:30">06:30</option>
+<option value="07:00">07:00</option>
+<option value="07:30">07:30</option>
+<option value="08:00">08:00</option>
+<option value="08:30">08:30</option>
+<option value="09:00">09:00</option>
+<option value="09:30">09:30</option>
+<option value="10:00">10:00</option>
+<option value="10:30">10:30</option>
+<option value="11:00">11:00</option>
+<option value="11:30">11:30</option>
+<option value="12:00">12:00</option>
+<option value="12:30">12:30</option>
+<option value="13:00">13:00</option>
+<option value="13:30">13:30</option>
+<option value="14:00">14:00</option>
+<option value="14:30">14:30</option>
+<option value="15:00">15:00</option>
+<option value="15:30">15:30</option>
+<option value="16:00">16:00</option>
+<option value="16:30">16:30</option>
+<option value="17:00">17:00</option>
+<option value="17:30">17:30</option>
+<option value="18:00">18:00</option>
+<option value="18:30">18:30</option>
+<option value="19:00">19:00</option>
+<option value="19:30">19:30</option>
+<option value="20:00">20:00</option>
+<option value="20:30">20:30</option>
+<option value="21:00">21:00</option>
+<option value="21:30">21:30</option>
+<option value="22:00">22:00</option>
+<option value="22:30">22:30</option>
+<option value="23:00">23:00</option>
+<option value="23:30">23:30</option>
+</select>
+</div>
 </div>
 <div class="flex flex-col gap-2">
 <div class="flex items-baseline gap-1">
@@ -78,7 +154,83 @@ exports[`기본정보 수정 패널 열기 1`] = `
 </span>
 </div>
 </div>
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-surface-subtle" id="_id6_" type="datetime-local" value="2026-10-24T18:00" name="endsAt">
+<div data-slot="date-time-field" class="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] gap-2">
+<button type="button" role="combobox" aria-haspopup="dialog" aria-expanded="false" value="2026-10-24" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 flex cursor-pointer items-center justify-between gap-2 text-left" name="endsAt" id="_id6_" data-state="closed">
+<span class="truncate">10월 24일 (토)</span>
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar-days size-4 shrink-0 text-fg-subtle" aria-hidden="true">
+<path d="M8 2v3">
+</path>
+<path d="M16 2v3">
+</path>
+<rect x="3" y="3" width="18" height="18" rx="2">
+</rect>
+<path d="M3 9h18">
+</path>
+<path d="M8 13h.01">
+</path>
+<path d="M12 13h.01">
+</path>
+<path d="M16 13h.01">
+</path>
+<path d="M8 17h.01">
+</path>
+<path d="M12 17h.01">
+</path>
+<path d="M16 17h.01">
+</path>
+</svg>
+</button>
+<select data-slot="native-select" class="min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 cursor-pointer w-24" aria-label="종료 시각">
+<option value="00:00">00:00</option>
+<option value="00:30">00:30</option>
+<option value="01:00">01:00</option>
+<option value="01:30">01:30</option>
+<option value="02:00">02:00</option>
+<option value="02:30">02:30</option>
+<option value="03:00">03:00</option>
+<option value="03:30">03:30</option>
+<option value="04:00">04:00</option>
+<option value="04:30">04:30</option>
+<option value="05:00">05:00</option>
+<option value="05:30">05:30</option>
+<option value="06:00">06:00</option>
+<option value="06:30">06:30</option>
+<option value="07:00">07:00</option>
+<option value="07:30">07:30</option>
+<option value="08:00">08:00</option>
+<option value="08:30">08:30</option>
+<option value="09:00">09:00</option>
+<option value="09:30">09:30</option>
+<option value="10:00">10:00</option>
+<option value="10:30">10:30</option>
+<option value="11:00">11:00</option>
+<option value="11:30">11:30</option>
+<option value="12:00">12:00</option>
+<option value="12:30">12:30</option>
+<option value="13:00">13:00</option>
+<option value="13:30">13:30</option>
+<option value="14:00">14:00</option>
+<option value="14:30">14:30</option>
+<option value="15:00">15:00</option>
+<option value="15:30">15:30</option>
+<option value="16:00">16:00</option>
+<option value="16:30">16:30</option>
+<option value="17:00">17:00</option>
+<option value="17:30">17:30</option>
+<option value="18:00">18:00</option>
+<option value="18:30">18:30</option>
+<option value="19:00">19:00</option>
+<option value="19:30">19:30</option>
+<option value="20:00">20:00</option>
+<option value="20:30">20:30</option>
+<option value="21:00">21:00</option>
+<option value="21:30">21:30</option>
+<option value="22:00">22:00</option>
+<option value="22:30">22:30</option>
+<option value="23:00">23:00</option>
+<option value="23:30">23:30</option>
+</select>
+</div>
 </div>
 </section>
 <section aria-label="장소" class="flex flex-col gap-3 border-t pt-5 first:border-t-0 first:pt-0">
@@ -427,7 +579,83 @@ exports[`미정·양식 둘 패널 열기 1`] = `
 <label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id5_">시작 일시</label>
 <span class="text-xs text-fg-muted">(선택)</span>
 </div>
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-surface-subtle" id="_id5_" type="datetime-local" value="2026-11-03T10:00" name="startsAt">
+<div data-slot="date-time-field" class="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] gap-2">
+<button type="button" role="combobox" aria-haspopup="dialog" aria-expanded="false" value="2026-11-03" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 flex cursor-pointer items-center justify-between gap-2 text-left" name="startsAt" id="_id5_" data-state="closed">
+<span class="truncate">11월 3일 (화)</span>
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar-days size-4 shrink-0 text-fg-subtle" aria-hidden="true">
+<path d="M8 2v3">
+</path>
+<path d="M16 2v3">
+</path>
+<rect x="3" y="3" width="18" height="18" rx="2">
+</rect>
+<path d="M3 9h18">
+</path>
+<path d="M8 13h.01">
+</path>
+<path d="M12 13h.01">
+</path>
+<path d="M16 13h.01">
+</path>
+<path d="M8 17h.01">
+</path>
+<path d="M12 17h.01">
+</path>
+<path d="M16 17h.01">
+</path>
+</svg>
+</button>
+<select data-slot="native-select" class="min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 cursor-pointer w-24" aria-label="시작 시각">
+<option value="00:00">00:00</option>
+<option value="00:30">00:30</option>
+<option value="01:00">01:00</option>
+<option value="01:30">01:30</option>
+<option value="02:00">02:00</option>
+<option value="02:30">02:30</option>
+<option value="03:00">03:00</option>
+<option value="03:30">03:30</option>
+<option value="04:00">04:00</option>
+<option value="04:30">04:30</option>
+<option value="05:00">05:00</option>
+<option value="05:30">05:30</option>
+<option value="06:00">06:00</option>
+<option value="06:30">06:30</option>
+<option value="07:00">07:00</option>
+<option value="07:30">07:30</option>
+<option value="08:00">08:00</option>
+<option value="08:30">08:30</option>
+<option value="09:00">09:00</option>
+<option value="09:30">09:30</option>
+<option value="10:00">10:00</option>
+<option value="10:30">10:30</option>
+<option value="11:00">11:00</option>
+<option value="11:30">11:30</option>
+<option value="12:00">12:00</option>
+<option value="12:30">12:30</option>
+<option value="13:00">13:00</option>
+<option value="13:30">13:30</option>
+<option value="14:00">14:00</option>
+<option value="14:30">14:30</option>
+<option value="15:00">15:00</option>
+<option value="15:30">15:30</option>
+<option value="16:00">16:00</option>
+<option value="16:30">16:30</option>
+<option value="17:00">17:00</option>
+<option value="17:30">17:30</option>
+<option value="18:00">18:00</option>
+<option value="18:30">18:30</option>
+<option value="19:00">19:00</option>
+<option value="19:30">19:30</option>
+<option value="20:00">20:00</option>
+<option value="20:30">20:30</option>
+<option value="21:00">21:00</option>
+<option value="21:30">21:30</option>
+<option value="22:00">22:00</option>
+<option value="22:30">22:30</option>
+<option value="23:00">23:00</option>
+<option value="23:30">23:30</option>
+</select>
+</div>
 </div>
 <div class="flex flex-col gap-2">
 <div class="flex items-baseline gap-1">
@@ -440,7 +668,86 @@ exports[`미정·양식 둘 패널 열기 1`] = `
 </span>
 </div>
 </div>
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-surface-subtle" disabled="" id="_id6_" type="text" value="" name="endsAt">
+<div data-slot="date-time-field" class="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] gap-2">
+<button type="button" role="combobox" aria-haspopup="dialog" aria-expanded="false" value="" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 flex cursor-pointer items-center justify-between gap-2 text-left" name="endsAt" id="_id6_" disabled="" data-state="closed">
+<span class="truncate">
+</span>
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar-days size-4 shrink-0 text-fg-subtle" aria-hidden="true">
+<path d="M8 2v3">
+</path>
+<path d="M16 2v3">
+</path>
+<rect x="3" y="3" width="18" height="18" rx="2">
+</rect>
+<path d="M3 9h18">
+</path>
+<path d="M8 13h.01">
+</path>
+<path d="M12 13h.01">
+</path>
+<path d="M16 13h.01">
+</path>
+<path d="M8 17h.01">
+</path>
+<path d="M12 17h.01">
+</path>
+<path d="M16 17h.01">
+</path>
+</svg>
+</button>
+<select data-slot="native-select" class="min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 cursor-pointer w-24" aria-label="종료 시각" disabled="">
+<option value="">
+</option>
+<option value="00:00">00:00</option>
+<option value="00:30">00:30</option>
+<option value="01:00">01:00</option>
+<option value="01:30">01:30</option>
+<option value="02:00">02:00</option>
+<option value="02:30">02:30</option>
+<option value="03:00">03:00</option>
+<option value="03:30">03:30</option>
+<option value="04:00">04:00</option>
+<option value="04:30">04:30</option>
+<option value="05:00">05:00</option>
+<option value="05:30">05:30</option>
+<option value="06:00">06:00</option>
+<option value="06:30">06:30</option>
+<option value="07:00">07:00</option>
+<option value="07:30">07:30</option>
+<option value="08:00">08:00</option>
+<option value="08:30">08:30</option>
+<option value="09:00">09:00</option>
+<option value="09:30">09:30</option>
+<option value="10:00">10:00</option>
+<option value="10:30">10:30</option>
+<option value="11:00">11:00</option>
+<option value="11:30">11:30</option>
+<option value="12:00">12:00</option>
+<option value="12:30">12:30</option>
+<option value="13:00">13:00</option>
+<option value="13:30">13:30</option>
+<option value="14:00">14:00</option>
+<option value="14:30">14:30</option>
+<option value="15:00">15:00</option>
+<option value="15:30">15:30</option>
+<option value="16:00">16:00</option>
+<option value="16:30">16:30</option>
+<option value="17:00">17:00</option>
+<option value="17:30">17:30</option>
+<option value="18:00">18:00</option>
+<option value="18:30">18:30</option>
+<option value="19:00">19:00</option>
+<option value="19:30">19:30</option>
+<option value="20:00">20:00</option>
+<option value="20:30">20:30</option>
+<option value="21:00">21:00</option>
+<option value="21:30">21:30</option>
+<option value="22:00">22:00</option>
+<option value="22:30">22:30</option>
+<option value="23:00">23:00</option>
+<option value="23:30">23:30</option>
+</select>
+</div>
 </div>
 </section>
 <section aria-label="장소" class="flex flex-col gap-3 border-t pt-5 first:border-t-0 first:pt-0">
@@ -676,7 +983,83 @@ exports[`보내는 중 패널 열기 1`] = `
 <label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id5_">시작 일시</label>
 <span class="text-xs text-fg-muted">(선택)</span>
 </div>
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-surface-subtle" disabled="" id="_id5_" type="datetime-local" value="2026-10-24T14:00" name="startsAt">
+<div data-slot="date-time-field" class="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] gap-2">
+<button type="button" role="combobox" aria-haspopup="dialog" aria-expanded="false" value="2026-10-24" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 flex cursor-pointer items-center justify-between gap-2 text-left" name="startsAt" id="_id5_" disabled="" data-state="closed">
+<span class="truncate">10월 24일 (토)</span>
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar-days size-4 shrink-0 text-fg-subtle" aria-hidden="true">
+<path d="M8 2v3">
+</path>
+<path d="M16 2v3">
+</path>
+<rect x="3" y="3" width="18" height="18" rx="2">
+</rect>
+<path d="M3 9h18">
+</path>
+<path d="M8 13h.01">
+</path>
+<path d="M12 13h.01">
+</path>
+<path d="M16 13h.01">
+</path>
+<path d="M8 17h.01">
+</path>
+<path d="M12 17h.01">
+</path>
+<path d="M16 17h.01">
+</path>
+</svg>
+</button>
+<select data-slot="native-select" class="min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 cursor-pointer w-24" aria-label="시작 시각" disabled="">
+<option value="00:00">00:00</option>
+<option value="00:30">00:30</option>
+<option value="01:00">01:00</option>
+<option value="01:30">01:30</option>
+<option value="02:00">02:00</option>
+<option value="02:30">02:30</option>
+<option value="03:00">03:00</option>
+<option value="03:30">03:30</option>
+<option value="04:00">04:00</option>
+<option value="04:30">04:30</option>
+<option value="05:00">05:00</option>
+<option value="05:30">05:30</option>
+<option value="06:00">06:00</option>
+<option value="06:30">06:30</option>
+<option value="07:00">07:00</option>
+<option value="07:30">07:30</option>
+<option value="08:00">08:00</option>
+<option value="08:30">08:30</option>
+<option value="09:00">09:00</option>
+<option value="09:30">09:30</option>
+<option value="10:00">10:00</option>
+<option value="10:30">10:30</option>
+<option value="11:00">11:00</option>
+<option value="11:30">11:30</option>
+<option value="12:00">12:00</option>
+<option value="12:30">12:30</option>
+<option value="13:00">13:00</option>
+<option value="13:30">13:30</option>
+<option value="14:00">14:00</option>
+<option value="14:30">14:30</option>
+<option value="15:00">15:00</option>
+<option value="15:30">15:30</option>
+<option value="16:00">16:00</option>
+<option value="16:30">16:30</option>
+<option value="17:00">17:00</option>
+<option value="17:30">17:30</option>
+<option value="18:00">18:00</option>
+<option value="18:30">18:30</option>
+<option value="19:00">19:00</option>
+<option value="19:30">19:30</option>
+<option value="20:00">20:00</option>
+<option value="20:30">20:30</option>
+<option value="21:00">21:00</option>
+<option value="21:30">21:30</option>
+<option value="22:00">22:00</option>
+<option value="22:30">22:30</option>
+<option value="23:00">23:00</option>
+<option value="23:30">23:30</option>
+</select>
+</div>
 </div>
 <div class="flex flex-col gap-2">
 <div class="flex items-baseline gap-1">
@@ -689,7 +1072,83 @@ exports[`보내는 중 패널 열기 1`] = `
 </span>
 </div>
 </div>
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-surface-subtle" disabled="" id="_id6_" type="datetime-local" value="2026-10-24T18:00" name="endsAt">
+<div data-slot="date-time-field" class="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] gap-2">
+<button type="button" role="combobox" aria-haspopup="dialog" aria-expanded="false" value="2026-10-24" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 flex cursor-pointer items-center justify-between gap-2 text-left" name="endsAt" id="_id6_" disabled="" data-state="closed">
+<span class="truncate">10월 24일 (토)</span>
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar-days size-4 shrink-0 text-fg-subtle" aria-hidden="true">
+<path d="M8 2v3">
+</path>
+<path d="M16 2v3">
+</path>
+<rect x="3" y="3" width="18" height="18" rx="2">
+</rect>
+<path d="M3 9h18">
+</path>
+<path d="M8 13h.01">
+</path>
+<path d="M12 13h.01">
+</path>
+<path d="M16 13h.01">
+</path>
+<path d="M8 17h.01">
+</path>
+<path d="M12 17h.01">
+</path>
+<path d="M16 17h.01">
+</path>
+</svg>
+</button>
+<select data-slot="native-select" class="min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 cursor-pointer w-24" aria-label="종료 시각" disabled="">
+<option value="00:00">00:00</option>
+<option value="00:30">00:30</option>
+<option value="01:00">01:00</option>
+<option value="01:30">01:30</option>
+<option value="02:00">02:00</option>
+<option value="02:30">02:30</option>
+<option value="03:00">03:00</option>
+<option value="03:30">03:30</option>
+<option value="04:00">04:00</option>
+<option value="04:30">04:30</option>
+<option value="05:00">05:00</option>
+<option value="05:30">05:30</option>
+<option value="06:00">06:00</option>
+<option value="06:30">06:30</option>
+<option value="07:00">07:00</option>
+<option value="07:30">07:30</option>
+<option value="08:00">08:00</option>
+<option value="08:30">08:30</option>
+<option value="09:00">09:00</option>
+<option value="09:30">09:30</option>
+<option value="10:00">10:00</option>
+<option value="10:30">10:30</option>
+<option value="11:00">11:00</option>
+<option value="11:30">11:30</option>
+<option value="12:00">12:00</option>
+<option value="12:30">12:30</option>
+<option value="13:00">13:00</option>
+<option value="13:30">13:30</option>
+<option value="14:00">14:00</option>
+<option value="14:30">14:30</option>
+<option value="15:00">15:00</option>
+<option value="15:30">15:30</option>
+<option value="16:00">16:00</option>
+<option value="16:30">16:30</option>
+<option value="17:00">17:00</option>
+<option value="17:30">17:30</option>
+<option value="18:00">18:00</option>
+<option value="18:30">18:30</option>
+<option value="19:00">19:00</option>
+<option value="19:30">19:30</option>
+<option value="20:00">20:00</option>
+<option value="20:30">20:30</option>
+<option value="21:00">21:00</option>
+<option value="21:30">21:30</option>
+<option value="22:00">22:00</option>
+<option value="22:30">22:30</option>
+<option value="23:00">23:00</option>
+<option value="23:30">23:30</option>
+</select>
+</div>
 </div>
 </section>
 <section aria-label="장소" class="flex flex-col gap-3 border-t pt-5 first:border-t-0 first:pt-0">
@@ -1889,14 +2348,63 @@ exports[`빈 일정 창 열기 1`] = `
 <label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id5_">시작 날짜</label>
 <span aria-hidden="true" class="text-sm leading-4 text-danger-emphasis">*</span>
 </div>
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive read-only:border-border read-only:bg-surface-subtle max-sm:min-h-11" id="_id5_" aria-required="true" type="date" value="2026-10-28">
+<button type="button" role="combobox" aria-haspopup="dialog" aria-expanded="false" value="2026-10-28" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 flex cursor-pointer items-center justify-between gap-2 text-left" id="_id5_" aria-required="true" data-state="closed">
+<span class="truncate">10월 28일 (수)</span>
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar-days size-4 shrink-0 text-fg-subtle" aria-hidden="true">
+<path d="M8 2v3">
+</path>
+<path d="M16 2v3">
+</path>
+<rect x="3" y="3" width="18" height="18" rx="2">
+</rect>
+<path d="M3 9h18">
+</path>
+<path d="M8 13h.01">
+</path>
+<path d="M12 13h.01">
+</path>
+<path d="M16 13h.01">
+</path>
+<path d="M8 17h.01">
+</path>
+<path d="M12 17h.01">
+</path>
+<path d="M16 17h.01">
+</path>
+</svg>
+</button>
 </div>
 <div class="flex flex-col gap-2">
 <div class="flex items-baseline gap-1">
 <label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id6_">끝 날짜</label>
 <span class="text-xs text-fg-muted">(선택)</span>
 </div>
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive read-only:border-border read-only:bg-surface-subtle max-sm:min-h-11" id="_id6_" type="date" value="">
+<button type="button" role="combobox" aria-haspopup="dialog" aria-expanded="false" value="" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 flex cursor-pointer items-center justify-between gap-2 text-left" id="_id6_" data-state="closed">
+<span class="truncate">
+</span>
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar-days size-4 shrink-0 text-fg-subtle" aria-hidden="true">
+<path d="M8 2v3">
+</path>
+<path d="M16 2v3">
+</path>
+<rect x="3" y="3" width="18" height="18" rx="2">
+</rect>
+<path d="M3 9h18">
+</path>
+<path d="M8 13h.01">
+</path>
+<path d="M12 13h.01">
+</path>
+<path d="M16 13h.01">
+</path>
+<path d="M8 17h.01">
+</path>
+<path d="M12 17h.01">
+</path>
+<path d="M16 17h.01">
+</path>
+</svg>
+</button>
 </div>
 </div>
 <div class="flex flex-col gap-2">
@@ -4425,14 +4933,63 @@ exports[`일정 오류 창 열기 1`] = `
 <label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id5_">시작 날짜</label>
 <span aria-hidden="true" class="text-sm leading-4 text-danger-emphasis">*</span>
 </div>
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive read-only:border-border read-only:bg-surface-subtle max-sm:min-h-11" id="_id5_" aria-required="true" type="date" value="2026-10-28">
+<button type="button" role="combobox" aria-haspopup="dialog" aria-expanded="false" value="2026-10-28" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 flex cursor-pointer items-center justify-between gap-2 text-left" id="_id5_" aria-required="true" data-state="closed">
+<span class="truncate">10월 28일 (수)</span>
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar-days size-4 shrink-0 text-fg-subtle" aria-hidden="true">
+<path d="M8 2v3">
+</path>
+<path d="M16 2v3">
+</path>
+<rect x="3" y="3" width="18" height="18" rx="2">
+</rect>
+<path d="M3 9h18">
+</path>
+<path d="M8 13h.01">
+</path>
+<path d="M12 13h.01">
+</path>
+<path d="M16 13h.01">
+</path>
+<path d="M8 17h.01">
+</path>
+<path d="M12 17h.01">
+</path>
+<path d="M16 17h.01">
+</path>
+</svg>
+</button>
 </div>
 <div class="flex flex-col gap-2">
 <div class="flex items-baseline gap-1">
 <label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id6_">끝 날짜</label>
 <span class="text-xs text-fg-muted">(선택)</span>
 </div>
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive read-only:border-border read-only:bg-surface-subtle max-sm:min-h-11" id="_id6_" type="date" value="">
+<button type="button" role="combobox" aria-haspopup="dialog" aria-expanded="false" value="" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 flex cursor-pointer items-center justify-between gap-2 text-left" id="_id6_" data-state="closed">
+<span class="truncate">
+</span>
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar-days size-4 shrink-0 text-fg-subtle" aria-hidden="true">
+<path d="M8 2v3">
+</path>
+<path d="M16 2v3">
+</path>
+<rect x="3" y="3" width="18" height="18" rx="2">
+</rect>
+<path d="M3 9h18">
+</path>
+<path d="M8 13h.01">
+</path>
+<path d="M12 13h.01">
+</path>
+<path d="M16 13h.01">
+</path>
+<path d="M8 17h.01">
+</path>
+<path d="M12 17h.01">
+</path>
+<path d="M16 17h.01">
+</path>
+</svg>
+</button>
 </div>
 </div>
 <div class="flex flex-col gap-2">
@@ -5782,7 +6339,83 @@ exports[`저장 실패 패널 열기 1`] = `
 <label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id5_">시작 일시</label>
 <span class="text-xs text-fg-muted">(선택)</span>
 </div>
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-surface-subtle" id="_id5_" type="datetime-local" value="2026-10-24T14:00" name="startsAt">
+<div data-slot="date-time-field" class="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] gap-2">
+<button type="button" role="combobox" aria-haspopup="dialog" aria-expanded="false" value="2026-10-24" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 flex cursor-pointer items-center justify-between gap-2 text-left" name="startsAt" id="_id5_" data-state="closed">
+<span class="truncate">10월 24일 (토)</span>
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar-days size-4 shrink-0 text-fg-subtle" aria-hidden="true">
+<path d="M8 2v3">
+</path>
+<path d="M16 2v3">
+</path>
+<rect x="3" y="3" width="18" height="18" rx="2">
+</rect>
+<path d="M3 9h18">
+</path>
+<path d="M8 13h.01">
+</path>
+<path d="M12 13h.01">
+</path>
+<path d="M16 13h.01">
+</path>
+<path d="M8 17h.01">
+</path>
+<path d="M12 17h.01">
+</path>
+<path d="M16 17h.01">
+</path>
+</svg>
+</button>
+<select data-slot="native-select" class="min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 cursor-pointer w-24" aria-label="시작 시각">
+<option value="00:00">00:00</option>
+<option value="00:30">00:30</option>
+<option value="01:00">01:00</option>
+<option value="01:30">01:30</option>
+<option value="02:00">02:00</option>
+<option value="02:30">02:30</option>
+<option value="03:00">03:00</option>
+<option value="03:30">03:30</option>
+<option value="04:00">04:00</option>
+<option value="04:30">04:30</option>
+<option value="05:00">05:00</option>
+<option value="05:30">05:30</option>
+<option value="06:00">06:00</option>
+<option value="06:30">06:30</option>
+<option value="07:00">07:00</option>
+<option value="07:30">07:30</option>
+<option value="08:00">08:00</option>
+<option value="08:30">08:30</option>
+<option value="09:00">09:00</option>
+<option value="09:30">09:30</option>
+<option value="10:00">10:00</option>
+<option value="10:30">10:30</option>
+<option value="11:00">11:00</option>
+<option value="11:30">11:30</option>
+<option value="12:00">12:00</option>
+<option value="12:30">12:30</option>
+<option value="13:00">13:00</option>
+<option value="13:30">13:30</option>
+<option value="14:00">14:00</option>
+<option value="14:30">14:30</option>
+<option value="15:00">15:00</option>
+<option value="15:30">15:30</option>
+<option value="16:00">16:00</option>
+<option value="16:30">16:30</option>
+<option value="17:00">17:00</option>
+<option value="17:30">17:30</option>
+<option value="18:00">18:00</option>
+<option value="18:30">18:30</option>
+<option value="19:00">19:00</option>
+<option value="19:30">19:30</option>
+<option value="20:00">20:00</option>
+<option value="20:30">20:30</option>
+<option value="21:00">21:00</option>
+<option value="21:30">21:30</option>
+<option value="22:00">22:00</option>
+<option value="22:30">22:30</option>
+<option value="23:00">23:00</option>
+<option value="23:30">23:30</option>
+</select>
+</div>
 </div>
 <div class="flex flex-col gap-2">
 <div class="flex items-baseline gap-1">
@@ -5795,7 +6428,83 @@ exports[`저장 실패 패널 열기 1`] = `
 </span>
 </div>
 </div>
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 read-only:border-border read-only:bg-surface-subtle" id="_id6_" type="datetime-local" value="2026-10-24T18:00" name="endsAt">
+<div data-slot="date-time-field" class="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] gap-2">
+<button type="button" role="combobox" aria-haspopup="dialog" aria-expanded="false" value="2026-10-24" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 flex cursor-pointer items-center justify-between gap-2 text-left" name="endsAt" id="_id6_" data-state="closed">
+<span class="truncate">10월 24일 (토)</span>
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar-days size-4 shrink-0 text-fg-subtle" aria-hidden="true">
+<path d="M8 2v3">
+</path>
+<path d="M16 2v3">
+</path>
+<rect x="3" y="3" width="18" height="18" rx="2">
+</rect>
+<path d="M3 9h18">
+</path>
+<path d="M8 13h.01">
+</path>
+<path d="M12 13h.01">
+</path>
+<path d="M16 13h.01">
+</path>
+<path d="M8 17h.01">
+</path>
+<path d="M12 17h.01">
+</path>
+<path d="M16 17h.01">
+</path>
+</svg>
+</button>
+<select data-slot="native-select" class="min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 cursor-pointer w-24" aria-label="종료 시각">
+<option value="00:00">00:00</option>
+<option value="00:30">00:30</option>
+<option value="01:00">01:00</option>
+<option value="01:30">01:30</option>
+<option value="02:00">02:00</option>
+<option value="02:30">02:30</option>
+<option value="03:00">03:00</option>
+<option value="03:30">03:30</option>
+<option value="04:00">04:00</option>
+<option value="04:30">04:30</option>
+<option value="05:00">05:00</option>
+<option value="05:30">05:30</option>
+<option value="06:00">06:00</option>
+<option value="06:30">06:30</option>
+<option value="07:00">07:00</option>
+<option value="07:30">07:30</option>
+<option value="08:00">08:00</option>
+<option value="08:30">08:30</option>
+<option value="09:00">09:00</option>
+<option value="09:30">09:30</option>
+<option value="10:00">10:00</option>
+<option value="10:30">10:30</option>
+<option value="11:00">11:00</option>
+<option value="11:30">11:30</option>
+<option value="12:00">12:00</option>
+<option value="12:30">12:30</option>
+<option value="13:00">13:00</option>
+<option value="13:30">13:30</option>
+<option value="14:00">14:00</option>
+<option value="14:30">14:30</option>
+<option value="15:00">15:00</option>
+<option value="15:30">15:30</option>
+<option value="16:00">16:00</option>
+<option value="16:30">16:30</option>
+<option value="17:00">17:00</option>
+<option value="17:30">17:30</option>
+<option value="18:00">18:00</option>
+<option value="18:30">18:30</option>
+<option value="19:00">19:00</option>
+<option value="19:30">19:30</option>
+<option value="20:00">20:00</option>
+<option value="20:30">20:30</option>
+<option value="21:00">21:00</option>
+<option value="21:30">21:30</option>
+<option value="22:00">22:00</option>
+<option value="22:30">22:30</option>
+<option value="23:00">23:00</option>
+<option value="23:30">23:30</option>
+</select>
+</div>
 </div>
 </section>
 <section aria-label="장소" class="flex flex-col gap-3 border-t pt-5 first:border-t-0 first:pt-0">
@@ -6016,7 +6725,31 @@ exports[`지출 금액과 자릿수 확인 창 1`] = `
 <label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id5_">결제일</label>
 <span aria-hidden="true" class="text-sm leading-4 text-danger-emphasis">*</span>
 </div>
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive read-only:border-border read-only:bg-surface-subtle max-sm:min-h-11" max="2026-10-26" id="_id5_" aria-required="true" type="date" value="2026-10-26">
+<button type="button" role="combobox" aria-haspopup="dialog" aria-expanded="false" value="2026-10-26" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 flex cursor-pointer items-center justify-between gap-2 text-left" id="_id5_" aria-required="true" data-state="closed">
+<span class="truncate">10월 26일 (월)</span>
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar-days size-4 shrink-0 text-fg-subtle" aria-hidden="true">
+<path d="M8 2v3">
+</path>
+<path d="M16 2v3">
+</path>
+<rect x="3" y="3" width="18" height="18" rx="2">
+</rect>
+<path d="M3 9h18">
+</path>
+<path d="M8 13h.01">
+</path>
+<path d="M12 13h.01">
+</path>
+<path d="M16 13h.01">
+</path>
+<path d="M8 17h.01">
+</path>
+<path d="M12 17h.01">
+</path>
+<path d="M16 17h.01">
+</path>
+</svg>
+</button>
 </div>
 </div>
 <div class="flex flex-col gap-2">
@@ -6129,7 +6862,31 @@ exports[`지출 금액과 자릿수 확인 창 1`] = `
 <label data-slot="label" class="text-xs font-medium text-fg-secondary" for="_id14_">결제일</label>
 <span aria-hidden="true" class="text-sm leading-4 text-danger-emphasis">*</span>
 </div>
-<input data-slot="input" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive read-only:border-border read-only:bg-surface-subtle max-sm:min-h-11" max="2026-10-26" id="_id14_" aria-required="true" type="date" value="2026-10-26">
+<button type="button" role="combobox" aria-haspopup="dialog" aria-expanded="false" value="2026-10-26" class="w-full min-w-0 rounded-sm border border-input bg-white px-3 py-2 text-base font-normal sm:text-sm text-fg-body outline-none placeholder:text-fg-subtle focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-subtle disabled:text-fg-subtle aria-invalid:border-destructive max-sm:min-h-11 flex cursor-pointer items-center justify-between gap-2 text-left" id="_id14_" aria-required="true" data-state="closed">
+<span class="truncate">10월 26일 (월)</span>
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar-days size-4 shrink-0 text-fg-subtle" aria-hidden="true">
+<path d="M8 2v3">
+</path>
+<path d="M16 2v3">
+</path>
+<rect x="3" y="3" width="18" height="18" rx="2">
+</rect>
+<path d="M3 9h18">
+</path>
+<path d="M8 13h.01">
+</path>
+<path d="M12 13h.01">
+</path>
+<path d="M16 13h.01">
+</path>
+<path d="M8 17h.01">
+</path>
+<path d="M12 17h.01">
+</path>
+<path d="M16 17h.01">
+</path>
+</svg>
+</button>
 </div>
 </div>
 <div class="flex flex-col gap-2">

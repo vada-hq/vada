@@ -21,6 +21,8 @@ import { eventSummary } from '@/test-support/event-fixtures'
 import { EXPENSE_CREATE_ERRORS, EXPENSE_ERRORS } from '@/lib/messages'
 import { hasUnsavedInput } from '@/lib/leave-guard'
 import { periodSummary, CURRENT_PERIOD } from '@/test-support/income-fixtures'
+import { pickDate } from '@/test-support/date-field'
+import { dayLabel } from '@/lib/month-grid'
 
 afterEach(async () => {
   cleanup()
@@ -146,10 +148,10 @@ test('결제일이 어느 회계 기간에도 없으면 칸 아래 알리고 날
   )
   showFinance()
   await openForm()
-  fill('결제일', '2026-08-31')
+  await pickDate(inForm().getByLabelText('결제일'), '2026-08-31')
   expect(await screen.findByText('이 날짜가 든 회계 기간이 없어요')).toBeTruthy()
   expect(screen.getByLabelText('결제일').getAttribute('aria-describedby')).toBeTruthy()
-  fill('결제일', '2026-09-01')
+  await pickDate(inForm().getByLabelText('결제일'), '2026-09-01')
   expect(screen.queryByText('이 날짜가 든 회계 기간이 없어요')).toBeNull()
 })
 
@@ -163,7 +165,7 @@ test.each(['loading', 'failed'])(
     )
     showFinance()
     await openForm()
-    fill('결제일', '2026-08-31')
+    await pickDate(inForm().getByLabelText('결제일'), '2026-08-31')
     await settle()
     expect(screen.queryByText('이 날짜가 든 회계 기간이 없어요')).toBeNull()
   },
@@ -446,7 +448,7 @@ test('결제일은 오늘까지만 받고, 필수 칸이 비거나 값이 맞지
   showFinance()
   await openForm()
   fireEvent.click(screen.getByRole('button', { name: '요청 없이' }))
-  expect(asElement(screen.getByLabelText('결제일'), HTMLInputElement).value).toBe(today())
+  expect(screen.getByLabelText('결제일')).toHaveProperty('value', today())
   expect(submit().disabled).toBe(false)
   fireEvent.click(submit())
   expect(screen.getByText('사용처를 입력해 주세요')).toBeTruthy()
@@ -460,10 +462,17 @@ test('결제일은 오늘까지만 받고, 필수 칸이 비거나 값이 맞지
   fireEvent.click(submit())
   expect(screen.getByText('내역을 입력해 주세요')).toBeTruthy()
   fill('내역', '간식')
-  fill('결제일', tomorrow())
-  fireEvent.click(submit())
-  expect(screen.getByText('오늘이나 그 전 날짜를 입력해 주세요')).toBeTruthy()
-  fill('결제일', today())
+  // 오늘 뒤의 날은 달력에서 막혀 고를 수 없다.
+  fireEvent.click(inForm().getByLabelText('결제일'))
+  await screen.findByRole('grid')
+  // 오늘이 달의 마지막 토요일이면 내일은 다음 달 장에만 있다.
+  if (!screen.queryByRole('button', { name: dayLabel(tomorrow()) }))
+    fireEvent.click(screen.getByRole('button', { name: '다음 달' }))
+  const tomorrowDay = screen.getByRole('button', { name: dayLabel(tomorrow()) })
+  expect(tomorrowDay.getAttribute('aria-disabled')).toBe('true')
+  fireEvent.click(tomorrowDay)
+  expect(inForm().getByLabelText('결제일')).toHaveProperty('value', today())
+  fireEvent.keyDown(tomorrowDay, { key: 'Escape' })
   fill('금액(원)', '0')
   fireEvent.click(submit())
   expect(screen.getByText('1 이상의 숫자를 입력해 주세요')).toBeTruthy()
@@ -948,7 +957,7 @@ test('요청 제목·품목 도메인·오늘로 채워지고 고친 값이 보�
   expect(screen.getByLabelText('결제일')).toHaveProperty('value', today())
   fill('내역', '고친 내역')
   fill('사용처', '고친 가게')
-  fill('결제일', '2020-01-01')
+  await pickDate(inForm().getByLabelText('결제일'), '2020-01-01')
   choose('결제 수단', 'transfer')
   document.dispatchEvent(new Event('visibilitychange'))
   await settle()

@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { addDays, dayLabel } from '@/lib/month-grid'
 import { resetAddress } from '@/test-support/address-reset'
 import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
@@ -94,7 +95,7 @@ test('출처는 사람이 적는 다섯만 보이고, 금액이 없거나 0이�
     option => option.textContent,
   )
   expect(options).toEqual(['학생회비', '지원금', '사업 수익', '후원금', '기타'])
-  expect(asElement(screen.getByLabelText('받은 날'), HTMLInputElement).value).toBe(today())
+  expect(screen.getByLabelText('받은 날')).toHaveProperty('value', today())
   expect(submit().disabled).toBe(false)
   fireEvent.click(submit())
   expect(screen.getByText('금액을 입력해 주세요')).toBeTruthy()
@@ -182,14 +183,17 @@ test('오늘 뒤의 받은 날, 숫자가 아닌 금액, 계약의 상한을 넘
   await openForm()
   const posts = () => api.calls.filter(call => call.method === 'POST').length
   fill('금액(원)', '1000')
-  const date = asElement(screen.getByLabelText('받은 날'), HTMLInputElement)
-  expect(date.max).toBe(today())
-  expect(date.min).toBe('2000-01-01')
-  fill('받은 날', '2999-01-01')
-  fireEvent.click(submit())
-  expect(screen.getByText(`2000-01-01부터 ${today()} 사이의 날짜를 입력해 주세요`)).toBeTruthy()
-  expect(date.getAttribute('aria-invalid')).toBe('true')
-  fill('받은 날', today())
+  // 오늘 뒤의 받은 날은 달력에서 막혀 고를 수 없다.
+  fireEvent.click(screen.getByLabelText('받은 날'))
+  await screen.findByRole('grid')
+  const tomorrow = dayLabel(addDays(today(), 1))
+  if (!screen.queryByRole('button', { name: tomorrow }))
+    fireEvent.click(screen.getByRole('button', { name: '다음 달' }))
+  const after = screen.getByRole('button', { name: tomorrow })
+  expect(after.getAttribute('aria-disabled')).toBe('true')
+  fireEvent.click(after)
+  expect(screen.getByLabelText('받은 날')).toHaveProperty('value', today())
+  fireEvent.keyDown(after, { key: 'Escape' })
   fill('금액(원)', '1e3')
   fireEvent.click(submit())
   expect(screen.getByText('1 이상의 숫자를 입력해 주세요')).toBeTruthy()
@@ -320,8 +324,15 @@ test('지난 기간에 적으면 받은 날은 그 기간 끝일까지이고, �
   await screen.findByText('수입 없음')
   fireEvent.click(screen.getByRole('button', { name: '수입 적기' }))
   await screen.findByRole('form', { name: '수입 적기' })
-  const date = asElement(screen.getByLabelText('받은 날'), HTMLInputElement)
-  expect([date.min, date.max, date.value]).toEqual(['2020-01-01', '2020-12-31', '2020-12-31'])
+  const date = screen.getByLabelText('받은 날')
+  expect(date).toHaveProperty('value', '2020-12-31')
+  // 그 기간 밖의 날(2021년 1월 1일)은 달력에서 막혀 있다.
+  fireEvent.click(date)
+  expect(
+    (await screen.findByRole('button', { name: '1월 1일 (금)' })).getAttribute('aria-disabled'),
+  ).toBe('true')
+  fireEvent.keyDown(screen.getByRole('grid'), { key: 'Escape' })
+  await waitFor(() => expect(screen.queryByRole('grid')).toBeNull())
   // 지금 기간의 항목(지원금 예산)이 아니라 고른 기간의 항목이 보인다.
   await screen.findByRole('option', { name: /1학기 학생회비/ })
   expect(screen.queryByRole('option', { name: /지원금 예산/ })).toBeNull()

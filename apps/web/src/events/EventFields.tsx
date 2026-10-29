@@ -1,5 +1,6 @@
 import { useId } from 'react'
 import { Field } from '@/components/ui/field'
+import { DateTimeField } from '@/components/ui/date-time-field'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { SidePanelSection } from '@/components/ui/side-panel'
@@ -83,12 +84,13 @@ export function EventEditFields({ values, disabled, onChange, errors = {} }: Pro
       </SidePanelSection>
       <SidePanelSection title="일시" hint={WHEN_REFLECTED}>
         <Field label="시작 일시" optional error={errors.startsAt}>
-          <Input
+          <DateTimeField
             name="startsAt"
-            type="datetime-local"
+            timeLabel="시작 시각"
+            clearable
             value={values.startsAt}
             disabled={disabled}
-            onChange={event => set({ startsAt: event.target.value })}
+            onChange={startsAt => set({ startsAt })}
           />
         </Field>
         <Field
@@ -104,13 +106,14 @@ export function EventEditFields({ values, disabled, onChange, errors = {} }: Pro
             />
           }
         >
-          <Input
+          <DateTimeField
             name="endsAt"
-            // 미정이면 막힌 빈칸이다. 날짜 칸은 비어도 브라우저가 '연도-월-일' 꼴을 그려 예시 글처럼 읽힌다.
-            type={values.endTbd ? 'text' : 'datetime-local'}
+            timeLabel="종료 시각"
+            clearable
+            // 미정이면 막힌 빈칸이다.
             value={values.endTbd ? '' : values.endsAt}
             disabled={disabled || values.endTbd}
-            onChange={event => set({ endsAt: event.target.value })}
+            onChange={endsAt => set({ endsAt })}
           />
         </Field>
       </SidePanelSection>

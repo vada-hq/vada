@@ -8,6 +8,7 @@ import {
   StateSection,
 } from './AppSections'
 import { ButtonsSection, CardsSection, ChipsSection, InputsSection } from './FormSections'
+import { DateFieldSection } from './DateFieldSections'
 import {
   ActionMenuSection,
   EmptyAvatarSection,
@@ -101,6 +102,7 @@ export const gallerySections = [
   PurchaseRequestSection,
   ButtonsSection,
   InputsSection,
+  DateFieldSection,
   ChipsSection,
   CardsSection,
   MenuTabsSection,

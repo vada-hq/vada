@@ -15,6 +15,7 @@ import { ROOM_LOST, TASK_INVALID, PERMISSION_CHANGED } from '@/lib/messages'
 import { eventDetail } from '@/test-support/event-fixtures'
 import { staffForm } from '@/test-support/staff-registration-fixtures'
 import { TaskPanel } from './TaskPanel'
+import { pickDateTime } from '@/test-support/date-field'
 
 afterEach(async () => {
   cleanup()
@@ -306,9 +307,7 @@ test('신청 양식 만들기는 업무의 행사로 양식 화면을 대화상�
   )
   await make('신청 양식')
   const form = await screen.findByRole('form', { name: '신청 양식 만들기' })
-  fireEvent.change(within(form).getByLabelText(/신청 마감/), {
-    target: { value: '2026-11-01T18:00' },
-  })
+  await pickDateTime(within(form).getByLabelText(/신청 마감/), '2026-11-01T18:00')
   api.on('POST', `${BASE}/events/${EVENT_ID}/registration-forms`, () =>
     json({ form: staffForm({ id: 'f1' }) }, 201),
   )
@@ -347,9 +346,7 @@ test('신청 양식 창은 행사의 일시·장소 미정을 알리고, 만든 
   const form = await screen.findByRole('form', { name: '신청 양식 만들기' })
   fireEvent.click(within(form).getByRole('button', { name: '펼치기' }))
   expect((await within(form).findAllByText('미정')).length).toBe(2)
-  fireEvent.change(within(form).getByLabelText(/신청 마감/), {
-    target: { value: '2026-11-01T18:00' },
-  })
+  await pickDateTime(within(form).getByLabelText(/신청 마감/), '2026-11-01T18:00')
   api.on('POST', `${BASE}/events/${EVENT_ID}/registration-forms`, () =>
     json({ form: staffForm({ id: 'f1', name: '환영회 신청' }) }, 201),
   )

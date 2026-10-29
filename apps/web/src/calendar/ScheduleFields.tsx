@@ -1,9 +1,22 @@
+import type { ComponentProps } from 'react'
 import { CALENDAR_KIND_LABELS, SCHEDULE_TYPES, type ScheduleType } from '@vada/contracts'
 import { Field } from '@/components/ui/field'
+import { DateField } from '@/components/ui/date-field'
+import { DateTimeField } from '@/components/ui/date-time-field'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { toggleAllDay, type ScheduleFieldProps } from './schedule-form'
+
+type MomentProps = Omit<ComponentProps<typeof DateTimeField>, 'timeLabel'> & {
+  allDay: boolean
+  timeLabel: string
+}
+
+// 종일이면 날짜만, 아니면 날짜와 시각을 고른다. 값은 'YYYY-MM-DD' 또는 'YYYY-MM-DDTHH:mm' 그대로다.
+function ScheduleMoment({ allDay, timeLabel, ...props }: MomentProps) {
+  return allDay ? <DateField {...props} /> : <DateTimeField timeLabel={timeLabel} {...props} />
+}
 
 export function ScheduleFields({ value, errors, onChange }: ScheduleFieldProps) {
   return (
@@ -41,19 +54,20 @@ export function ScheduleFields({ value, errors, onChange }: ScheduleFieldProps) 
       </Label>
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label={value.allDay ? '시작 날짜' : '시작 시각'} required error={errors.start}>
-          <Input
-            className="max-sm:min-h-11"
-            type={value.allDay ? 'date' : 'datetime-local'}
+          <ScheduleMoment
+            allDay={value.allDay}
+            timeLabel="시작 시간"
             value={value.start}
-            onChange={event => onChange({ start: event.target.value })}
+            onChange={start => onChange({ start })}
           />
         </Field>
         <Field label={value.allDay ? '끝 날짜' : '끝 시각'} optional error={errors.end}>
-          <Input
-            className="max-sm:min-h-11"
-            type={value.allDay ? 'date' : 'datetime-local'}
+          <ScheduleMoment
+            allDay={value.allDay}
+            timeLabel="끝 시간"
+            clearable
             value={value.end}
-            onChange={event => onChange({ end: event.target.value })}
+            onChange={end => onChange({ end })}
           />
         </Field>
       </div>

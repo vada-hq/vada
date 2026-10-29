@@ -6,6 +6,7 @@ import { CreateScheduleItemSchema, type UpdateScheduleItemRequest } from '@vada/
 import { windowHistoryIdle, resetWindowHistory } from '@/lib/use-window-history'
 import { DEPARTMENT_ID, EVENT_ID, scheduleDetail } from '@/test-support/schedule-fixtures'
 import { ScheduleDialog } from './ScheduleDialog'
+import { pickDate } from '@/test-support/date-field'
 
 afterEach(async () => {
   cleanup()
@@ -60,7 +61,8 @@ test('종일을 끄면 시각 칸, 부서를 고르면 세로 공개 범위를 �
   setup()
   expect(screen.queryByLabelText('공개 범위')).toBeNull()
   fireEvent.click(screen.getByLabelText('종일'))
-  expect(screen.getByLabelText('시작 시각').getAttribute('type')).toBe('datetime-local')
+  expect(screen.getByRole('combobox', { name: '시작 시각' })).toBeTruthy()
+  expect(screen.getByRole('combobox', { name: '시작 시간' })).toBeTruthy()
   expect(screen.getByLabelText('끝 시각')).toBeTruthy()
   expect(screen.queryByLabelText('시작 날짜')).toBeNull()
   fireEvent.change(screen.getByLabelText('부서'), { target: { value: DEPARTMENT_ID } })
@@ -74,7 +76,7 @@ test('종일을 끄면 시각 칸, 부서를 고르면 세로 공개 범위를 �
 
 test('끝이 시작보다 앞이면 전송하지 않고 끝 칸에 문제를 보인다', async () => {
   const onSave = setup({ item: scheduleDetail() })
-  fireEvent.change(screen.getByLabelText('끝 날짜'), { target: { value: '2026-10-27' } })
+  await pickDate(screen.getByLabelText('끝 날짜'), '2026-10-27')
   fireEvent.click(screen.getByRole('button', { name: '저장' }))
   expect(screen.getByLabelText('끝 날짜').getAttribute('aria-invalid')).toBe('true')
   await waitFor(() => expect(document.activeElement).toBe(screen.getByLabelText('끝 날짜')))

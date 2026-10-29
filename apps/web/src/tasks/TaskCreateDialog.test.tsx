@@ -122,7 +122,7 @@ test('세 묶음과 제목·설명·담당 부서·담당자·마감·행사를 
   expect(select('담당 부서').value).toBe('')
   expect(select('담당자').value).toBe('')
   expect(select('행사').value).toBe('')
-  expect(screen.getByLabelText(/^마감/).getAttribute('type')).toBe('date')
+  expect(screen.getByRole('combobox', { name: /^마감/ })).toBeTruthy()
   expect(document.querySelector('[placeholder]')).toBeNull()
   close()
   expect(handlers.onClose).toHaveBeenCalledOnce()
@@ -286,7 +286,8 @@ test('설명·마감을 미리 채우고 마감을 비워 만들 수 있다', as
     initial: { title: '포스터', body: '회의에서 정한 내용', dueDate: '2026-11-03' },
   })
   expect(screen.getByLabelText<HTMLInputElement>(/^마감/).value).toBe('2026-11-03')
-  fireEvent.change(screen.getByLabelText(/^마감/), { target: { value: '' } })
+  fireEvent.click(screen.getByLabelText(/^마감/))
+  fireEvent.click(await screen.findByRole('button', { name: '날짜 지우기' }))
   submit()
   await waitFor(() => expect(posts()).toHaveLength(1))
   expect(posts()[0]?.body).toMatchObject({ body: '회의에서 정한 내용', dueDate: null })
