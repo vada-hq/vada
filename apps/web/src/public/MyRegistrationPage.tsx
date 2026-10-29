@@ -1,4 +1,4 @@
-import type { MyRegistration, PublicRegistrationForm } from '@vada/contracts'
+import type { MyRegistration } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
 import { Alert } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
@@ -9,19 +9,16 @@ import { useEventDay } from './event-day'
 import { MineFooter, type Cancel } from './MineFooter'
 import { AccountPanel, DayResult, Result } from './MineResult'
 import { Band } from './PageParts'
-import { useMineForm } from './useMineForm'
 import { useMyRegistration } from './useMyRegistration'
 
 // 신청 직후·내 신청. 차례: 완료 → 참가비·계좌 → 입장 QR → 행사 정보·문의 → 다시 열기 → 취소 → 지우는 날(내용 ④).
 // 행사 당일(day)에는 입장 QR이 맨 위로 오고, 낼 돈이 남지 않았으면 완료와 계좌를 두 줄로 접는다.
 export function MyRegistrationView({
   mine,
-  form,
   day,
   cancel,
 }: {
   mine: MyRegistration
-  form: PublicRegistrationForm | null
   day: boolean
   cancel: Cancel
 }) {
@@ -37,7 +34,7 @@ export function MyRegistrationView({
         {!day && <EntryQrRow mine={mine} />}
       </div>
       <Band />
-      <MineFooter mine={mine} form={form} cancel={cancel} copy={copy} />
+      <MineFooter mine={mine} cancel={cancel} copy={copy} />
       <Toast message={copy.message} />
     </div>
   )
@@ -46,8 +43,7 @@ export function MyRegistrationView({
 // 개인 링크(/r#토큰)로 여는 내 신청. 로그인이 없다.
 export default function MyRegistrationPage({ token }: { token: string }) {
   const { state, busy, problem, cancel, retry } = useMyRegistration(token)
-  const form = useMineForm(token)
-  const day = useEventDay(form, state)
+  const day = useEventDay(state.kind === 'ready' ? state.data : null)
   switch (state.kind) {
     case 'loading':
       return <StateMessage kind="loading">불러오는 중…</StateMessage>
@@ -68,7 +64,6 @@ export default function MyRegistrationPage({ token }: { token: string }) {
       return (
         <MyRegistrationView
           mine={state.data}
-          form={form}
           day={day}
           cancel={{ busy, problem, run: cancel }}
         />

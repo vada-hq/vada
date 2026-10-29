@@ -38,8 +38,9 @@ const publicForm = (extra: Partial<PublicRegistrationForm> = {}): PublicRegistra
 })
 
 const mineOf = (extra: Partial<MyRegistration> = {}): MyRegistration => ({
-  event: { name: event.name },
+  event,
   form: { notice: form.notice },
+  purgeOn: '2027-10-24',
   mine: { name: '김새내', studentId: '20260001', phone: null },
   answers: [],
   appliedFee: 5000,
@@ -53,14 +54,17 @@ const mineOf = (extra: Partial<MyRegistration> = {}): MyRegistration => ({
 
 // 실제 공개 화면과 같은 max-w-130 흰 단으로 1280px·390px에서 비교한다.
 export function PublicSection() {
-  // [내 신청, 공개 양식(이 기기에 신청 코드가 있을 때), 행사 당일]
-  const completed: [MyRegistration, PublicRegistrationForm | null, boolean][] = [
-    [mineOf(), publicForm(), false],
-    [mineOf({ depositConfirmed: true }), null, false],
-    [mineOf({ appliedFee: 0, account: null, attended: true, cancellable: false }), null, false],
+  // [내 신청, 행사 당일]. 일시·장소가 미정인 행사는 '미정'으로 보인다.
+  const undecided = { ...event, startsAt: null, endsAt: null, place: null }
+  const completed: [MyRegistration, boolean][] = [
+    [mineOf(), false],
+    [mineOf({ depositConfirmed: true, event: undecided, purgeOn: null }), false],
+    [mineOf({ appliedFee: 0, account: null, attended: true, cancellable: false }), false],
     [
-      mineOf({ event: { name: unbroken }, mine: { name: longName, studentId: null, phone: null } }),
-      null,
+      mineOf({
+        event: { ...undecided, name: unbroken },
+        mine: { name: longName, studentId: null, phone: null },
+      }),
       false,
     ],
     [
@@ -68,11 +72,10 @@ export function PublicSection() {
         answers: sampleAnswers,
         mine: { name: '김새내', studentId: '20260001', phone: '01012345678' },
       }),
-      publicForm(),
       false,
     ],
-    [mineOf(), publicForm(), true],
-    [mineOf({ depositConfirmed: true }), publicForm(), true],
+    [mineOf(), true],
+    [mineOf({ depositConfirmed: true }), true],
   ]
   return (
     <Section title="참가 신청 화면">
@@ -93,11 +96,10 @@ export function PublicSection() {
           />
         </div>
       ))}
-      {completed.map(([mine, saved, day], index) => (
+      {completed.map(([mine, day], index) => (
         <div key={index} className="w-full max-w-130 bg-white px-6">
           <MyRegistrationView
             mine={mine}
-            form={saved}
             day={day}
             cancel={{ busy: false, problem: '', run: async () => {} }}
           />

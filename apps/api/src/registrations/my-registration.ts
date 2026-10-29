@@ -1,5 +1,5 @@
 import { and, eq, isNull } from 'drizzle-orm'
-import { qrTextOf, type MyRegistration } from '@vada/contracts'
+import { koreanOf, qrTextOf, type MyRegistration } from '@vada/contracts'
 import {
   account,
   attendance,
@@ -14,9 +14,11 @@ import { completedEventIdsAmong } from '../events/completion.js'
 import { ApiError } from '../http/errors.js'
 import { shownAnswersOf } from './answers.js'
 import { hashOfToken } from './link.js'
+import { purgeOnOf } from './purge-date.js'
 import { isFormClosed } from './state.js'
 
 type Reader = Pick<Db, 'select'>
+const koreanOrNull = (value: Date | null) => (value ? koreanOf(value) : null)
 
 // 개인 링크 토큰이 가리키는 취소하지 않은 신청과 그 양식. 모르는 토큰, 취소했거나 비운 신청(링크가 지워졌다)은 모두 없다(null)이다.
 // 계좌는 신청의 적용 참가비가 0보다 클 때만 읽는다(공개 응답에 낼 때 줄이 아니라 이 칸으로 가른다).
@@ -32,6 +34,9 @@ export async function mineRowOf(db: Reader, token: string) {
       appliedFee: registration.appliedFee,
       depositId: deposit.id,
       eventName: event.name,
+      eventStartsAt: event.startsAt,
+      eventEndsAt: event.endsAt,
+      eventPlace: event.place,
       closesAt: registrationForm.closesAt,
       notice: registrationForm.notice,
       bank: account.bank,
@@ -77,8 +82,15 @@ export async function lookupMine(db: Reader, token: string, now: Date): Promise<
   const appliedFee = Number(row.appliedFee)
   const hasAccount = row.bank !== null && row.accountNumber !== null && row.holder !== null
   return {
-    event: { name: row.eventName },
+    // 행사 일시·장소는 공개 양식이 이미 싣는 값이다. 지우는 날도 공개 양식과 같은 함수로 센다.
+    event: {
+      name: row.eventName,
+      startsAt: koreanOrNull(row.eventStartsAt),
+      endsAt: koreanOrNull(row.eventEndsAt),
+      place: row.eventPlace,
+    },
     form: { notice: row.notice },
+    purgeOn: purgeOnOf(row),
     mine: { name: row.name, studentId: row.studentId, phone: row.phone },
     // 토큰을 가진 본인의 답이라 열람 기록이 없다(이름·학번과 같다).
     answers: (await shownAnswersOf(db, [row])).get(row.id)!,

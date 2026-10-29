@@ -34,8 +34,9 @@ export const publicForm = (
 })
 
 export const myRegistration = (extra: Partial<MyRegistration> = {}): MyRegistration => ({
-  event: { name: publicForm().event.name },
+  event: publicForm().event,
   form: { notice: publicForm().form.notice },
+  purgeOn: publicForm().purgeOn,
   mine: { name: '김새내', studentId: '20260001', phone: null },
   answers: [],
   appliedFee: 5000,

@@ -30,7 +30,7 @@ const mineOf = async (t: RegistrationKit, token: string) =>
 const errorOf = async (response: Response) => ((await response.json()) as { error: string }).error
 
 test(
-  '개인 링크 조회: 내가 넣은 것, 적용 참가비, 참가비가 있으면 계좌, QR 글자(대문자 해시), 출석과 취소 가능 여부를 준다',
+  '개인 링크 조회: 행사 일시·장소와 지우는 날, 내가 넣은 것, 적용 참가비, 참가비가 있으면 계좌, QR 글자(대문자 해시), 출석과 취소 가능 여부를 준다',
   withRegistrations(async t => {
     const form = await split(t)
     const token = await t.applied(form.publicCode, person)
@@ -38,10 +38,15 @@ test(
     assert.equal(response.status, 200)
     assert.equal(response.headers.get('cache-control'), 'no-store')
     assert.deepEqual(await response.json(), {
+      // 행사 일시·장소와 지우는 날은 공개 양식과 같은 값이다(다른 기기에서 열어도 당일을 정한다).
       event: {
         name: '가을 축제',
+        startsAt: '2026-11-05T14:00',
+        endsAt: '2026-11-05T18:00',
+        place: '대운동장',
       },
       form: { notice: '문의는 카톡' },
+      purgeOn: '2027-11-05',
       mine: person,
       answers: [],
       appliedFee: 5000,
@@ -121,8 +126,10 @@ test(
       'event',
       'form',
       'mine',
+      'purgeOn',
       'qrText',
     ])
+    assert.deepEqual(Object.keys(confirmed.event).sort(), ['endsAt', 'name', 'place', 'startsAt'])
     const serialized = JSON.stringify(confirmed)
     for (const hidden of ['deposit', 'amount', 'refundAmount', 'refundedAt', 'depositId', 'refund'])
       assert.ok(!serialized.includes(`"${hidden}":`), hidden)

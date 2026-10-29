@@ -1,13 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import {
-  CANCEL_PATH,
-  FORM_PATH,
-  LOOKUP_PATH,
-  myRegistration,
-  publicForm,
-} from '@/test-support/registration-fixtures'
+import { CANCEL_PATH, LOOKUP_PATH, myRegistration } from '@/test-support/registration-fixtures'
 import { json, mockApi } from '@/test-support/mock-api'
 import { settle } from '@/test-support/settle'
 import { CANCEL_REGISTRATION_ERRORS, REGISTRATION_LOST } from '@/lib/registration-messages'
@@ -29,16 +23,6 @@ function setup(mine = myRegistration(), token = 'tok123') {
   const api = mockApi()
   api.on('POST', LOOKUP_PATH, () => json(mine))
   render(<MyRegistrationPage token={token} />)
-  return api
-}
-
-// 같은 기기에서 신청했으면 코드가 남아 있어 공개 양식에서 행사 일시·장소·지우는 날을 읽는다.
-function setupSaved(mine = myRegistration(), form = publicForm()) {
-  window.localStorage.setItem(SAVED_KEY, 'tok123')
-  const api = mockApi()
-  api.on('POST', LOOKUP_PATH, () => json(mine))
-  api.on('GET', FORM_PATH, () => json(form))
-  render(<MyRegistrationPage token="tok123" />)
   return api
 }
 
@@ -110,7 +94,6 @@ test('모르는 토큰이면 찾을 수 없다고 하고 기억한 토큰을 지
   window.localStorage.setItem(SAVED_KEY, 'tok123')
   const api = mockApi()
   api.on('POST', LOOKUP_PATH, () => json({ error: 'NOT_FOUND' }, 404))
-  api.on('GET', FORM_PATH, () => json(publicForm()))
   render(<MyRegistrationPage token="tok123" />)
   expect((await screen.findByRole('alert')).textContent).toBe(REGISTRATION_LOST)
   expect(window.localStorage.getItem(SAVED_KEY)).toBeNull()
@@ -124,7 +107,7 @@ test('토큰이 없는 주소는 서버에 묻지 않고 찾을 수 없다고 �
 })
 
 test('취소는 확인을 거치고, 하면 신청을 취소했다고 하며 기억한 토큰을 지운다', async () => {
-  const api = setupSaved()
+  const api = setup()
   api.on('POST', CANCEL_PATH, () => json({ cancelled: true }))
   fireEvent.click(await screen.findByRole('button', { name: '신청 취소' }))
   expect(api.calls.some(call => call.path === CANCEL_PATH)).toBe(false)
@@ -192,7 +175,7 @@ test('주소 복사가 막히면 주소를 보여 길게 눌러 복사하게 한
 })
 
 test('차례: 완료 → 참가비 → 계좌 → 입장 QR → 행사 정보·문의 → 다시 열기 → 취소 → 지우는 날', async () => {
-  setupSaved()
+  setup()
   const title = await screen.findByRole('heading', { name: '신청 완료', level: 1 })
   const account = screen.getByRole('region', { name: '입금 계좌' })
   expect(within(account).getByText('입금 확인 전')).toBeTruthy()
@@ -220,12 +203,23 @@ test('차례: 완료 → 참가비 → 계좌 → 입장 QR → 행사 정보·�
   expect(screen.queryByText(/저장해 두/)).toBeNull()
 })
 
-test('이 기기에 신청 코드가 없으면 행사 일시·장소·지우는 날 없이 문의만 보인다', async () => {
+test('신청한 기기가 아니어도 내 신청 응답만으로 행사 일시·장소·지우는 날이 보인다', async () => {
   const api = setup()
-  expect(await screen.findByText('문의는 위 안내에 적힌 곳으로 해 주세요.')).toBeTruthy()
-  expect(screen.queryByText(/지워져요/)).toBeNull()
-  expect(screen.queryByText('대강당')).toBeNull()
+  expect(await screen.findByText('10월 24일 (토) 14:00 ~ 18:00')).toBeTruthy()
+  expect(screen.getByText('대강당')).toBeTruthy()
+  expect(screen.getByText('신청 정보는 2027년 10월 24일에 지워져요.')).toBeTruthy()
   expect(api.calls.some(call => call.method === 'GET')).toBe(false)
+})
+
+test('일시·장소가 미정이면 미정으로 보이고 지우는 날을 모르면 그 줄이 없다', async () => {
+  setup(
+    myRegistration({
+      event: { name: '신입생 환영회', startsAt: null, endsAt: null, place: null },
+      purgeOn: null,
+    }),
+  )
+  expect(await screen.findByText('장소 미정')).toBeTruthy()
+  expect(screen.queryByText(/지워져요/)).toBeNull()
 })
 
 test('입금 상태는 서버의 입금 확인 값이고 계좌 면에 한 번만 보인다', async () => {
@@ -258,7 +252,7 @@ const ON_THE_DAY = new Date('2026-10-24T13:00:00+09:00')
 test('행사 당일이면 입장 QR이 맨 위에 펼쳐 있고 완료는 그 아래다', async () => {
   vi.useFakeTimers({ toFake: ['Date'] })
   vi.setSystemTime(ON_THE_DAY)
-  setupSaved()
+  setup()
   const top = await screen.findByRole('heading', { name: '입장 QR', level: 1 })
   const qr = screen.getByRole('img', { name: '입장 QR' })
   const done = screen.getByRole('heading', { name: '신청 완료', level: 2 })
@@ -272,7 +266,7 @@ test('행사 당일이면 입장 QR이 맨 위에 펼쳐 있고 완료는 그 �
 test('행사 당일에 입금이 확인됐으면 계좌를 접고 참가비와 입금 확인됨만 보인다', async () => {
   vi.useFakeTimers({ toFake: ['Date'] })
   vi.setSystemTime(ON_THE_DAY)
-  setupSaved(myRegistration({ depositConfirmed: true }))
+  setup(myRegistration({ depositConfirmed: true }))
   await screen.findByRole('heading', { name: '입장 QR', level: 1 })
   expect(screen.getByText('입금 확인됨')).toBeTruthy()
   expect(screen.getByText(/참가비 5,000원/)).toBeTruthy()
@@ -284,20 +278,19 @@ test('행사 전날과 다음 날에는 입장 QR이 접혀 있다', async () =>
   vi.useFakeTimers({ toFake: ['Date'] })
   for (const now of ['2026-10-23T23:59:00+09:00', '2026-10-25T00:00:00+09:00']) {
     vi.setSystemTime(new Date(now))
-    setupSaved()
+    setup()
     await screen.findByText('대강당')
     expect(screen.getByRole('heading', { name: '신청 완료', level: 1 })).toBeTruthy()
     expect(screen.getByRole('button', { name: /^입장 QR/ })).toBeTruthy()
     cleanup()
-    window.localStorage.clear()
   }
 })
 
-test('내 신청을 다시 읽을 때 행사 일시·장소도 다시 읽는다(운영진이 장소를 바꾼 뒤)', async () => {
-  const api = setupSaved()
+test('내 신청을 다시 읽으면 바뀐 행사 일시·장소가 보인다(운영진이 장소를 바꾼 뒤)', async () => {
+  const api = setup()
   expect(await screen.findByText('대강당')).toBeTruthy()
-  const form = publicForm()
-  api.on('GET', FORM_PATH, () => json({ ...form, event: { ...form.event, place: '소강당' } }))
+  const mine = myRegistration()
+  api.on('POST', LOOKUP_PATH, () => json({ ...mine, event: { ...mine.event, place: '소강당' } }))
   document.dispatchEvent(new Event('visibilitychange'))
   expect(await screen.findByText('소강당')).toBeTruthy()
 })

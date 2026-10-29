@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react'
 import { CalendarDays, MapPin, Megaphone, MessageCircle } from 'lucide-react'
-import type { MyRegistration, PublicRegistrationForm } from '@vada/contracts'
+import type { MyRegistration } from '@vada/contracts'
 import { whenLabel } from '@/events/event-view'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
 import StateMessage from '@/components/StateMessage'
@@ -18,21 +18,16 @@ function Value({ children }: { children: ReactNode }) {
   return <span className="whitespace-pre-wrap wrap-anywhere">{children}</span>
 }
 
-// 행사 정보(늘 최신)·안내·문의. 신청 화면 머리와 같은 아이콘 줄이다.
-// 일시·장소는 이 기기에 신청 코드가 있어 공개 양식을 읽었을 때만 있다.
-function EventInfo({ mine, form }: { mine: MyRegistration; form: PublicRegistrationForm | null }) {
+// 행사 정보(다시 읽을 때마다 최신)·안내·문의. 신청 화면 머리와 같은 아이콘 줄이다.
+function EventInfo({ mine }: { mine: MyRegistration }) {
   return (
     <FactList>
-      {form && (
-        <Fact icon={CalendarDays}>
-          <Value>{whenLabel(form.event)}</Value>
-        </Fact>
-      )}
-      {form && (
-        <Fact icon={MapPin}>
-          <Value>{form.event.place ?? '장소 미정'}</Value>
-        </Fact>
-      )}
+      <Fact icon={CalendarDays}>
+        <Value>{whenLabel(mine.event)}</Value>
+      </Fact>
+      <Fact icon={MapPin}>
+        <Value>{mine.event.place ?? '장소 미정'}</Value>
+      </Fact>
       {mine.form.notice && (
         <Fact icon={Megaphone}>
           <Value>{mine.form.notice}</Value>
@@ -135,22 +130,21 @@ function CancelBlock({ cancel }: { cancel: Cancel }) {
 // 띠 아래: 행사 정보·문의 → 내 답 → 다시 열기 → 취소 → 지우는 날.
 export function MineFooter(props: {
   mine: MyRegistration
-  form: PublicRegistrationForm | null
   cancel: Cancel
   copy: Copy
 }) {
-  const { mine, form, cancel, copy } = props
+  const { mine, cancel, copy } = props
   return (
     <div className="flex flex-col gap-6 pt-6 pb-12">
-      <EventInfo mine={mine} form={form} />
+      <EventInfo mine={mine} />
       <MyAnswers mine={mine} />
       <Reopen copy={copy} />
       {mine.cancellable && <CancelBlock cancel={cancel} />}
       {/* 취소 오류는 취소 버튼이 사라져도(마감이 지나 cancellable이 false가 되면) 이유와 함께 남는다. */}
       {cancel.problem && <StateMessage kind="error">{cancel.problem}</StateMessage>}
-      {form && (
+      {mine.purgeOn && (
         <p className={`${type.small} text-fg-muted`}>
-          신청 정보는 {dateText(form.purgeOn)}에 지워져요.
+          신청 정보는 {dateText(mine.purgeOn)}에 지워져요.
         </p>
       )}
     </div>

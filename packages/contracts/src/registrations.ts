@@ -240,9 +240,12 @@ export interface CancelRegistrationResponse {
 }
 
 // 개인 링크로 보는 내 신청. 내가 넣은 것과 적용 참가비, 참가비가 0보다 크면 계좌, 출석 QR 글자를 담는다.
+// 행사 일시·장소는 공개 양식과 같은 값이다. 다른 기기에서 열어도 당일(입장 QR 맨 위)과 행사 정보를 정할 수 있게 함께 준다.
 export interface MyRegistration {
-  event: Pick<PublicRegistrationForm['event'], 'name'>
+  event: PublicRegistrationForm['event']
   form: Pick<PublicRegistrationForm['form'], 'notice'>
+  // 신청자 정보를 지우는 날(한국 날짜 YYYY-MM-DD, 공개 양식의 purgeOn과 같다). 셀 근거(행사 일시, 양식 마감)가 모두 없으면 null이다.
+  purgeOn: string | null
   mine: { name: string; studentId: string | null; phone: string | null }
   // 내가 낸 답(질문마다 하나)
   answers: ShownAnswer[]
