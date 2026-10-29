@@ -112,7 +112,7 @@ test(
 )
 
 test(
-  '취소·확정·그만두기 중에는 모든 쓰기를 409로 막는다',
+  '취소·그만두기는 쓰기를 막고 확정 뒤 고치기는 사유가 필요하다',
   withSettlement(async t => {
     const h = openMinutes(t)
     const cancelled = await decided(h)
@@ -130,8 +130,9 @@ test(
     ] as const)
       for (const [path, body] of writes(meeting)) {
         const response = await h.post(path, body)
-        assert.equal(response.status, 409, path)
-        assert.equal(await errorOf(response), error)
+        const missingReason = meeting === confirmed && 'baseVersionNo' in body
+        assert.equal(response.status, missingReason ? 400 : 409, path)
+        assert.equal(await errorOf(response), missingReason ? 'REASON_REQUIRED' : error)
       }
     await t.pg.query('UPDATE council SET closing_requested_at = $2 WHERE id = $1', [
       t.council.councilId,

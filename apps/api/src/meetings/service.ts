@@ -19,7 +19,12 @@ import { assertNewEventOpen, assertReferences, attendeeIdsOf } from './reference
 
 type Target = { id: string; now: Date }
 
-export async function lockedMeeting(tx: Tx, actor: Actor, id: string, action: MeetingAction) {
+export async function lockedMeeting(
+  tx: Tx,
+  actor: Actor,
+  id: string,
+  action: MeetingAction | 'minutes.update',
+) {
   await tx
     .select({ id: meeting.id })
     .from(meeting)
@@ -27,7 +32,9 @@ export async function lockedMeeting(tx: Tx, actor: Actor, id: string, action: Me
     .where(and(eq(meeting.id, id), eq(record.councilId, actor.councilId)))
     .for('no key update', { of: meeting })
   const row = await meetingRowOf(tx, actor, id)
-  const denied = decide(actor, factsOf(row), action)
+  const requested =
+    action === 'minutes.update' ? (row.confirmedAt ? 'meeting.amend' : 'meeting.minutes') : action
+  const denied = decide(actor, factsOf(row), requested)
   if (denied) throw new ApiError(denied)
   return row
 }

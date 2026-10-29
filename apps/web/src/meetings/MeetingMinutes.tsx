@@ -1,14 +1,8 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import type { CouncilView, MeetingAgendaItem, MeetingDetail } from '@vada/contracts'
-import PageHeading from '@/components/PageHeading'
-import { Alert } from '@/components/ui/alert'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { MEETING_STATUS } from './meeting-text'
-import { MeetingActions } from './MeetingActions'
-import { meetingTime } from './meeting-view'
 import { MinutesEntryForm } from './MinutesEntryForm'
 import { MinutesDiscussion } from './MinutesDiscussion'
 import { MinutesDecisions } from './MinutesDecisions'
@@ -18,13 +12,17 @@ import {
   MinutesMobileAgenda,
   MinutesParticipants,
 } from './MinutesNavigation'
-import { useMinutesAutosave } from './use-minutes-autosave'
-import { useMinutesMutation } from './use-minutes-mutation'
-import { MINUTES_TEXT as T, agendaNumber, participantCount } from './minutes-text'
-import { isMinutesDirty, lostEntries, type MinutesDraft } from './minutes-drafts'
+import type { useMinutesMutation } from './use-minutes-mutation'
+import { MINUTES_TEXT as T, agendaNumber } from './minutes-text'
+import type { MinutesDraft } from './minutes-drafts'
 import { MinutesScopeContext } from './minutes-scope'
 import { MinutesFollowUps } from './MinutesFollowUps'
 import { useFollowUpCreate } from './use-follow-up-create'
+import { MinutesHeader } from './MinutesHeader'
+import { OrphanDrafts } from './MinutesDraftTexts'
+import { MeetingMinutesDone } from './MeetingMinutesDone'
+import { remainingEntryTexts } from './minutes-confirm'
+import { useMinutesSession } from './use-minutes-session'
 
 type Props = {
   view: CouncilView
@@ -37,37 +35,6 @@ type Props = {
   onEdit?: (() => void) | undefined
   onCancel?: (() => void) | undefined
   onForbidden?: (() => void) | undefined
-}
-// 다른 사람이 뺀 안건에 쓰던 글은 저장할 곳이 없으므로 옮겨 쓸 수 있게 보인다(mtg-4 검토).
-function OrphanDrafts({ texts }: { texts: string[] }) {
-  return texts.map((text, index) => (
-    <Alert key={index} tone="warning" role="status" className="flex flex-col gap-2 text-sm">
-      <p className="font-medium">{T.orphan}</p>
-      <p className="whitespace-pre-wrap text-gray-800">{text}</p>
-    </Alert>
-  ))
-}
-function MinutesHeader({
-  meeting,
-  onEdit,
-  onCancel,
-}: Pick<Props, 'meeting' | 'onEdit' | 'onCancel'>) {
-  const status = MEETING_STATUS[meeting.status]
-  return (
-    <>
-      <PageHeading trail={{ title: '회의', crumbs: [{ label: meeting.title, truncate: true }] }}>
-        <h1 className="wrap-anywhere text-xl font-semibold">{meeting.title}</h1>
-      </PageHeading>
-      {/* 진행 중·정리 중에는 이 화면만 열리므로 다루는 사람의 고치기·취소도 여기 둔다(mtg-4 검토). */}
-      <MeetingActions meeting={meeting} onEdit={onEdit} onCancel={onCancel} />
-      <div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-2 border-b pb-4 text-sm text-muted-foreground">
-        <Badge tone={status.tone}>{status.label}</Badge>
-        <span className="tabular-nums">{meetingTime(meeting.heldAt, meeting.endsAt)}</span>
-        {meeting.place && <span className="wrap-anywhere">{meeting.place}</span>}
-        <span className="sm:ml-auto">{participantCount(meeting.attendeeCount)}</span>
-      </div>
-    </>
-  )
 }
 function MinutesAgendaHeading({
   item,
@@ -121,6 +88,7 @@ type ViewProps = Pick<Props, 'meeting' | 'selectedId' | 'onSelect' | 'onEdit' | 
   onRetry: () => void
   onOverwrite: () => void
   onAdopt: () => void
+  onConfirm: () => Promise<string | null>
 }
 const agendaHasNoLinks = (item: MeetingAgendaItem) =>
   item.decisions.length === 0 && item.followUps.length === 0
@@ -136,6 +104,7 @@ export function MeetingMinutesView({
   onEdit,
   onCancel,
   orphans,
+  onConfirm,
   ...discussion
 }: ViewProps) {
   const writable = meeting.actions.includes('meeting.minutes')
@@ -161,7 +130,7 @@ export function MeetingMinutesView({
   const nav = { meeting, selectedId: item ? item.id : null, writable, onSelect, submit }
   return (
     <div className="flex min-w-0 flex-col gap-5 break-keep">
-      <MinutesHeader meeting={meeting} onEdit={onEdit} onCancel={onCancel} />
+      <MinutesHeader meeting={meeting} onEdit={onEdit} onCancel={onCancel} onConfirm={onConfirm} />
       <OrphanDrafts texts={orphans} />
       <MinutesMobileAgenda {...nav} />
       <div className="grid min-w-0 gap-5 sm:grid-cols-3">
@@ -237,59 +206,60 @@ export function MeetingMinutes({
   const item = meeting.agenda.find(a => a.id === selectedId) ?? meeting.agenda[0]
   const id = item?.id ?? null
   const followUp = useFollowUpCreate({ view, meeting, agendaItemId: id, onSaved, onForbidden })
-  const scope = useMemo(() => ({ base, memberId }), [base, memberId])
-  const { drafts, store } = useMinutesAutosave(scope, meeting, onSaved)
-  const mutate = useMinutesMutation(base, onSaved)
-  const submit = async (suffix: string, body: object) => {
-    const problem = await mutate(suffix, body)
-    // 사람이 안건 빼기를 확인하고 서버도 처리한 뒤에만 그 안건의 초안을 버린다.
-    if (!problem && /^\/agenda\/[^/]+\/cancel$/.test(suffix)) store.forget(suffix.split('/')[2]!)
-    return problem
-  }
+  const { scope, drafts, store, submit, orphans, confirm } = useMinutesSession(
+    { base, memberId },
+    meeting,
+    onSaved,
+  )
   useEffect(
     () => () => {
       if (id) store.flush(id)
     },
     [id, store],
   )
-  const agendaIds = meeting.agenda.map(a => a.id)
-  const orphans = [
-    ...store.lostTexts(),
-    ...[...drafts]
-      .filter(([key, d]) => isMinutesDirty(d) && !agendaIds.includes(key))
-      .map(([, d]) => d.text),
-    ...lostEntries(scope, agendaIds),
-  ]
   return (
     <MinutesScopeContext value={scope}>
-      <MeetingMinutesView
-        councilId={view.council.id}
-        followUpCreate={followUp.button}
-        followUpDialog={followUp.dialog}
-        meeting={meeting}
-        selectedId={id}
-        draft={id ? drafts.get(id) : undefined}
-        orphans={orphans}
-        onEdit={onEdit}
-        onCancel={onCancel}
-        submit={submit}
-        onSelect={next => {
-          if (id) store.flush(id)
-          onSelect(next)
-        }}
-        onChange={text => {
-          if (id) store.change(id, text)
-        }}
-        onRetry={() => {
-          if (id) void store.save(id)
-        }}
-        onOverwrite={() => {
-          if (id) store.overwrite(id)
-        }}
-        onAdopt={() => {
-          if (id) store.adopt(id)
-        }}
-      />
+      {meeting.status === 'done' ? (
+        <MeetingMinutesDone
+          councilId={view.council.id}
+          meeting={meeting}
+          drafts={drafts}
+          orphans={orphans}
+          entries={activeForm => remainingEntryTexts(scope, activeForm)}
+          submit={submit}
+          onAmended={id => store.forget(id)}
+        />
+      ) : (
+        <MeetingMinutesView
+          councilId={view.council.id}
+          followUpCreate={followUp.button}
+          meeting={meeting}
+          selectedId={id}
+          draft={id ? drafts.get(id) : undefined}
+          orphans={orphans}
+          onEdit={onEdit}
+          onCancel={onCancel}
+          submit={submit}
+          onSelect={next => {
+            if (id) store.flush(id)
+            onSelect(next)
+          }}
+          onChange={text => {
+            if (id) store.change(id, text)
+          }}
+          onRetry={() => {
+            if (id) void store.save(id)
+          }}
+          onOverwrite={() => {
+            if (id) store.overwrite(id)
+          }}
+          onAdopt={() => {
+            if (id) store.adopt(id)
+          }}
+          onConfirm={confirm}
+        />
+      )}
+      {followUp.dialog}
     </MinutesScopeContext>
   )
 }

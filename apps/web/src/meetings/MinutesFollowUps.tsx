@@ -21,7 +21,13 @@ const STATUS_TONE: Record<TaskStatus, 'success' | 'info' | 'neutral'> = {
 
 // 와이어프레임 05B의 후속 업무 카드(아이콘 · 제목 · 담당자·마감 · ↗)에 07의 진행 현황(지금 상태)을 더한다.
 // 누르면 업무 보드의 원래 카드와 상세 패널이 열린다(07 '후속 업무 열기').
-function FollowUpRow({ councilId, task }: { councilId: string; task: Props['items'][number] }) {
+export function FollowUpRow({
+  councilId,
+  task,
+}: {
+  councilId: string
+  task: Props['items'][number]
+}) {
   return (
     <Button
       variant="outline"

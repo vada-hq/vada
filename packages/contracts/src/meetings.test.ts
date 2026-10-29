@@ -6,6 +6,8 @@ import {
   ReplaceMeetingAttendeesSchema,
   CancelMeetingSchema,
   MeetingListQuerySchema,
+  UpdateAgendaSchema,
+  UpdateDecisionSchema,
 } from './meetings.js'
 
 const id = '66666666-6666-4666-8666-666666666661'
@@ -17,6 +19,16 @@ const full = {
   attendeeIds: [id],
   agenda: [{ title: '행사 준비', body: '담당 정하기' }],
 }
+
+test('확정 뒤 고치기 사유는 200자와 올바른 문자만 받는다', () => {
+  for (const schema of [UpdateAgendaSchema, UpdateDecisionSchema]) {
+    for (const reason of ['사유', '😀'.repeat(200), undefined, '', '   '])
+      assert.equal(schema.safeParse({ baseVersionNo: 1, reason }).success, true)
+    for (const reason of ['x'.repeat(201), '😀'.repeat(201), '\u0000', '\uD800'])
+      assert.equal(schema.safeParse({ baseVersionNo: 1, reason }).success, false)
+    assert.equal(schema.safeParse({ baseVersionNo: 1, reason: '사유', extra: 1 }).success, false)
+  }
+})
 
 test('회의 계약: 필수값·상한·문자·모르는 키와 종료 순서를 확인한다', () => {
   assert.equal(CreateMeetingSchema.safeParse(full).success, true)

@@ -81,6 +81,35 @@ type SampleValue = {
   body?: string | null
   content?: string
   rationale?: string | null
+  notes?: string | null
+}
+export function doneMinutesSample(): MeetingDetail {
+  const meeting = minutesSample()
+  meeting.agenda[1]!.followUps = [
+    {
+      id: '0199d1a0-0000-7000-8000-000000000071',
+      title: '비상 연락망 정리',
+      status: 'todo',
+      dueDate: '2026-10-31',
+      assignee: meetingOptions.members[0]!,
+    },
+    {
+      id: '0199d1a0-0000-7000-8000-000000000072',
+      title: '현장 담당자 연락처 확인',
+      status: 'done',
+      dueDate: null,
+      assignee: null,
+    },
+  ]
+  return {
+    ...meeting,
+    event: meetingOptions.events[0]!,
+    status: 'done',
+    minutesStatus: 'confirmed',
+    actions: ['meeting.amend'],
+    confirmedAt: '2026-10-29T07:30:00Z',
+    confirmedBy: { ...meetingOptions.members[0]!, name: '박해랑' },
+  }
 }
 export function changeMinutesSample(
   meeting: MeetingDetail,

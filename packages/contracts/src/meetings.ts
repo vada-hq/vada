@@ -8,6 +8,7 @@ export const MEETING_TITLE_MAX = 100
 export const MEETING_PLACE_MAX = 100
 export const MEETING_PURPOSE_MAX = 500
 export const MEETING_CANCEL_REASON_MAX = 200
+export const MEETING_AMEND_REASON_MAX = MEETING_CANCEL_REASON_MAX
 export const MEETING_AGENDA_TITLE_MAX = MEETING_TITLE_MAX
 export const MEETING_AGENDA_BODY_MAX = 500
 export const MEETING_AGENDA_LIMIT = 30
@@ -25,7 +26,13 @@ export const MEETING_STATUSES = [
 ] as const
 export type MeetingStatus = (typeof MEETING_STATUSES)[number]
 // 회의가 주는 동작. 이름은 권한 키(meeting.write 등)와 떼어 둔다(web structure/actions-reach.test.ts).
-export const MEETING_ACTIONS = ['meeting.edit', 'meeting.cancel', 'meeting.minutes'] as const
+export const MEETING_ACTIONS = [
+  'meeting.edit',
+  'meeting.cancel',
+  'meeting.minutes',
+  'meeting.confirm',
+  'meeting.amend',
+] as const
 export type MeetingAction = (typeof MEETING_ACTIONS)[number]
 export type MeetingRelation = 'manager' | 'attendee' | 'none'
 export type MeetingMinutesStatus = 'none' | 'draft' | 'confirmed'
@@ -63,11 +70,17 @@ export const MeetingNotesSchema = z
   .refine(value => !nulOrLoneSurrogate.test(value) && codePoints(value) <= MEETING_NOTES_MAX)
   .nullable()
 export const AddAgendaSchema = agendaInput
+// 빈 사유는 빠진 사유로 받아, 회의 잠금·권한 확인 뒤 REASON_REQUIRED로 알린다.
+const amendReason = z.preprocess(
+  value => (typeof value === 'string' && value.trim() === '' ? undefined : value),
+  text(MEETING_AMEND_REASON_MAX).optional(),
+)
 export const UpdateAgendaSchema = z.strictObject({
   title: text(MEETING_AGENDA_TITLE_MAX).optional(),
   body: text(MEETING_AGENDA_BODY_MAX).nullable().optional(),
   notes: MeetingNotesSchema.optional(),
   baseVersionNo,
+  reason: amendReason,
 })
 export const AddDecisionSchema = z.strictObject({
   content: text(MEETING_DECISION_MAX),
@@ -77,6 +90,7 @@ export const UpdateDecisionSchema = z.strictObject({
   content: text(MEETING_DECISION_MAX).optional(),
   rationale: text(MEETING_DECISION_MAX).nullable().optional(),
   baseVersionNo,
+  reason: amendReason,
 })
 export type AddAgendaRequest = z.infer<typeof AddAgendaSchema>
 export type UpdateAgendaRequest = z.infer<typeof UpdateAgendaSchema>
@@ -173,6 +187,7 @@ export interface MeetingDetail extends MeetingSummary {
   createdBy: MeetingPerson | null
   createdAt: string
   confirmedAt: string | null
+  confirmedBy: MeetingPerson | null
   cancelledAt: string | null
   cancelReason: string | null
   attendees: MeetingPerson[]

@@ -35,6 +35,7 @@ function rowsOf(tx: Tx, actor: Actor, where?: SQL) {
       createdBy: record.createdBy,
       createdAt: record.createdAt,
       confirmedAt: record.confirmedAt,
+      confirmedBy: record.confirmedBy,
       event: { id: event.id, name: event.name },
       hostDepartment: { id: department.id, name: department.name },
       ...aggregatesOf(actor.memberId),
@@ -129,7 +130,7 @@ export async function meetingDetailOf(
   now: Date,
 ): Promise<MeetingDetail> {
   const row = await meetingRowOf(tx, actor, id)
-  const ids = row.createdBy ? [row.createdBy] : []
+  const ids = [row.createdBy, row.confirmedBy].filter((id): id is string => id !== null)
   const names = await memberNamesOf(tx, actor.councilId, ids)
   const current = await currentMembersAmong(tx, actor.councilId, ids, now)
   return {
@@ -141,6 +142,13 @@ export async function meetingDetailOf(
       : null,
     createdAt: row.createdAt.toISOString(),
     confirmedAt: row.confirmedAt?.toISOString() ?? null,
+    confirmedBy: row.confirmedBy
+      ? {
+          id: row.confirmedBy,
+          name: names.get(row.confirmedBy)!,
+          current: current.has(row.confirmedBy),
+        }
+      : null,
     cancelledAt: row.meeting.cancelledAt?.toISOString() ?? null,
     cancelReason: row.meeting.cancelReason,
     attendees: await attendeesOf(tx, actor, id, now),

@@ -87,6 +87,23 @@ test.each(['in_progress', 'wrapping_up', 'done'] as const)(
   },
 )
 
+test('완료 회의 카드의 회의록 보기로 완료 회의록을 연다', async () => {
+  const meeting = meetingSample({
+    status: 'done',
+    minutesStatus: 'confirmed',
+    actions: [],
+    confirmedAt: '2026-10-29T07:30:00Z',
+  })
+  meeting.agenda[0]!.notes = '확정한 회의록'
+  api.on('GET', `${base}?view=council`, () => json({ meetings: [meeting], truncated: false }))
+  api.on('GET', `${base}/${MEETING_ID}`, () => json({ meeting }))
+  render(page())
+  fireEvent.click(await screen.findByRole('button', { name: '회의록 보기' }))
+  expect(await screen.findByText('완료된 회의록')).toBeTruthy()
+  expect(screen.getByText('• 확정한 회의록')).toBeTruthy()
+  expect(screen.queryByRole('textbox')).toBeNull()
+})
+
 test('예정·취소 회의도 적힌 회의록은 읽는 사람이 회의록 보기로 연다', async () => {
   for (const status of ['scheduled', 'cancelled'] as const) {
     window.history.replaceState(null, '', `/meetings/${MEETING_COUNCIL}/${MEETING_ID}`)

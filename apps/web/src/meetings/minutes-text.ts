@@ -23,6 +23,7 @@ export const MINUTES_TEXT = {
   agendaTitle: '안건 제목',
   agendaBody: '설명',
   decisions: '결정사항',
+  decisionLabel: '결정',
   followUps: '후속 업무',
   createTask: '업무 만들기',
   emptyFollowUps: '후속 업무 없음',
@@ -40,7 +41,23 @@ export const MINUTES_TEXT = {
   close: '닫기',
   removeAgendaQuestion: '이 안건을 뺄까요?',
   removeDecisionQuestion: '이 결정을 뺄까요?',
+  confirm: '회의록 확정',
+  confirmAction: '확정',
+  confirmQuestion: '회의록을 확정할까요?',
+  confirmUnsaved: '저장하지 못한 글이 있어요. 저장한 뒤 확정해 주세요.',
+  done: '완료된 회의록',
+  confirmed: '회의록 확정 완료',
+  confirmedDecisions: '확정된 결정',
+  followUpProgress: '후속 업무 진행 현황',
+  attendeeList: '참가자',
+  amendReason: '고친 사유',
+  remainingEntry: '쓰던 폼 글',
 } as const
+export const confirmSummary = (decisions: number, followUps: number, empty: number) =>
+  `결정 ${decisions} · 후속 업무 ${followUps} · 비어 있는 안건 ${empty}`
+export const confirmedLabel = (time: string, name?: string) =>
+  `${time}${name ? ` ${name}` : ''} 확정`
+export const doneDecisionCount = (count: number) => `${count}건`
 export const minutesConflict = (name?: string) =>
   name ? `${name}님이 먼저 고쳤어요` : '다른 사람이 먼저 고쳤어요'
 export const agendaNumber = (position: number) => `안건 ${position}`

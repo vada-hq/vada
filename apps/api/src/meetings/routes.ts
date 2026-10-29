@@ -6,6 +6,7 @@ import {
   CancelMeetingSchema,
   MeetingListQuerySchema,
   MeetingOptionsQuerySchema,
+  EmptyRequestSchema,
   type MeetingResponse,
 } from '@vada/contracts'
 import {
@@ -25,6 +26,7 @@ import { meetingOptionsOf } from './options.js'
 import { meetingDetailOf, meetingListOf } from './queries.js'
 import { createMeeting, updateMeeting, replaceMeetingAttendees, cancelMeeting } from './service.js'
 import { addMinutesWrites } from './minutes-routes.js'
+import { confirmMeeting } from './confirm.js'
 
 const root = '/organizations/:councilId/meetings'
 const CREATED = 201
@@ -68,6 +70,13 @@ function addReads(routes: Routes, db: Db, auth: Auth, asked: Asked) {
 }
 
 function addWrites(routes: Routes, db: Db, auth: Auth, asked: Asked) {
+  routes.post(`${root}/:meetingId/confirm`, json(EmptyRequestSchema), auth, async c => {
+    const request = asked(c)
+    const meeting = await inCouncilChange(db, request, (tx, actor) =>
+      confirmMeeting(tx, actor, { id: idOf(c), now: request.now }),
+    )
+    return c.json({ meeting } satisfies MeetingResponse)
+  })
   routes.post(root, json(CreateMeetingSchema), auth, async c => {
     const request = asked(c)
     const input = c.req.valid('json')

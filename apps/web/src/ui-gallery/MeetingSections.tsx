@@ -5,10 +5,12 @@ import { MeetingForm } from '@/meetings/MeetingForm'
 import { MeetingDetail } from '@/meetings/MeetingDetail'
 import { MeetingCancelDialog } from '@/meetings/MeetingCancelDialog'
 import { MeetingMinutesView } from '@/meetings/MeetingMinutes'
+import { MeetingMinutesDone } from '@/meetings/MeetingMinutesDone'
 import {
   minutesSample,
   minutesDraftSample,
   changeMinutesSample,
+  doneMinutesSample,
 } from '@/meetings/test-support/minutes-samples'
 import {
   MEETING_MEMBER,
@@ -151,6 +153,9 @@ export function MeetingCancelledSection() {
       <MinutesExample title="회의록 쓰기" />
       <MinutesExample title="회의록 읽기" readonly />
       <MinutesExample title="회의록 충돌" conflict />
+      <MinutesExample title="회의록 확정 전" confirm />
+      <MinutesDoneExample />
+      <MinutesDoneExample editing />
     </>
   )
 }
@@ -159,13 +164,16 @@ function MinutesExample({
   title,
   readonly = false,
   conflict = false,
+  confirm = false,
 }: {
   title: string
   readonly?: boolean
   conflict?: boolean
+  confirm?: boolean
 }) {
   const [meeting, setMeeting] = useState(() => {
     const sample = minutesSample(!readonly)
+    if (confirm) sample.actions.push('meeting.confirm')
     sample.agenda[1]!.followUps = [
       {
         id: '0199d1a0-0000-7000-8000-000000000071',
@@ -190,33 +198,74 @@ function MinutesExample({
   return (
     <Section title={title}>
       <div className="flex w-full min-w-0 flex-col gap-5 break-keep">
-        <MeetingMinutesView
+        {meeting.status === 'done' ? (
+          <MeetingMinutesDone
+            councilId={MEETING_COUNCIL}
+            meeting={meeting}
+            drafts={new Map()}
+            orphans={[]}
+            entries={() => []}
+            submit={() => Promise.resolve(null)}
+            onAmended={noop}
+          />
+        ) : (
+          <MeetingMinutesView
+            councilId={MEETING_COUNCIL}
+            followUpCreate={
+              readonly ? null : (
+                <Button touch size="sm" variant="outline">
+                  {MINUTES_TEXT.createTask}
+                </Button>
+              )
+            }
+            meeting={meeting}
+            selectedId={item?.id ?? null}
+            draft={item ? draft : undefined}
+            orphans={[]}
+            onSelect={id => {
+              setSelectedId(id)
+              setDraft(minutesDraftSample(meeting.agenda.find(a => a.id === id)!))
+            }}
+            submit={(suffix, value) => {
+              setMeeting(changeMinutesSample(meeting, suffix, value))
+              return Promise.resolve(null)
+            }}
+            onChange={text => setDraft(before => ({ ...before, text }))}
+            onRetry={() => setDraft(before => ({ ...before, savedText: before.text, error: null }))}
+            onOverwrite={() =>
+              setDraft(before => ({ ...before, savedText: before.text, conflict: null }))
+            }
+            onAdopt={() => setDraft(minutesDraftSample(item))}
+            onConfirm={() => {
+              setMeeting(doneMinutesSample())
+              return Promise.resolve(null)
+            }}
+          />
+        )}
+      </div>
+    </Section>
+  )
+}
+
+function MinutesDoneExample({ editing = false }: { editing?: boolean }) {
+  const [meeting, setMeeting] = useState(doneMinutesSample)
+  return (
+    <Section title={editing ? '완료 회의록 고치기' : '완료 회의록'}>
+      <div className="w-full min-w-0">
+        <MeetingMinutesDone
           councilId={MEETING_COUNCIL}
-          followUpCreate={
-            readonly ? null : (
-              <Button touch size="sm" variant="outline">
-                {MINUTES_TEXT.createTask}
-              </Button>
-            )
-          }
           meeting={meeting}
-          selectedId={item?.id ?? null}
-          draft={item ? draft : undefined}
+          drafts={new Map()}
           orphans={[]}
-          onSelect={id => {
-            setSelectedId(id)
-            setDraft(minutesDraftSample(meeting.agenda.find(a => a.id === id)!))
-          }}
+          entries={() => []}
+          {...(editing
+            ? { initialEditing: { kind: 'agenda', id: meeting.agenda[0]!.id } as const }
+            : {})}
           submit={(suffix, value) => {
             setMeeting(changeMinutesSample(meeting, suffix, value))
             return Promise.resolve(null)
           }}
-          onChange={text => setDraft(before => ({ ...before, text }))}
-          onRetry={() => setDraft(before => ({ ...before, savedText: before.text, error: null }))}
-          onOverwrite={() =>
-            setDraft(before => ({ ...before, savedText: before.text, conflict: null }))
-          }
-          onAdopt={() => setDraft(minutesDraftSample(item))}
+          onAmended={noop}
         />
       </div>
     </Section>

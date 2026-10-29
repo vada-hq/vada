@@ -32,6 +32,7 @@ export const meetingSample = (patch: Partial<MeetingDetail> = {}): MeetingDetail
   createdBy: meetingOptions.members[0]!,
   createdAt: '2026-10-29T02:00:00Z',
   confirmedAt: null,
+  confirmedBy: null,
   cancelledAt: null,
   cancelReason: null,
   attendees: meetingOptions.members,

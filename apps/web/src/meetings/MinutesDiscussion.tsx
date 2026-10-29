@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { isMinutesDirty, type MinutesDraft } from './minutes-drafts'
 import { MINUTES_TEXT as T, minutesConflict, minutesUpdated } from './minutes-text'
 
-function MinutesNotes({ text }: { text: string | null }) {
+export function MinutesNotes({ text }: { text: string | null }) {
   return (
     <div className="wrap-anywhere text-sm leading-7 whitespace-pre-wrap">
       {text ? (
@@ -98,7 +98,7 @@ function SaveStatus({
     </div>
   )
 }
-function ReadOnlyDraft({ draft, writable }: Pick<Props, 'draft' | 'writable'>) {
+export function ReadOnlyDraft({ draft, writable }: Pick<Props, 'draft' | 'writable'>) {
   if (writable || !draft || !isMinutesDirty(draft)) return null
   return (
     <section className="flex min-w-0 flex-col gap-3" aria-label={T.mine}>

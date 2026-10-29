@@ -14,10 +14,13 @@ test(
       attendeeIds: [t.council.people.planningMember.memberId],
     })
     for (const [user, actions] of [
-      ['s-president', ['meeting.edit', 'meeting.cancel', 'meeting.minutes']],
-      ['s-vicePresident', ['meeting.edit', 'meeting.cancel', 'meeting.minutes']],
-      ['s-planningHead', ['meeting.edit', 'meeting.cancel', 'meeting.minutes']],
-      ['s-planningViceHead', ['meeting.edit', 'meeting.cancel', 'meeting.minutes']],
+      ['s-president', ['meeting.edit', 'meeting.cancel', 'meeting.minutes', 'meeting.confirm']],
+      ['s-vicePresident', ['meeting.edit', 'meeting.cancel', 'meeting.minutes', 'meeting.confirm']],
+      ['s-planningHead', ['meeting.edit', 'meeting.cancel', 'meeting.minutes', 'meeting.confirm']],
+      [
+        's-planningViceHead',
+        ['meeting.edit', 'meeting.cancel', 'meeting.minutes', 'meeting.confirm'],
+      ],
       ['s-planningMember', ['meeting.minutes']],
       ['s-financeMember', []],
       ['s-plain', []],

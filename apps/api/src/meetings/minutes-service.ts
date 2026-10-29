@@ -17,6 +17,13 @@ import { assertVersion, changedFields, lockedAgenda, lockedDecision } from './mi
 
 type MinutesTarget = { id: string; itemId: string; now: Date }
 
+async function reasonForUpdate(tx: Tx, actor: Actor, target: MinutesTarget, reason?: string) {
+  const row = await lockedMeeting(tx, actor, target.id, 'minutes.update')
+  if (!row.confirmedAt) return null
+  if (!reason?.trim()) throw new ApiError('REASON_REQUIRED')
+  return reason
+}
+
 export async function addAgenda(
   tx: Tx,
   actor: Actor,
@@ -47,10 +54,10 @@ export async function updateAgenda(
   target: MinutesTarget,
   input: UpdateAgendaRequest,
 ) {
-  await lockedMeeting(tx, actor, target.id, 'meeting.minutes')
+  const reason = await reasonForUpdate(tx, actor, target, input.reason)
   const before = await lockedAgenda(tx, target.id, target.itemId)
   await assertVersion(tx, before.id, input.baseVersionNo)
-  const { baseVersionNo: _version, ...patch } = input
+  const { baseVersionNo: _version, reason: _reason, ...patch } = input
   if (patch.notes !== undefined) patch.notes = patch.notes?.trim() ? patch.notes : null
   const changes = changedFields(before, patch)
   if (Object.keys(changes).length)
@@ -58,7 +65,7 @@ export async function updateAgenda(
       kind: 'agenda_item',
       id: before.id,
       actor: actor.memberId,
-      reason: null,
+      reason,
       changes,
     })
   return meetingDetailOf(tx, actor, target.id, target.now)
@@ -126,17 +133,17 @@ export async function updateDecision(
   target: MinutesTarget,
   input: UpdateDecisionRequest,
 ) {
-  await lockedMeeting(tx, actor, target.id, 'meeting.minutes')
+  const reason = await reasonForUpdate(tx, actor, target, input.reason)
   const before = await lockedDecision(tx, target.id, target.itemId)
   await assertVersion(tx, before.id, input.baseVersionNo)
-  const { baseVersionNo: _version, ...patch } = input
+  const { baseVersionNo: _version, reason: _reason, ...patch } = input
   const changes = changedFields(before, patch)
   if (Object.keys(changes).length)
     await updateRecord(tx, {
       kind: 'decision',
       id: before.id,
       actor: actor.memberId,
-      reason: null,
+      reason,
       changes,
     })
   return meetingDetailOf(tx, actor, target.id, target.now)
