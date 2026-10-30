@@ -11,13 +11,20 @@ import {
   MEMBER,
   uuidTeam,
 } from '@/test-support/event-fixtures'
-import { json, mockApi } from '@/test-support/mock-api'
+import {
+  expectAsksOnEveryExit,
+  expectClosesQuietly,
+  leaveWindow,
+  showLeaveConfirm,
+} from '@/test-support/leave-window'
+import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
 import { taskDetail } from '@/test-support/task-detail-fixtures'
 import { settlementOf } from '@/test-support/settlement-fixtures'
 import { staffForm } from '@/test-support/staff-registration-fixtures'
 import { settle } from '@/test-support/settle'
 import { COUNCIL_ID } from '@/test-support/workspace-at'
 import { serveEventRooms, WithChat } from '@/test-support/event-rooms'
+import { hasUnsavedInput } from '@/lib/leave-guard'
 import { ADDRESS_LOST, EVENT_ERRORS } from '@/lib/messages'
 import EventsPage from './EventsPage'
 import { pickDateTime } from '@/test-support/date-field'
@@ -241,6 +248,32 @@ test('만들기는 이름 칸만 있고 이름에 포커스가 가며, 책임자
   expect(within(form).queryByLabelText('시작 일시')).toBeNull()
   expect(within(form).queryByLabelText('장소')).toBeNull()
   expect(within(form).queryByText(/책임자/)).toBeNull()
+})
+
+test('새 행사 창은 쓴 값이 있으면 닫는 길마다 묻고, 없으면 묻지 않는다', async () => {
+  setup()
+  showLeaveConfirm()
+  await openCreate()
+  await expectClosesQuietly('새 행사')
+  const form = await openCreate()
+  fireEvent.change(within(form).getByLabelText('행사명'), { target: { value: '봄 축제' } })
+  await expectAsksOnEveryExit('새 행사')
+  expect(within(form).getByLabelText('행사명')).toHaveProperty('value', '봄 축제')
+  await leaveWindow('새 행사')
+})
+
+test('새 행사를 보내는 중에는 새로고침 확인을 걸지 않고, 실패하면 다시 건다', async () => {
+  const { api } = setup()
+  const pending = deferredResponse()
+  api.on('POST', BASE, () => pending.promise)
+  const form = await openCreate()
+  fireEvent.change(within(form).getByLabelText('행사명'), { target: { value: '봄 축제' } })
+  expect(hasUnsavedInput()).toBe(true)
+  fireEvent.click(within(form).getByRole('button', { name: '만들기' }))
+  await waitFor(() => expect(api.calls.some(call => call.method === 'POST')).toBe(true))
+  await waitFor(() => expect(hasUnsavedInput()).toBe(false))
+  pending.resolve(json({ error: 'FAILED' }, 500))
+  await waitFor(() => expect(hasUnsavedInput()).toBe(true))
 })
 
 test('만들기는 이름 없이 누르면 보내지 않고 이름 칸 아래에 알리며, 보내는 동안 다시 보내지 않고 이름만 보내고 만든 행사의 개요를 연다', async () => {
