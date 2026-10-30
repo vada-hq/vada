@@ -1,6 +1,10 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import type { BulkApplicantsResponse, EventApplicantsResponse } from '@vada/contracts'
+import type {
+  BulkApplicantsResponse,
+  EventApplicantsResponse,
+  RegistrationFormsResponse,
+} from '@vada/contracts'
 import { MISSING, type RegistrationKit, withRegistrations } from '../test-support/registrations.js'
 
 const list = (t: RegistrationKit, eventId: string, query = '', user = 's-president') =>
@@ -98,6 +102,35 @@ test(
     )
     assert.equal(await t.count('SELECT count(*) AS n FROM deposit'), 2)
     assert.equal(await t.count("SELECT count(*) AS n FROM record WHERE kind = 'deposit'"), 2)
+  }),
+)
+
+test(
+  '양식 카드의 신청 수를 합치면 명단에서 취소하지 않은 줄 수이고, 환불 대기는 취소한 줄로만 온다',
+  withRegistrations(async t => {
+    const event = await t.makeEvent()
+    const morning = await t.makeForm(event)
+    const evening = await t.makeForm(event)
+    await t.makeRegistration(morning, { name: '오전' })
+    await t.makeRegistration(evening, { name: '오후' })
+    const refunded = await t.makeRegistration(evening, { name: '환불대기', appliedFee: '4000' })
+    const cancelled = await t.makeRegistration(evening, { name: '그냥취소' })
+    assert.equal((await bulk(t, event, [refunded])).status, 200)
+    for (const id of [refunded, cancelled])
+      assert.equal((await t.post(`/registrations/${id}/cancel`, {})).status, 200)
+    const cards = await t.api.get(`${t.orgBase}/events/${event}/registration-forms`, 's-president')
+    const { forms } = (await cards.json()) as RegistrationFormsResponse
+    const { applicants, counts } = (await (await list(t, event)).json()) as EventApplicantsResponse
+    const total = forms.reduce((sum, form) => sum + form.applicantCount, 0)
+    const active = applicants.filter(row => !row.cancelled)
+    assert.equal(total, 2)
+    assert.equal(active.length, total)
+    assert.equal(counts.applicants, total)
+    // 화면의 '환불 대기 N명'은 취소한 줄이고, 환불 대기가 아닌 취소는 명단에 없다.
+    assert.deepEqual(
+      applicants.filter(row => row.cancelled).map(row => [row.id, row.deposit.status]),
+      [[refunded, 'refund_pending']],
+    )
   }),
 )
 
