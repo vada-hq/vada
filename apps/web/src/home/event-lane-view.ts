@@ -13,7 +13,7 @@ const MILESTONE_NAME: Record<HomeEventMilestone, string> = {
   registration_open: '신청 시작',
   registration_close: '신청 마감',
   event_start: '행사 시작',
-  event_end: '행사 종료',
+  event_end: '종료 예정',
 }
 
 // 다음 일정 글: { dday: 'D-2' | '오늘', name: '신청 마감', dateText: '10월 30일 (금)' }. 없으면 null(일정 미정).
