@@ -70,7 +70,7 @@ function MinutesAgendaHeading({
           formKey={`agenda:${item.id}`}
           agendaId={item.id}
           initial={{ title: item.title, body: item.body, baseVersionNo: item.versionNo }}
-          onSave={value => submit(`/agenda/${item.id}`, value)}
+          onSave={(value, unchanged) => submit(`/agenda/${item.id}`, value, unchanged)}
           onClose={() => setEditing(false)}
         />
       )}

@@ -61,6 +61,26 @@ export function entryInitial(kind: MinutesEntryKind, initial: MinutesEntryValue 
   const fields = entryFields[kind]
   return { main: initial[fields.main] ?? '', extra: initial[fields.extra] ?? '' }
 }
+export type EntryTexts = ReturnType<typeof entryInitial>
+export type EntryUnchanged = (current: MinutesEntryValue) => boolean
+// 폼이 고치는 칸이 폼을 연 때 그대로인가. 안건의 판은 제목·설명·논의가 함께 쓰므로 그대로면 새 판은 충돌이 아니다.
+export function sameEntry(kind: MinutesEntryKind, current: MinutesEntryValue, opened: EntryTexts) {
+  const now = entryInitial(kind, current)
+  return now.main === opened.main && now.extra === opened.extra
+}
+// 폼을 연 뒤 논의 저장으로 오른 판을 이어 받는다. 폼의 칸이 바뀌었으면 처음 판을 두어 서버가 충돌로 알리게 한다.
+export function followedEntry(
+  kind: MinutesEntryKind,
+  started: MinutesEntryValue | undefined,
+  opened: EntryTexts,
+  current: MinutesEntryValue | undefined,
+) {
+  if (started?.baseVersionNo === undefined || current?.baseVersionNo === undefined) return started
+  const newer = current.baseVersionNo > started.baseVersionNo
+  return newer && sameEntry(kind, current, opened)
+    ? { ...started, baseVersionNo: current.baseVersionNo }
+    : started
+}
 export function parseMinutesEntry(
   kind: MinutesEntryKind,
   initial: MinutesEntryValue | undefined,

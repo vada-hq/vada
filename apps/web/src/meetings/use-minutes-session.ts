@@ -19,8 +19,8 @@ export function useMinutesSession(
   )
   const { drafts, store } = useMinutesAutosave(scope, meeting, onSaved)
   const mutate = useMinutesMutation(scope.base, onSaved)
-  const submit = async (suffix: string, body: object) => {
-    const problem = await mutate(suffix, body)
+  const submit: typeof mutate = async (suffix, body, unchanged) => {
+    const problem = await mutate(suffix, body, unchanged)
     // 안건 빼기를 확인하고 서버도 처리한 뒤에만 그 안건의 초안을 버린다.
     if (!problem && /^\/agenda\/[^/]+\/cancel$/.test(suffix)) store.forget(suffix.split('/')[2]!)
     return problem

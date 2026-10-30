@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Field } from '@/components/ui/field'
 import { Textarea } from '@/components/ui/textarea'
 import { isMinutesDirty, type MinutesDraft } from './minutes-drafts'
+import { useMinutesScope } from './minutes-scope'
 import { MINUTES_TEXT as T, minutesConflict, minutesUpdated } from './minutes-text'
 
 export function MinutesNotes({ text }: { text: string | null }) {
@@ -108,6 +109,16 @@ export function ReadOnlyDraft({ draft, writable }: Pick<Props, 'draft' | 'writab
     </section>
   )
 }
+// updatedBy는 마지막 한 사람이다. 상대 글 위에 내가 제목을 고쳤으면 내 이름이 오므로 상대로 부르지 않는다.
+function ConflictNotice({ conflict }: { conflict: MeetingAgendaItem }) {
+  const me = useMinutesScope()?.memberId
+  const author = conflict.updatedBy
+  return (
+    <Alert tone="warning" role="status" className="text-sm">
+      {minutesConflict(author?.id === me ? undefined : author?.name)}
+    </Alert>
+  )
+}
 export function MinutesDiscussion({
   item,
   draft,
@@ -121,11 +132,7 @@ export function MinutesDiscussion({
   const server = conflict ?? draft?.server ?? item
   return (
     <section className="flex min-w-0 flex-col gap-3 border-t pt-5">
-      {conflict && (
-        <Alert tone="warning" role="status" className="text-sm">
-          {minutesConflict(conflict.updatedBy?.name)}
-        </Alert>
-      )}
+      {conflict && <ConflictNotice conflict={conflict} />}
       {writable && !conflict ? (
         <DiscussionInput item={item} draft={draft} onChange={onChange} />
       ) : (

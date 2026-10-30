@@ -68,6 +68,7 @@ export function minutesDraftSample(item: MeetingAgendaItem, conflict = false): M
     text: conflict ? '현장 담당자가 먼저 응급 조치 후 운영본부에 연락' : (item.notes ?? ''),
     savedText: item.notes ?? '',
     version: conflict ? item.versionNo - 1 : item.versionNo,
+    base: item.notes ?? '',
     server: item,
     saving: false,
     error: null,

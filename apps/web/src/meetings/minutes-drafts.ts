@@ -12,6 +12,8 @@ export type MinutesDraft = {
   text: string
   savedText: string
   version: number
+  // version 판의 논의 글. 다시 연 초안은 server가 최신이라 따로 지닌다.
+  base: string
   server: MeetingAgendaItem
   saving: boolean
   error: string | null
@@ -22,6 +24,7 @@ const draftOf = (server: MeetingAgendaItem): MinutesDraft => ({
   text: server.notes ?? '',
   savedText: server.notes ?? '',
   version: server.versionNo,
+  base: server.notes ?? '',
   server,
   saving: false,
   error: null,
@@ -29,22 +32,42 @@ const draftOf = (server: MeetingAgendaItem): MinutesDraft => ({
   refreshing: false,
 })
 export const isMinutesDirty = (draft: MinutesDraft) => draft.text !== draft.savedText
+// 안건의 판은 제목·설명·논의가 함께 쓴다. 논의가 내가 딛고 선 글 그대로면 새 판은 충돌이 아니므로 쓰던 글이 이어 받는다.
+// 고친 사람(updatedBy)은 마지막 한 사람뿐이라 기준이 못 된다. 상대가 논의를 고친 뒤 내가 제목을 고치면 내 이름이 온다.
+const rebased = (draft: MinutesDraft, server: MeetingAgendaItem): MinutesDraft | null =>
+  server.versionNo > draft.version && (server.notes ?? '') === draft.base
+    ? { ...draft, version: server.versionNo, server }
+    : null
+// 서버 값이 초안을 바꿔야 하면 새 초안을 준다. 저장 중이거나 충돌 중인 초안은 건드리지 않는다.
+function synced(before: MinutesDraft | undefined, item: MeetingAgendaItem) {
+  if (!before) return draftOf(item)
+  if (before.saving || before.conflict || before.refreshing) return null
+  if (isMinutesDirty(before)) return rebased(before, item)
+  return item.versionNo >= before.version && item !== before.server ? draftOf(item) : null
+}
+// 409 뒤 읽은 판을 놓는다. 앞서 보낸 내 글이 이미 들어갔거나 논의가 그대로면 충돌이 아니다.
+function afterConflict(draft: MinutesDraft, server: MeetingAgendaItem): MinutesDraft {
+  if ((server.notes ?? '') === draft.text) return draftOf(server)
+  const next = rebased(draft, server) ?? { ...draft, conflict: server }
+  return { ...next, refreshing: false, error: null }
+}
 
 // 저장하지 못한 글은 메모리에 남겨 같은 사람이 회의를 다시 열면 되살린다(새로 고침 전까지, DEC-78 이동 10).
 // 대화 입력칸(chat/composer-drafts.ts)과 같이 기기 저장소에는 쓰지 않고, 열쇠에 내 멤버 id를 넣어 같은 브라우저의 다른 사람에게 보이지 않게 한다.
-type Kept = { text: string; version: number }
+type Kept = Pick<MinutesDraft, 'text' | 'version' | 'base'>
 const kept = new Map<string, Kept>()
 // 사람·회의마다 가장 나중에 연 저장소. 앞 화면의 늦은 응답이 다시 연 화면의 남긴 글을 지우거나 덮지 않게 한다(mtg-4 검토).
 const latest = new Map<string, object>()
 const keyOf = (memberId: string, base: string, id: string) => `${memberId}|${base}|${id}`
 // 결정·안건 폼에 쓰던 글도 같이 남긴다. 다시 읽기로 그 안건이 빠지면 폼이 사라지므로 옮겨 쓸 글로 보인다.
-// baseVersionNo는 폼을 처음 연 때의 판이다. 되살린 글은 그 판으로 보내 그사이 바뀐 것을 충돌로 알린다.
+// baseVersionNo는 폼을 처음 연 때의 판, opened는 그때의 칸이다. 되살린 글은 그 판으로 보내 그사이 바뀐 것을 충돌로 알린다.
 type KeptEntry = {
   agendaId: string | null
   text: string
   main: string
   extra: string
   baseVersionNo?: number | undefined
+  opened?: { main: string; extra: string } | undefined
   owner?: symbol
 }
 const entries = new Map<string, KeptEntry>()
@@ -106,7 +129,7 @@ class MinutesDrafts {
   private restored(item: MeetingAgendaItem): MinutesDraft {
     const draft = draftOf(item)
     const left = kept.get(keyOf(this.memberId, this.base, item.id))
-    return left ? { ...draft, text: left.text, version: left.version } : draft
+    return left ? { ...draft, ...left } : draft
   }
   // 빠진 안건에 남은 글: 저장할 곳이 없으므로 옮겨 쓸 수 있게 보인다.
   lostTexts = () => this.lost
@@ -121,7 +144,8 @@ class MinutesDrafts {
     // 더 나중에 연 화면이 있으면 남길 글은 그 화면의 것이다.
     if (latest.get(keyOf(this.memberId, this.base, '')) !== this) return
     const key = keyOf(this.memberId, this.base, id)
-    if (isMinutesDirty(value)) kept.set(key, { text: value.text, version: value.version })
+    if (isMinutesDirty(value))
+      kept.set(key, { text: value.text, version: value.version, base: value.base })
     else kept.delete(key)
   }
   private put(id: string, value: MinutesDraft) {
@@ -147,14 +171,8 @@ class MinutesDrafts {
   }
   sync(meeting: MeetingDetail) {
     for (const item of meeting.agenda) {
-      const before = this.drafts.get(item.id)
-      if (
-        before &&
-        (isMinutesDirty(before) || before.saving || before.conflict || before.refreshing)
-      )
-        continue
-      if (!before || (item.versionNo >= before.version && item !== before.server))
-        this.put(item.id, draftOf(item))
+      const next = synced(this.drafts.get(item.id), item)
+      if (next) this.put(item.id, next)
     }
   }
   change(id: string, text: string) {
@@ -189,7 +207,7 @@ class MinutesDrafts {
     const draft = this.drafts.get(id)
     if (!draft || draft.conflict) return Promise.resolve()
     if (draft.refreshing) {
-      const refreshing = this.refreshConflict(id).finally(() => this.flights.delete(id))
+      const refreshing = this.refreshConflict(id).finally(() => this.settle(id))
       this.flights.set(id, refreshing)
       return refreshing
     }
@@ -200,14 +218,16 @@ class MinutesDrafts {
       return Promise.resolve()
     }
     this.put(id, { ...draft, saving: true, error: null })
-    const saving = this.send(id, draft).finally(() => {
-      this.flights.delete(id)
-      const next = this.drafts.get(id)
-      if (next && isMinutesDirty(next) && !next.error && !next.conflict && !next.refreshing)
-        void this.save(id)
-    })
+    const saving = this.send(id, draft).finally(() => this.settle(id))
     this.flights.set(id, saving)
     return saving
+  }
+  // 요청이 끝나면 그사이 쓴 글이나 새 판을 이어 받은 글을 이어 보낸다.
+  private settle(id: string) {
+    this.flights.delete(id)
+    const next = this.drafts.get(id)
+    if (next && isMinutesDirty(next) && !next.error && !next.conflict && !next.refreshing)
+      void this.save(id)
   }
   private async send(id: string, sent: MinutesDraft) {
     const result = await postJson<MeetingResponse>(`${this.base}/agenda/${id}`, {
@@ -236,6 +256,7 @@ class MinutesDrafts {
       server,
       savedText: sent.text,
       version: server.versionNo,
+      base: server.notes ?? '',
       saving: false,
       error: null,
     })
@@ -254,7 +275,7 @@ class MinutesDrafts {
       })
       return
     }
-    this.put(id, { ...latest, conflict: server, refreshing: false, error: null })
+    this.put(id, afterConflict(latest, server))
     if (result.ok) this.onSaved?.(result.data.meeting)
   }
   overwrite(id: string) {
