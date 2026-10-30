@@ -1,5 +1,5 @@
 import { EVENT_ENDED_NOTICE_DAYS, type EventDetail } from '@vada/contracts'
-import { dayTime, monthDay } from '@/lib/korean-date-text'
+import { dateLabel, momentLabel } from '@/lib/korean-date-text'
 
 // 행사 머리 요약 줄의 글(와이어프레임 EVT-02 EventWorkspaceHeader). 수는 서버가 센다(events/header.ts).
 
@@ -25,11 +25,11 @@ export const ownerLine = (event: Pick<EventDetail, 'departments' | 'owner'>) =>
   `담당 ${event.departments.join(', ') || NONE} · ${event.owner?.name ?? NONE}`
 
 // 날짜만 있는 마감: '10월 28일 (화)'. 홈 카드의 날짜가 같이 쓴다.
-export const dueText = (date: string) => `${monthDay(date)} (${dayTime(`${date}T`).weekday})`
+export const dueText = (date: string) => dateLabel(date)
 
 export function nextLabel(next: EventDetail['next']) {
   if (next === null) return '다음 일정 없음'
-  if (next.kind === 'start') return `다음 일정 · ${dayTime(next.startsAt).text} 행사 시작`
+  if (next.kind === 'start') return `다음 일정 · ${momentLabel(next.startsAt)} 행사 시작`
   return `다음 일정 · ${dueText(next.dueDate)} ${next.title}`
 }
 

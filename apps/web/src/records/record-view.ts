@@ -1,5 +1,4 @@
 import {
-  koreanYearOf,
   type RecordEventChips,
   type RecordEventItem,
   type RecordTimelineKind,
@@ -21,11 +20,8 @@ export const completedLabel = (completedAt: string, now?: Date) =>
   `완료 처리 ${dayLabel(completedAt, now)}`
 
 // 행사 일시. 기록은 지난 행사가 많아 올해가 아니면 앞에 연도를 붙인다(AGENTS.md 날짜 꼴).
-export function recordWhen(event: Pick<RecordEventItem, 'startsAt' | 'endsAt'>, now = new Date()) {
-  const label = whenLabel(event)
-  const [year] = event.startsAt?.split('-') ?? []
-  return year === undefined || year === koreanYearOf(now) ? label : `${year}년 ${label}`
-}
+export const recordWhen = (event: Pick<RecordEventItem, 'startsAt' | 'endsAt'>, now = new Date()) =>
+  whenLabel(event, now)
 
 // 정렬: 완료 처리일순(기본, 서버 차례 그대로)과 행사 일시순(최근 행사부터, 일시 미정은 끝).
 export type RecordOrder = 'completed' | 'date'

@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { expect, test } from 'vitest'
+import { expect, test, vi } from 'vitest'
 import { CreateFormSchema } from '@vada/contracts'
 import {
   emptyFormValues,
@@ -11,6 +11,7 @@ import {
   previewOf,
   valuesOfForm,
 } from './registration-form'
+import { periodRow } from './registration-view'
 import { ACCOUNT_ID, staffForm } from '@/test-support/staff-registration-fixtures'
 
 const filled = { ...emptyFormValues, closesAt: '2026-10-23T18:00' }
@@ -156,4 +157,16 @@ test('남은 필수 칸은 화면 차례대로 이름·마감·참가비 금액�
   expect(
     missingRequired({ ...filled, feeKind: 'split', payerFee: '5000' }, ACCOUNT_ID, false),
   ).toEqual(['nonPayerFee'])
+})
+
+test('양식 카드의 신청 기간은 올해가 아니면 연도를 붙인다', () => {
+  vi.useFakeTimers({ toFake: ['Date'] })
+  vi.setSystemTime(new Date('2026-10-31T03:00:00Z'))
+  expect(periodRow({ opensAt: '2026-12-30T10:00', closesAt: '2027-01-04T18:00' }).value).toBe(
+    '12월 30일 (수) 10:00 ~ 2027년 1월 4일 (월) 18:00',
+  )
+  expect(periodRow({ opensAt: null, closesAt: '2025-03-02T18:00' }).value).toBe(
+    '2025년 3월 2일 (일) 18:00',
+  )
+  vi.useRealTimers()
 })

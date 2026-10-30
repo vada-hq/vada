@@ -1,6 +1,6 @@
 import type { CouncilView, EventCard, EventStatus, EventSummary, EventTab } from '@vada/contracts'
 import { EVENT_STATUS_LABEL } from '@vada/contracts'
-import { dayTime } from '@/lib/korean-date-text'
+import { dayTime, momentLabel } from '@/lib/korean-date-text'
 
 // 상태 칩의 색(와이어프레임 LIFECYCLE_STYLE): 기획 중 파랑, 진행 중 초록, 후속 정리 중 노랑, 완료 회색. 이름은 contracts EVENT_STATUS_LABEL이다.
 export const EVENT_STATUS_TONE: Record<EventStatus, 'warning' | 'info' | 'success' | 'neutral'> = {
@@ -26,15 +26,20 @@ export const remainingLabel = (remaining: number) => `정산 남은 것 ${remain
 export const settlementLabel = ({ remaining, settled }: { remaining: number; settled: boolean }) =>
   settled ? EVENT_SETTLED_LABEL : remainingLabel(remaining)
 
-export const momentLabel = (value: string) => dayTime(value).text
+export { momentLabel }
 
 // '10월 25일 (토) 14:00 ~ 18:00'. 끝이 다른 날이면 끝에도 날짜를 쓴다. 시작이 없으면 '일시 미정'이다.
-export function whenLabel(event: Pick<EventSummary, 'startsAt' | 'endsAt'>) {
+// 올해가 아닌 쪽에 연도가 붙는다. 해를 넘기는 기간은 끝에만 붙는다.
+export function whenLabel(
+  event: Pick<EventSummary, 'startsAt' | 'endsAt'>,
+  now: Date = new Date(),
+) {
   if (event.startsAt === null) return WHEN_TBD
-  const start = dayTime(event.startsAt)
-  if (event.endsAt === null) return start.text
+  const start = momentLabel(event.startsAt, now)
+  if (event.endsAt === null) return start
   const end = dayTime(event.endsAt)
-  return `${start.text} ~ ${end.date === start.date ? end.time : end.text}`
+  const sameDay = end.date === dayTime(event.startsAt).date
+  return `${start} ~ ${sameDay ? end.time : momentLabel(event.endsAt, now)}`
 }
 
 export const EVENT_FILTERS = ['전체', '기획 중', '진행 중', '후속 정리 중', '완료'] as const

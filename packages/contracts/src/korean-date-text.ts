@@ -1,4 +1,4 @@
-import { KOREAN_DATE_LENGTH, koreanOf, koreanYearOf } from './korean-time.js'
+import { KOREAN_DATE_LENGTH, koreanDateOf, koreanOf, koreanYearOf } from './korean-time.js'
 
 // 날짜 글(AGENTS.md '화면 문구와 폼'의 날짜 꼴). 화면과 서버의 끼룩이 글이 같이 쓴다.
 
@@ -31,14 +31,21 @@ function withYear(date: string, label: string, now: Date) {
   return year === koreanYearOf(now) ? label : `${year}년 ${label}`
 }
 
-// ISO 시각 → '10월 25일 (토)'(한국 날짜). 올해가 아니면 앞에 '2026년'을 붙인다.
-export function dayLabel(iso: string, now: Date = new Date()) {
-  const { date, weekday } = dayTime(koreanOf(new Date(iso)))
-  return withYear(date, `${monthDay(date)} (${weekday})`, now)
+// 날짜 'YYYY-MM-DD' → '10월 25일 (토)'. 올해가 아니면 앞에 '2026년'을 붙인다.
+export function dateLabel(date: string, now: Date = new Date()) {
+  return withYear(date, `${monthDay(date)} (${dayTime(`${date}T`).weekday})`, now)
 }
 
-// ISO 시각 → '10월 25일 (토) 14:00'(한국 시각). 올해가 아니면 앞에 '2026년'을 붙인다.
-export function dayTimeLabel(iso: string, now: Date = new Date()) {
-  const { date, text } = dayTime(koreanOf(new Date(iso)))
+// 한국 시각 'YYYY-MM-DDTHH:mm' → '10월 25일 (토) 14:00'. 올해가 아니면 앞에 '2026년'을 붙인다.
+export function momentLabel(value: string, now: Date = new Date()) {
+  const { date, text } = dayTime(value)
   return withYear(date, text, now)
 }
+
+// ISO 시각 → '10월 25일 (토)'(한국 날짜). 올해가 아니면 앞에 '2026년'을 붙인다.
+export const dayLabel = (iso: string, now: Date = new Date()) =>
+  dateLabel(koreanDateOf(new Date(iso)), now)
+
+// ISO 시각 → '10월 25일 (토) 14:00'(한국 시각). 올해가 아니면 앞에 '2026년'을 붙인다.
+export const dayTimeLabel = (iso: string, now: Date = new Date()) =>
+  momentLabel(koreanOf(new Date(iso)), now)

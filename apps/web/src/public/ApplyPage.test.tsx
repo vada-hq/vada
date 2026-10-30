@@ -52,6 +52,19 @@ test('받는 중이면 학교·행사·참가비·안내와 칸이 보이고, �
   expect(screen.getByText(/지우는 날: 2027년 10월 24일/)).toBeTruthy()
 })
 
+test('올해가 아닌 행사와 마감에는 연도가 붙는다', async () => {
+  vi.useFakeTimers({ toFake: ['Date'] })
+  vi.setSystemTime(new Date('2026-10-31T03:00:00Z'))
+  const form = publicForm()
+  setup({
+    ...form,
+    event: { ...form.event, startsAt: '2027-03-02T14:00', endsAt: '2027-03-02T18:00' },
+    form: { ...form.form, closesAt: '2027-02-26T18:00' },
+  })
+  expect(await screen.findByText('2027년 3월 2일 (화) 14:00 ~ 18:00')).toBeTruthy()
+  expect(screen.getByText('2027년 2월 26일 (금) 18:00까지 신청')).toBeTruthy()
+})
+
 // 참가비가 있는 양식만 입금을 대조하므로 고지의 목적에 입금 확인이 붙는다(DEC-93이 DEC-75를 고쳤다). 무료 양식에는 입금이 없다.
 // 학번을 받는 양식은 같은 양식의 중복 신청을 학번으로 막으므로 그 목적이 붙는다(DEC-107).
 const DUPLICATE_PURPOSE = '같은 양식의 중복 신청 확인'
