@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { dayTime, koreanYearOf, type EventApplicant } from '@vada/contracts'
+import { momentLabel, type EventApplicant } from '@vada/contracts'
 import { SidePanel, SidePanelBody, SidePanelContent } from '@/components/ui/side-panel'
 import { won } from '@/public/registration-text'
 import { EVENT_APPLICANTS } from '@/lib/registration-messages'
@@ -12,10 +12,7 @@ import { listType } from './list-look'
 const KOREAN_MINUTE_LENGTH = 16
 
 // 신청 시각 'YYYY-MM-DDTHH:MM'(한국) → '10월 27일 (화) 10:00', 올해가 아니면 앞에 '2026년'.
-function appliedText(at: string, now: Date) {
-  const { date, text } = dayTime(at.slice(0, KOREAN_MINUTE_LENGTH))
-  return date.startsWith(koreanYearOf(now)) ? text : `${date.split('-')[0]}년 ${text}`
-}
+const appliedText = (at: string, now: Date) => momentLabel(at.slice(0, KOREAN_MINUTE_LENGTH), now)
 
 function Prop({ label, children }: { label: string; children: ReactNode }) {
   return (
