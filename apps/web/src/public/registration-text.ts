@@ -2,6 +2,7 @@ import {
   DAY_MS,
   KOREAN_DATE_LENGTH,
   koreanDateOf,
+  type MyRegistration,
   type PublicRegistrationForm,
   type RegistrationStatus,
 } from '@vada/contracts'
@@ -88,3 +89,27 @@ export function collectedItems(
 
 export const inquiryText = (notice: string | null) =>
   notice ? '문의는 위 안내에 적힌 곳으로 해 주세요.' : '문의는 이 링크를 보낸 운영진에게 해 주세요.'
+
+const REAPPLY = '마감 전이면 다시 신청할 수 있어요.'
+const ERASED = '취소하면 낸 이름과 연락처가 지워지고, 이 주소로 다시 볼 수 없어요.'
+
+// 스스로 취소하는 창의 고지. 실제 처리(voidRegistration)와 같아야 한다.
+// 입금을 확인한 신청은 환불 대기가 되어 환불을 표시할 때까지 이름·휴대폰 번호·입금 금액만 남는다(DEC-55, 개인정보 처리방침 10조).
+// 환불 규칙은 학생회가 신청 안내에 적으니(DEC-55) 문의처만 알린다.
+// 서버는 취소하는 때의 입금 기록으로 가른다. 이 화면이 읽은 뒤에 입금이 확인될 수 있어, 참가비가 있는 신청에는 지워진다고 잘라 말하지 않는다.
+export function cancelNotice({
+  appliedFee,
+  depositConfirmed,
+  mine,
+  form,
+}: Pick<MyRegistration, 'appliedFee' | 'depositConfirmed' | 'mine' | 'form'>) {
+  if (appliedFee === 0 && !depositConfirmed) return `${ERASED} ${REAPPLY}`
+  const kept = mine.phone ? '이름·휴대폰 번호·입금 금액' : '이름·입금 금액'
+  const refund = form.notice
+    ? '환불은 안내에 적힌 곳으로 문의해 주세요.'
+    : '환불은 이 링크를 보낸 운영진에게 문의해 주세요.'
+  const until = '운영진이 환불을 표시할 때까지 남'
+  return depositConfirmed
+    ? `취소하면 이 주소로 다시 볼 수 없어요. ${kept}만 ${until}고 나머지는 바로 지워져요. ${refund} ${REAPPLY}`
+    : `${ERASED} 다만 입금이 확인된 신청은 ${kept}이 ${until}아요. ${refund} ${REAPPLY}`
+}

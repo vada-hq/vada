@@ -9,6 +9,7 @@ import { qrMatrix, qrPath } from '@/lib/qr-code'
 import MyRegistrationPage from './MyRegistrationPage'
 
 const SAVED_KEY = 'vada.registration.ABCD2345'
+const MINE = myRegistration().mine
 
 beforeEach(() => {
   window.localStorage.clear()
@@ -116,6 +117,45 @@ test('취소는 확인을 거치고, 하면 신청을 취소했다고 하며 기
   expect(await screen.findByText('신청을 취소했어요.')).toBeTruthy()
   expect(api.calls.find(call => call.path === CANCEL_PATH)?.body).toEqual({ token: 'tok123' })
   expect(window.localStorage.getItem(SAVED_KEY)).toBeNull()
+})
+
+// 입금을 확인한 신청은 취소해도 환불 연락을 위해 이름·휴대폰 번호·입금 금액이 남는다(DEC-55, 개인정보 처리방침 10조).
+test('무료 신청의 취소 창은 낸 정보가 지워진다고 말한다', async () => {
+  setup(myRegistration({ appliedFee: 0 }))
+  fireEvent.click(await screen.findByRole('button', { name: '신청 취소' }))
+  const dialog = await screen.findByRole('dialog')
+  expect(dialog.textContent).toContain('취소하면 낸 이름과 연락처가 지워지고')
+  expect(dialog.textContent).not.toContain('환불')
+})
+
+// 서버는 취소하는 때의 입금 기록으로 가른다. 화면이 읽은 뒤 운영진이 입금을 확인했어도 고지가 틀리지 않아야 한다.
+test('입금 확인 전인 유료 신청의 취소 창은 입금이 확인되면 남는 정보까지 말한다', async () => {
+  setup()
+  fireEvent.click(await screen.findByRole('button', { name: '신청 취소' }))
+  const dialog = await screen.findByRole('dialog')
+  expect(dialog.textContent).toContain(
+    '다만 입금이 확인된 신청은 이름·입금 금액이 운영진이 환불을 표시할 때까지 남아요.',
+  )
+  expect(dialog.textContent).toContain('환불은 안내에 적힌 곳으로 문의해 주세요.')
+})
+
+test('입금을 확인한 뒤 취소 창은 남는 정보와 환불 문의처를 말하고 지워진다고 하지 않는다', async () => {
+  setup(myRegistration({ depositConfirmed: true, mine: { ...MINE, phone: '01012345678' } }))
+  fireEvent.click(await screen.findByRole('button', { name: '신청 취소' }))
+  const dialog = await screen.findByRole('dialog')
+  expect(dialog.textContent).toContain(
+    '이름·휴대폰 번호·입금 금액만 운영진이 환불을 표시할 때까지 남고 나머지는 바로 지워져요.',
+  )
+  expect(dialog.textContent).toContain('환불은 안내에 적힌 곳으로 문의해 주세요.')
+  expect(dialog.textContent).not.toContain('낸 이름과 연락처가 지워지고')
+})
+
+test('휴대폰을 받지 않은 신청은 남는 정보에 휴대폰을 말하지 않고, 안내가 없으면 운영진에게 묻게 한다', async () => {
+  setup(myRegistration({ depositConfirmed: true, form: { notice: null } }))
+  fireEvent.click(await screen.findByRole('button', { name: '신청 취소' }))
+  const dialog = await screen.findByRole('dialog')
+  expect(dialog.textContent).toContain('이름·입금 금액만 운영진이 환불을 표시할 때까지 남고')
+  expect(dialog.textContent).toContain('환불은 이 링크를 보낸 운영진에게 문의해 주세요.')
 })
 
 test('취소가 끝난 뒤 다시 읽기가 돌아도 취소했어요가 찾을 수 없어요로 바뀌지 않는다', async () => {
