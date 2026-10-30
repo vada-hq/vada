@@ -137,6 +137,21 @@ export function afterWindowsClosed(task: () => void) {
   }
 }
 
+// 이 문서를 떠나기 전에 창 칸을 모두 거둔다. 새로 고침 전 문서가 쌓은 칸은 이 문서의 수(have)에 없어 afterWindowsClosed가 남긴다.
+// 지금 칸의 깊이가 곧 그 칸 수다. 그대로 떠나면 칸이 남아 뒤로가 지운 화면으로 돌아온다. 쓰던 칸이 없으면 바로 한다.
+export function afterAllWindowEntries(task: () => void) {
+  afterWindowsClosed(() => {
+    const left = depthOf(window.history.state)
+    if (left === 0) {
+      task()
+      return
+    }
+    waiting.push(task)
+    expectedPops += 1
+    window.history.go(-left)
+  })
+}
+
 // 이어받은 칸을 창에서 떼어 평범한 앱 칸으로 둔다. 창을 닫으면서 같은 페이지에 남으려는 동작(다른 탭으로, 잃음)이
 // 뒤로 가기(go(-1))로 주소를 떠나지 않게, 칸의 주소를 바꿔 쓰기 직전에 부른다. 이어받은 창이 없으면 false다.
 export function releaseAdopted() {

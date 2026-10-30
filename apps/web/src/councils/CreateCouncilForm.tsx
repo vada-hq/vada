@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import type { MyCouncil } from '@vada/contracts'
+import { BackStep } from '@/components/BackStep'
 import LeaveConfirm from '@/components/LeaveConfirm'
 import { Button } from '@/components/ui/button'
 import { askLeave, useUnsavedInput, useWindowLeave } from '@/lib/leave-guard'
-import { useWindowHistory } from '@/lib/use-window-history'
 import { useMyName } from '../profile/useMyName'
 import { useInvite } from '../team/useInvite'
 import CreateBasicStep from './CreateBasicStep'
@@ -20,12 +20,6 @@ type Props = {
   onCancel: () => void
   // 둘째 학생회 만들기의 카드 [닫기]. 보내는 동안은 막아 만든 결과를 놓치지 않게 한다.
   onClose?: (() => void) | undefined
-}
-
-// 기기 뒤로가 앱을 떠나지 않고 화면 안의 [이전]과 같은 길로 가게 기록 한 칸을 쓴다.
-function BackStep({ onBack }: { onBack: () => void }) {
-  useWindowHistory(onBack)
-  return null
 }
 
 // 학생회 만들기(기능 020 정한 것 1): 1/3 기본 정보 → 2/3 조직 구조 → 3/3 초대 링크 → 그 학생회 홈.
@@ -48,6 +42,7 @@ export default function CreateCouncilForm({ userName, onCreated, onCancel, onClo
   }, [step, created])
   return (
     <div ref={frame} className="contents">
+      {/* 기기 뒤로가 앱을 떠나지 않고 화면 안의 [이전]과 같은 길로 간다. */}
       {!created && <BackStep onBack={leave.close} />}
       {!created && step === 'structure' && (
         <BackStep

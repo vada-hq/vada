@@ -20,6 +20,10 @@ import { answerErrors, answersRequest, type AnswerValues } from './answer-values
 export type ApplyValues = { name: string; studentId: string; phone: string; answers: AnswerValues }
 export const EMPTY_VALUES: ApplyValues = { name: '', studentId: '', phone: '', answers: {} }
 
+// 떠날 때 물을 입력이 남았는가. 공백만 쓴 칸과 모두 푼 고르기는 잃을 것이 없다.
+export const hasInput = ({ name, studentId, phone, answers }: ApplyValues) =>
+  [name, studentId, phone, ...Object.values(answers).flat()].some(value => value.trim() !== '')
+
 const CHECK_COMMAND_ID = '00000000-0000-4000-8000-000000000000'
 
 type Collects = Pick<PublicRegistrationForm, 'collectsStudentId' | 'collectsPhone' | 'questions'>

@@ -4,6 +4,8 @@ import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testi
 import { APPLY_PATH, FORM_CODE, FORM_PATH, publicForm } from '@/test-support/registration-fixtures'
 import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
 import { settle } from '@/test-support/settle'
+import { resetAddress } from '@/test-support/address-reset'
+import { LEAVE_CONFIRM, LEAVE_TITLE } from '@/lib/messages'
 import { APPLY_ERRORS, REGISTRATION_FORM_LOST } from '@/lib/registration-messages'
 import ApplyPage from './ApplyPage'
 import * as applyCommand from './apply-command'
@@ -16,10 +18,12 @@ vi.mock('./apply-command', async importActual => {
 beforeEach(() => {
   window.localStorage.clear()
 })
-afterEach(() => {
+afterEach(async () => {
   cleanup()
   vi.unstubAllGlobals()
   vi.useRealTimers()
+  vi.restoreAllMocks()
+  await resetAddress()
 })
 
 function setup(form = publicForm()) {
@@ -498,4 +502,168 @@ test('휴대폰 번호는 치는 대로 하이픈을 넣어 보이고 전화 키
   expect(phone.value).toBe('010-1234-5678')
   expect(phone.getAttribute('inputmode')).toBe('tel')
   expect(phone.type).toBe('tel')
+})
+
+// 공개 신청 화면도 새로고침·뒤로 때 확인한다(결정 10). 입력을 기기에 저장하지 않으므로 확인이 유일한 지킴이다.
+const reloadWarned = () => {
+  const event = new Event('beforeunload', { cancelable: true })
+  window.dispatchEvent(event)
+  return event.defaultPrevented
+}
+const windowDepth = () => (window.history.state as { vadaWindow?: number } | null)?.vadaWindow ?? 0
+const userBack = async () => {
+  await settle()
+  act(() => window.history.back())
+}
+const leaveAsked = () => screen.findByRole('dialog', { name: LEAVE_TITLE })
+const nameValue = () => screen.getByLabelText<HTMLInputElement>('이름').value
+
+test('입력이 있는 동안만 새로고침에 브라우저 확인을 건다', async () => {
+  setup()
+  await screen.findByLabelText('이름')
+  expect(reloadWarned()).toBe(false)
+  fill('이름', '김새내')
+  expect(reloadWarned()).toBe(true)
+  fill('이름', '   ')
+  expect(reloadWarned()).toBe(false)
+  fill('학번', '20260001')
+  expect(reloadWarned()).toBe(true)
+})
+
+test('답만 고른 입력도 지키고, 고른 것을 모두 풀면 풀린다', async () => {
+  setup(
+    publicForm({
+      questions: [
+        {
+          id: 'q1',
+          kind: 'multiple_choice',
+          title: '참여 활동',
+          required: false,
+          choices: [{ id: 'c1', label: '운동회' }],
+        },
+      ],
+    }),
+  )
+  fireEvent.click(await screen.findByRole('checkbox', { name: '운동회' }))
+  expect(reloadWarned()).toBe(true)
+  fireEvent.click(screen.getByRole('checkbox', { name: '운동회' }))
+  expect(reloadWarned()).toBe(false)
+})
+
+test('보내는 중에는 묻지 않고, 실패하면 다시 지킨다', async () => {
+  const { api } = setup()
+  await screen.findByLabelText('이름')
+  fill('이름', '김새내')
+  fill('학번', '20260001')
+  const response = deferredResponse()
+  api.on('POST', APPLY_PATH, () => response.promise)
+  fireEvent.click(screen.getByRole('button', { name: '신청하기' }))
+  await waitFor(() => expect(reloadWarned()).toBe(false))
+  response.resolve(json({ error: 'FORM_CLOSED' }, 409))
+  await waitFor(() => expect(reloadWarned()).toBe(true))
+})
+
+test('신청이 되면 묻지 않고, 기록 칸을 거둔 뒤에 내 신청으로 간다', async () => {
+  const { api, onApplied } = setup()
+  await screen.findByLabelText('이름')
+  fill('이름', '김새내')
+  fill('학번', '20260001')
+  await waitFor(() => expect(windowDepth()).toBe(1))
+  let depthAtMove = -1
+  onApplied.mockImplementation(() => {
+    depthAtMove = windowDepth()
+  })
+  api.on('POST', APPLY_PATH, () => json({ token: 'tok' }, 201))
+  fireEvent.click(screen.getByRole('button', { name: '신청하기' }))
+  await waitFor(() => expect(onApplied).toHaveBeenCalledWith('tok'))
+  expect(depthAtMove).toBe(0)
+  expect(reloadWarned()).toBe(false)
+})
+
+test('새로 고침 전 문서가 남긴 기록 칸까지 거둔 뒤에 내 신청으로 간다', async () => {
+  // 입력 중에 새로 고침하면 기록 칸 위에서 새 문서가 시작한다.
+  window.history.pushState({ vadaWindow: 1 }, '')
+  const { api, onApplied } = setup()
+  await screen.findByLabelText('이름')
+  fill('이름', '김새내')
+  fill('학번', '20260001')
+  await waitFor(() => expect(windowDepth()).toBe(2))
+  let depthAtMove = -1
+  onApplied.mockImplementation(() => {
+    depthAtMove = windowDepth()
+  })
+  api.on('POST', APPLY_PATH, () => json({ token: 'tok' }, 201))
+  fireEvent.click(screen.getByRole('button', { name: '신청하기' }))
+  await waitFor(() => expect(onApplied).toHaveBeenCalledWith('tok'))
+  expect(depthAtMove).toBe(0)
+})
+
+test('뒤로는 입력이 있으면 먼저 묻고, 닫기는 값을 둔 채 계속 쓴다', async () => {
+  setup()
+  await screen.findByLabelText('이름')
+  fill('이름', '김새내')
+  await waitFor(() => expect(windowDepth()).toBe(1))
+  await userBack()
+  const dialog = await leaveAsked()
+  fireEvent.click(within(dialog).getAllByRole('button', { name: '닫기' })[0]!)
+  await waitFor(() => expect(screen.queryByRole('dialog', { name: LEAVE_TITLE })).toBeNull())
+  await settle()
+  expect(nameValue()).toBe('김새내')
+  expect(reloadWarned()).toBe(true)
+  await waitFor(() => expect(windowDepth()).toBe(1))
+})
+
+test('뒤로에서 나가기를 고르면 입력을 버리고 한 칸 더 뒤로 간다', async () => {
+  setup()
+  await screen.findByLabelText('이름')
+  fill('이름', '김새내')
+  await waitFor(() => expect(windowDepth()).toBe(1))
+  await userBack()
+  const dialog = await leaveAsked()
+  await settle()
+  const back = vi.spyOn(window.history, 'back')
+  fireEvent.click(within(dialog).getByRole('button', { name: LEAVE_CONFIRM }))
+  await waitFor(() => expect(back).toHaveBeenCalledTimes(1))
+  expect(reloadWarned()).toBe(false)
+  expect(nameValue()).toBe('')
+})
+
+test('쓰다가 모두 지운 뒤의 뒤로는 묻지 않고 떠난다', async () => {
+  setup()
+  await screen.findByLabelText('이름')
+  fill('이름', '김새내')
+  await waitFor(() => expect(windowDepth()).toBe(1))
+  fill('이름', '')
+  await userBack()
+  await settle()
+  expect(screen.queryByRole('dialog', { name: LEAVE_TITLE })).toBeNull()
+  expect(reloadWarned()).toBe(false)
+})
+
+test('양식이 닫혀 칸이 사라지면 지키지 않는다', async () => {
+  const { api } = setup()
+  await screen.findByLabelText('이름')
+  fill('이름', '김새내')
+  expect(reloadWarned()).toBe(true)
+  api.on('POST', APPLY_PATH, () => json({ error: 'FORM_CLOSED' }, 409))
+  api.on('GET', FORM_PATH, () => json(publicForm({ status: 'closed' })))
+  fill('학번', '20260001')
+  fireEvent.click(screen.getByRole('button', { name: '신청하기' }))
+  await screen.findByText('신청이 마감됐어요.')
+  await waitFor(() => expect(reloadWarned()).toBe(false))
+})
+
+test('지키는 동안에도 입력값을 기기와 기록 상태에 두지 않는다', async () => {
+  setup()
+  await screen.findByLabelText('이름')
+  fill('이름', '김새내')
+  fill('학번', '20260001')
+  await waitFor(() => expect(windowDepth()).toBe(1))
+  const kept = JSON.stringify([
+    Object.entries(window.localStorage),
+    Object.entries(window.sessionStorage),
+    window.history.state,
+  ])
+  expect(kept).not.toContain('김새내')
+  expect(kept).not.toContain('20260001')
 })
