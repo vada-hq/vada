@@ -482,3 +482,50 @@ test('사진을 빼면 미리 보기 주소를 거두고, 줄이는 중에 뺀 �
   resized(jpeg())
   await waitFor(() => expect(revoked).toHaveBeenCalledExactlyOnceWith('blob:x'))
 })
+
+test('보내는 중에 떠났다 돌아온 뒤 보내기가 실패하면 글과 부른 사람이 입력칸에 돌아와 함께 다시 보낸다', async () => {
+  const api = serve()
+  const pending = deferredResponse()
+  api.on('POST', `${chatBase}/rooms/r1/messages`, () => pending.promise)
+  await open()
+  type('@')
+  fireEvent.click(
+    within(await screen.findByRole('list', { name: '부를 사람' })).getByRole('button', {
+      name: '이재정',
+    }),
+  )
+  type('@이재정 사진 봐 주세요')
+  choose('a.jpg')
+  await waitFor(() => expect(sendButton().disabled).toBe(false))
+  fireEvent.click(sendButton())
+  await waitFor(() => expect(sends(api)).toHaveLength(1))
+  cleanup()
+  await open()
+  expect(field().value).toBe('')
+  api.on('POST', `${chatBase}/rooms/r1/messages`, () => json({ id: 'a3' }, 201))
+  pending.resolve(json({ error: 'INTERNAL' }, 500))
+  await waitFor(() => expect(field().value).toBe('@이재정 사진 봐 주세요'))
+  await waitFor(() => expect(sendButton().disabled).toBe(false))
+  fireEvent.click(sendButton())
+  await waitFor(() => expect(sends(api)).toHaveLength(2))
+  expect(sends(api)[1]?.body).toEqual({
+    body: '@이재정 사진 봐 주세요',
+    mentions: [ANOTHER],
+    photos: ['k1'],
+  })
+})
+
+test('보내는 중에 떠났다 돌아와 새로 쓴 글은 보내기가 실패해도 되돌아온 글 뒤에 남는다', async () => {
+  const api = serve()
+  const pending = deferredResponse()
+  api.on('POST', `${chatBase}/rooms/r1/messages`, () => pending.promise)
+  await open()
+  type('먼저 쓴 글')
+  fireEvent.click(sendButton())
+  await waitFor(() => expect(sends(api)).toHaveLength(1))
+  cleanup()
+  await open()
+  type('새로 쓴 글')
+  pending.resolve(json({ error: 'INTERNAL' }, 500))
+  await waitFor(() => expect(field().value).toBe('먼저 쓴 글\n새로 쓴 글'))
+})

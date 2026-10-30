@@ -19,5 +19,29 @@ export function keepDraft(meId: string, councilId: string, roomId: string, draft
   else drafts.set(key, draft)
 }
 
+const restorers = new Set<(key: string, draft: Draft) => void>()
+
+export function onDraftRestored(listener: (key: string, draft: Draft) => void) {
+  restorers.add(listener)
+  return () => {
+    restorers.delete(listener)
+  }
+}
+
+// 보내다 방을 떠났는데 보내기가 실패한 글을 되돌린다. 그사이 돌아와 떠 있는 입력칸은 비어 있어,
+// 그 칸에도 넣지 않으면 사진만 다시 보내고 글을 잃는다. 돌아와 새로 쓴 글은 뒤에 남긴다.
+export function restoreDraft(meId: string, councilId: string, roomId: string, sent: Draft) {
+  const kept = draftOf(meId, councilId, roomId)
+  const restored = {
+    body: [sent.body, kept.body].filter(Boolean).join('\n'),
+    picks: [
+      ...sent.picks,
+      ...kept.picks.filter(pick => !sent.picks.some(item => item.memberId === pick.memberId)),
+    ],
+  }
+  keepDraft(meId, councilId, roomId, restored)
+  for (const restore of restorers) restore(draftKey(meId, councilId, roomId), restored)
+}
+
 // 시험용: 앞 시험이 남긴 글을 비운다.
 export const resetDrafts = () => drafts.clear()

@@ -4,7 +4,7 @@ import { postJson } from '@/lib/api'
 import { useActive } from '@/lib/use-active'
 import { SEND_FAILED } from '@/lib/messages'
 import { isRoomLost, messagesPath, sendErrorText } from './chat-api'
-import { draftOf, keepDraft } from './composer-drafts'
+import { draftKey, draftOf, keepDraft, onDraftRestored, restoreDraft } from './composer-drafts'
 import { mentionIds } from './mention'
 import { usePhotoDrafts } from './usePhotoDrafts'
 
@@ -34,12 +34,27 @@ function useDraft(meId: string, councilId: string, roomId: string) {
   useEffect(() => {
     keepDraft(meId, councilId, roomId, { body, picks })
   }, [meId, councilId, roomId, body, picks])
-  return { body, setBody, picks, setPicks }
+  const room = draftKey(meId, councilId, roomId)
+  useEffect(
+    () =>
+      onDraftRestored((key, draft) => {
+        if (key !== room) return
+        setBody(draft.body)
+        setPicks(draft.picks)
+      }),
+    [room],
+  )
+  const pick = (person: RoomParticipant) =>
+    setPicks(list =>
+      list.some(item => item.memberId === person.memberId) ? list : [...list, person],
+    )
+
+  return { body, setBody, picks, pick }
 }
 
 // 입력칸 하나: 글, 부른 사람, 사진, 보내기. 보내기에 실패하면 글과 사진을 그대로 두고 자동으로 다시 보내지 않는다.
 export function useComposer({ councilId, meId, roomId, onSent, onLost }: Args) {
-  const { body, setBody, picks, setPicks } = useDraft(meId, councilId, roomId)
+  const { body, setBody, picks, pick } = useDraft(meId, councilId, roomId)
   const [sending, setSending] = useState(false)
   const [error, setError] = useState<string | null>(null)
   // 보내다 보기만 되는 방이 된 것을 알게 되면 입력칸을 닫는다.
@@ -73,7 +88,10 @@ export function useComposer({ councilId, meId, roomId, onSent, onLost }: Args) {
     drafts.holdForSend(keys)
     const result = await postJson(messagesPath(councilId, roomId), payload)
     busy.current = false
-    if (!result.ok) keepDraft(meId, councilId, roomId, { body, picks })
+    if (!result.ok) {
+      const restore = isActive() ? keepDraft : restoreDraft
+      restore(meId, councilId, roomId, { body, picks })
+    }
     drafts.settleSend(keys, result.ok)
     if (!isActive()) return
     setSending(false)
@@ -87,11 +105,6 @@ export function useComposer({ councilId, meId, roomId, onSent, onLost }: Args) {
       onSent()
     } else setError(sendErrorText(result, SEND_FAILED))
   }
-
-  const pick = (person: RoomParticipant) =>
-    setPicks(list =>
-      list.some(item => item.memberId === person.memberId) ? list : [...list, person],
-    )
 
   return { body, setBody, pick, send, canSend, sending, error, readOnly, drafts }
 }
