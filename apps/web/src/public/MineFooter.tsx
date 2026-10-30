@@ -10,7 +10,7 @@ import { CopyFailed, type Copy } from './copy-toast'
 import { phoneView } from './phone-view'
 import { Fact, FactList } from './PageParts'
 import { focusRing, type } from './public-look'
-import { dateText, inquiryText } from './registration-text'
+import { cancelNotice, dateText, inquiryText } from './registration-text'
 
 export type Cancel = { busy: boolean; problem: string; run: () => Promise<void> }
 
@@ -95,7 +95,7 @@ function Reopen({ copy }: { copy: Copy }) {
 }
 
 // [신청 취소]는 맨 아래 조용히 둔다(파괴적 행동은 아래). 보이기는 서버의 cancellable만 본다.
-function CancelBlock({ cancel }: { cancel: Cancel }) {
+function CancelBlock({ cancel, description }: { cancel: Cancel; description: string }) {
   const [asking, setAsking] = useState(false)
   return (
     <>
@@ -114,7 +114,7 @@ function CancelBlock({ cancel }: { cancel: Cancel }) {
         open={asking}
         touch
         title="신청을 취소할까요?"
-        description="취소하면 낸 이름과 연락처가 지워지고, 이 주소로 다시 볼 수 없어요. 마감 전이면 다시 신청할 수 있어요."
+        description={description}
         confirmLabel="신청 취소"
         destructive
         busy={cancel.busy}
@@ -135,7 +135,7 @@ export function MineFooter(props: { mine: MyRegistration; cancel: Cancel; copy: 
       <EventInfo mine={mine} />
       <MyAnswers mine={mine} />
       <Reopen copy={copy} />
-      {mine.cancellable && <CancelBlock cancel={cancel} />}
+      {mine.cancellable && <CancelBlock cancel={cancel} description={cancelNotice(mine)} />}
       {/* 취소 오류는 취소 버튼이 사라져도(마감이 지나 cancellable이 false가 되면) 이유와 함께 남는다. */}
       {cancel.problem && <StateMessage kind="error">{cancel.problem}</StateMessage>}
       {mine.purgeOn && (
