@@ -13,6 +13,8 @@ import { MemberDepartmentList } from './MemberDepartmentList'
 type Props = {
   member: TeamMember
   departments: TeamDepartment[]
+  // [부장 지정]으로 열었으면 누른 부서
+  headOf?: string | null
   titles: CouncilTitles
   saving: boolean
   // 부서 직급(부장·부부장)을 바꿀 수 있는가(rank.manage). 부서에 직급 없이 넣는 일은 member.manage만으로 된다(P19).
@@ -31,7 +33,7 @@ export default function MemberDepartmentsDialog(props: Props) {
   const others = departments.filter(
     department => !member.departments.some(item => item.id === department.id),
   )
-  const add = useAddDepartment(others)
+  const add = useAddDepartment(others, props.headOf ?? null)
   return (
     <Dialog
       open

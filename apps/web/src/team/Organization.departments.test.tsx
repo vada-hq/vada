@@ -712,15 +712,79 @@ test('[부장 지정]으로 부장을 정하고 창을 닫으면 초점이 부�
   })
   fireEvent.click(within(await screen.findByRole('menu')).getByRole('menuitem', { name: '박새내' }))
   const dialog = await screen.findByRole('dialog', { name: '박새내의 부서' })
-  fireEvent.change(within(dialog).getByLabelText('부서'), { target: { value: 'd2' } })
-  fireEvent.change(within(dialog).getByLabelText('부서 직급'), { target: { value: 'head' } })
   fireEvent.click(within(dialog).getByRole('button', { name: '부서에 넣기' }))
   expect(await within(dialog).findByLabelText('기획부 부서 직급')).toBeTruthy()
+  expect(api.calls.find(call => call.path.endsWith('/members/m3/departments'))?.body).toEqual({
+    departmentId: 'd2',
+    rank: 'head',
+  })
   fireEvent.keyDown(dialog, { key: 'Escape' })
   await noDialog()
   const head = within(screen.getByRole('list', { name: '기획부 부장' }))
   await waitFor(() =>
     expect(document.activeElement).toBe(head.getByRole('button', { name: '박새내 동작' })),
+  )
+})
+
+async function pickHead(department: string, name: string) {
+  fireEvent.keyDown(within(group(department)).getByRole('button', { name: '부장 지정' }), {
+    key: 'Enter',
+  })
+  fireEvent.click(within(await screen.findByRole('menu')).getByRole('menuitem', { name }))
+  return within(await screen.findByRole('dialog', { name: `${name}의 부서` }))
+}
+const rankBox = (dialog: ReturnType<typeof within>) =>
+  asElement(dialog.getByLabelText('부서 직급'), HTMLSelectElement)
+
+test('[부장 지정]으로 연 창은 누른 부서와 부장을 골라 두고, 부서를 넣으면 다음 부서의 직급은 다시 비운다', async () => {
+  const api = serve()
+  const assigned = teamResponse()
+  assigned.members[2]!.departments = [{ id: 'd2', rank: 'head', actions: ['placement.remove'] }]
+  api.on('POST', '/api/organizations/c1/members/m3/departments', () => json(assigned))
+  render(<Harness permissions={LEADER_PERMISSIONS} />)
+  await loaded()
+  const dialog = await pickHead('기획부', '박새내')
+  expect(asElement(dialog.getByLabelText('부서'), HTMLSelectElement).value).toBe('d2')
+  expect(rankBox(dialog).value).toBe('head')
+  // 다른 부서로 옮기면 누른 부서가 아니라 직급 기본값을 물려받지 않는다.
+  fireEvent.change(dialog.getByLabelText('부서'), { target: { value: 'd1' } })
+  expect(rankBox(dialog).value).toBe('')
+  fireEvent.change(dialog.getByLabelText('부서'), { target: { value: 'd2' } })
+  fireEvent.click(dialog.getByRole('button', { name: '부서에 넣기' }))
+  await dialog.findByLabelText('기획부 부서 직급')
+  // 재정부는 누르지 않았으니 재정 권한이 붙는 부장이 골라져 있으면 안 된다.
+  expect(asElement(dialog.getByLabelText('부서'), HTMLSelectElement).value).toBe('d1')
+  expect(rankBox(dialog).value).toBe('')
+})
+
+test('사람 카드의 부서 배정은 [부장 지정] 뒤에 열어도 직급 기본값이 없다', async () => {
+  serve()
+  render(<Harness permissions={LEADER_PERMISSIONS} />)
+  await loaded()
+  await pickHead('기획부', '박새내')
+  fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' })
+  await noDialog()
+  fireEvent.click(within(await openMenu('박새내')).getByRole('menuitem', { name: '부서 배정' }))
+  const next = within(await screen.findByRole('dialog', { name: '박새내의 부서' }))
+  expect(rankBox(next).value).toBe('')
+})
+
+test('직급을 줄 수 없으면 [부장 지정]으로 열어도 부서만 골라 두고 직급 없이 넣는다', async () => {
+  const api = serve()
+  api.on('POST', '/api/organizations/c1/members/m3/departments', () => json(teamResponse()))
+  render(
+    <Harness permissions={LEADER_PERMISSIONS.filter(action => action !== 'rank.manage')} />,
+  )
+  await loaded()
+  const dialog = await pickHead('기획부', '박새내')
+  expect(asElement(dialog.getByLabelText('부서'), HTMLSelectElement).value).toBe('d2')
+  expect(rankBox(dialog).value).toBe('')
+  fireEvent.click(dialog.getByRole('button', { name: '부서에 넣기' }))
+  await waitFor(() =>
+    expect(api.calls.find(call => call.path.endsWith('/members/m3/departments'))?.body).toEqual({
+      departmentId: 'd2',
+      rank: null,
+    }),
   )
 })
 

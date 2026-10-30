@@ -174,6 +174,7 @@ function AssignDialog({ people, view, team }: Omit<DialogProps, 'departments'>) 
       key={member.id}
       member={member}
       departments={team.data.departments}
+      headOf={people.headOf}
       titles={view.council.titles}
       saving={team.saving}
       canRank={people.can('rank.manage')}
