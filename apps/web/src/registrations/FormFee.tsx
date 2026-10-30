@@ -93,7 +93,8 @@ export function FeeValue({
               id={ids.fee}
               label="참가비"
               value={values.fee}
-              error={errors.fee}
+              // 한 칸 참가비는 계약의 두 칸에 같은 값으로 가므로 계약의 문제는 그 이름으로 온다.
+              error={errors.fee ?? errors.payerFee}
               onChange={fee => onChange({ fee })}
             />
           ) : (

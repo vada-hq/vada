@@ -23,7 +23,12 @@ import {
   REGISTRATION_STAFF_ERRORS,
   REGISTRATION_STAFF_LOST,
 } from '@/lib/registration-messages'
-import type { AccountItem, EventDetail, FormListAction } from '@vada/contracts'
+import {
+  REGISTRATION_FEE_MAX,
+  type AccountItem,
+  type EventDetail,
+  type FormListAction,
+} from '@vada/contracts'
 import { hasUnsavedInput } from '@/lib/leave-guard'
 import { eventDetail } from '@/test-support/event-fixtures'
 import { RegistrationTab } from './RegistrationTab'
@@ -962,4 +967,17 @@ test('카드의 받는 항목을 펼치면 질문이 종류·필수와 함께 �
   fireEvent.click(await screen.findByRole('button', { name: '이름 · 학번 · 질문 1개' }))
   expect(screen.getByText('참가 종목')).toBeTruthy()
   expect(screen.getByText('여럿 고르기 · 선택')).toBeTruthy()
+})
+
+test('한 칸 참가비가 계약 상한을 넘으면 보내지 않고 그 칸 아래에 알리며 그 칸으로 옮긴다', async () => {
+  const { api } = setup({ forms: [], actions: ['form.create'] })
+  const { form } = await openCreate(api)
+  fireEvent.click(within(form).getByLabelText('있음'))
+  const fee = within(form).getByLabelText('참가비')
+  fireEvent.change(fee, { target: { value: String(REGISTRATION_FEE_MAX + 1) } })
+  fireEvent.click(submit())
+  expect(within(form).getByText('더 작은 값을 입력해 주세요')).toBeTruthy()
+  expect(fee.getAttribute('aria-invalid')).toBe('true')
+  await waitFor(() => expect(document.activeElement).toBe(fee))
+  expect(api.calls.some(call => call.method === 'POST')).toBe(false)
 })
