@@ -81,18 +81,16 @@ export function budgetRowErrors(
   return errors
 }
 
-// 계약의 마지막 확인(너무 긴 이름 등)을 그 행의 칸 아래로 옮긴다. 경로는 ['items', 보낸 행 번호, 칸]이다.
-export function rowContractErrors(rows: readonly BudgetRow[], parsed: Parsed): FieldErrors {
+// 계약의 마지막 확인(너무 긴 이름, 금액 상한)을 그 행의 칸으로 옮겨 withContract가 읽게 한다. 경로는 ['items', 보낸 행 번호, 칸]이다.
+export function rowsParsed(rows: readonly BudgetRow[], parsed: Parsed): Parsed {
   const filled = filledOf(rows)
-  const errors: FieldErrors = {}
-  for (const issue of parsed.error?.issues ?? []) {
+  const issues = (parsed.error?.issues ?? []).flatMap(issue => {
     const [, sent, field] = issue.path
     const index = typeof sent === 'number' ? filled[sent]?.index : undefined
-    if (index === undefined || typeof field !== 'string') continue
-    errors[`rows.${index}.${field}`] ??=
-      field === 'amount' ? '더 작은 값을 입력해 주세요' : '더 짧게 입력해 주세요'
-  }
-  return errors
+    if (index === undefined || typeof field !== 'string') return []
+    return [{ ...issue, path: ['rows', index, field] }]
+  })
+  return { success: issues.length === 0, error: { issues } }
 }
 
 // 창 아래의 합계. 아직 숫자가 아닌 칸은 세지 않는다.

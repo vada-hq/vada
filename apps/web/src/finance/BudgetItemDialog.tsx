@@ -3,12 +3,12 @@ import { CreateBudgetItemsSchema, type BudgetItemType } from '@vada/contracts'
 import { Field } from '@/components/ui/field'
 import { NativeSelect } from '@/components/ui/native-select'
 import { BUDGET_ROWS_UNSAVED } from '@/lib/budget-messages'
-import { useFormCheck } from '@/lib/use-form-check'
+import { useFormCheck, withContract } from '@/lib/use-form-check'
 import {
   budgetItemsOf,
   budgetRowErrors,
   defaultRows,
-  rowContractErrors,
+  rowsParsed,
   untouchedRows,
   type BudgetRowsValues,
   type ExistingItem,
@@ -109,10 +109,9 @@ export function BudgetItemDialog({
     formRef,
     errors: fieldErrors,
     attempt,
-  } = useFormCheck(() => ({
-    ...rowContractErrors(values.rows, change.parsed),
-    ...budgetRowErrors(values, existing),
-  }))
+  } = useFormCheck(() =>
+    withContract(budgetRowErrors(values, existing), rowsParsed(values.rows, change.parsed)),
+  )
   const title = eventId ? '행사 예산 편성' : '예산 편성'
   return (
     <BudgetFormDialog

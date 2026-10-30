@@ -2,7 +2,7 @@
 import { resetAddress } from '@/test-support/address-reset'
 import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import type { BudgetResponse } from '@vada/contracts'
+import { WON_MAX, type BudgetResponse } from '@vada/contracts'
 import {
   FINANCE_PERMISSIONS,
   MEMBER_PERMISSIONS,
@@ -326,4 +326,15 @@ test('쓰인 적 없는 항목만 [항목 지우기]가 있고 확인 창 뒤에
   fireEvent.click(within(confirm).getByRole('button', { name: '항목 지우기' }))
   expect(await within(confirm).findByText(BUDGET_ERRORS.BUDGET_ITEM_IN_USE!)).toBeTruthy()
   expect(posts(api).map(call => call.body)).toEqual([{}])
+})
+
+test('예산 편성: 금액이 계약 상한을 넘으면 보내지 않고 그 칸 아래에 알리며 그 칸으로 옮긴다', async () => {
+  const { api } = show()
+  const form = await openPlan()
+  fill('항목 1 이름', '학생회 운영비')
+  fill('항목 1 금액', String(WON_MAX + 1))
+  fireEvent.click(within(form).getByRole('button', { name: '예산 저장' }))
+  expect(within(form).getByText('더 작은 값을 입력해 주세요')).toBeTruthy()
+  await waitFor(() => expect(document.activeElement).toBe(input('항목 1 금액')))
+  expect(posts(api)).toEqual([])
 })
