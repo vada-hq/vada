@@ -3,6 +3,8 @@ import { CreateBudgetItemsSchema, type BudgetItemType } from '@vada/contracts'
 import { Field } from '@/components/ui/field'
 import { NativeSelect } from '@/components/ui/native-select'
 import { BUDGET_ROWS_UNSAVED } from '@/lib/budget-messages'
+import { useUnsavedInput, useWindowLeave } from '@/lib/leave-guard'
+import { sameJson } from '@/lib/same-json'
 import { useFormCheck, withContract } from '@/lib/use-form-check'
 import {
   budgetItemsOf,
@@ -85,13 +87,17 @@ export function BudgetItemDialog({
   onClose,
   ...handlers
 }: Props) {
-  const [values, setValues] = useState<BudgetRowsValues>(() => ({
+  const [initial] = useState<BudgetRowsValues>(() => ({
     type: 'expense',
     eventId,
     departmentId: null,
     rows: defaultRows('expense', eventId),
   }))
+  const [values, setValues] = useState(initial)
   const [saving, setSaving] = useState(false)
+  const leave = useWindowLeave(onClose)
+  // 기본 행은 화면이 채운 값이라 그대로면 묻지 않는다. 보내는 동안은 풀어 두고, 실패하면 다시 지킨다.
+  useUnsavedInput(!sameJson(values, initial) && !saving, leave.holder)
   const body = budgetItemsOf(values)
   const change = useBudgetChange(
     budgetItemsBatchPath(councilId, periodId),
@@ -122,7 +128,7 @@ export function BudgetItemDialog({
       attempt={attempt}
       problem={change.problem && `${change.problem} ${BUDGET_ROWS_UNSAVED}`}
       onSubmit={() => void change.submit()}
-      onClose={onClose}
+      onClose={leave.close}
       wide
       summary={<BudgetRowsTotal rows={values.rows} income={values.type === 'income'} />}
     >

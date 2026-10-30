@@ -14,7 +14,13 @@ import { MEMBER_PERMISSIONS } from '@/test-support/council-fixtures'
 import { asElement } from '@/test-support/elements'
 import { BASE, serveFinance } from '@/test-support/expense-harness'
 import { AccountsTab } from './AccountsTab'
-import { ACCOUNT_LOST, PERMISSION_CHANGED } from '@/lib/messages'
+import { ACCOUNT_LOST, LEAVE_TITLE, PERMISSION_CHANGED } from '@/lib/messages'
+import {
+  expectAsksOnEveryExit,
+  expectClosesQuietly,
+  leaveWindow,
+  showLeaveConfirm,
+} from '@/test-support/leave-window'
 import { deferredResponse, json } from '@/test-support/mock-api'
 
 afterEach(async () => {
@@ -259,4 +265,51 @@ test('계좌 더하기: 계약 상한을 넘는 이름과 계좌번호는 보내
   expect(screen.getAllByText('더 짧게 입력해 주세요')).toHaveLength(2)
   await waitFor(() => expect(document.activeElement).toBe(screen.getByLabelText('이름')))
   expect(api.calls.filter(call => call.method === 'POST')).toHaveLength(0)
+})
+
+test('계좌 더하기 창은 쓴 값이 있으면 닫는 길마다 묻고, 없으면 묻지 않는다', async () => {
+  await open()
+  showLeaveConfirm()
+  fireEvent.click(button('계좌 더하기'))
+  await screen.findByRole('form', { name: '계좌 더하기' })
+  await expectClosesQuietly('계좌 더하기')
+  fireEvent.click(button('계좌 더하기'))
+  await screen.findByRole('form', { name: '계좌 더하기' })
+  fill('이름', '새 통장')
+  await expectAsksOnEveryExit('계좌 더하기')
+  expect(screen.getByLabelText('이름')).toHaveProperty('value', '새 통장')
+  await leaveWindow('계좌 더하기')
+})
+
+test('계좌 고치기 창은 원래 값 그대로면 묻지 않고, 고치면 묻는다', async () => {
+  await open()
+  showLeaveConfirm()
+  const edit = () => within(cardOf('학생회비 통장')).getByRole('button', { name: '고치기' })
+  fireEvent.click(edit())
+  await screen.findByRole('form', { name: '계좌 고치기' })
+  await expectClosesQuietly('계좌 고치기')
+  fireEvent.click(edit())
+  await screen.findByRole('form', { name: '계좌 고치기' })
+  fill('이름', '바뀐 통장')
+  await expectAsksOnEveryExit('계좌 고치기')
+  await leaveWindow('계좌 고치기')
+})
+
+test('계좌를 저장하면 묻지 않고 닫는다', async () => {
+  const { api } = await open()
+  showLeaveConfirm()
+  api.on('POST', ACCOUNTS, () => json({}, 201))
+  fireEvent.click(button('계좌 더하기'))
+  await screen.findByRole('form', { name: '계좌 더하기' })
+  fill('이름', '새 통장')
+  fill('은행', '국민은행')
+  fill('계좌번호', '123-45')
+  fill('예금주', '학생회')
+  fireEvent.click(
+    within(screen.getByRole('form', { name: '계좌 더하기' })).getByRole('button', {
+      name: '더하기',
+    }),
+  )
+  await waitFor(() => expect(screen.queryByRole('form', { name: '계좌 더하기' })).toBeNull())
+  expect(screen.queryByRole('dialog', { name: LEAVE_TITLE })).toBeNull()
 })

@@ -9,6 +9,8 @@ import {
 import { Field } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { NativeSelect } from '@/components/ui/native-select'
+import { useUnsavedInput, useWindowLeave } from '@/lib/leave-guard'
+import { sameJson } from '@/lib/same-json'
 import { requiredText, useFormCheck, withContract, type FieldErrors } from '@/lib/use-form-check'
 import {
   ACCOUNT_TYPE_LABEL,
@@ -70,8 +72,12 @@ const accountErrors = (values: AccountValues) => ({
 
 // 계좌 더하기와 고치기. 고치기도 칸을 모두 보낸다. 계좌번호는 통장에 적힌 대로 숫자와 '-'만 받는다.
 export function AccountFormDialog({ councilId, account, onClose, ...handlers }: Props) {
-  const [values, setValues] = useState(() => (account ? valuesOfAccount(account) : emptyAccount()))
+  const [initial] = useState(() => (account ? valuesOfAccount(account) : emptyAccount()))
+  const [values, setValues] = useState(initial)
   const [saving, setSaving] = useState(false)
+  const leave = useWindowLeave(onClose)
+  // 보내는 동안은 풀어 둔다. 저장되면 그대로 닫히고, 실패하면 다시 지킨다.
+  useUnsavedInput(!sameJson(values, initial) && !saving, leave.holder)
   const change = useAccountChange(
     account ? accountPath(councilId, account.id) : accountsPath(councilId),
     values,
@@ -93,7 +99,7 @@ export function AccountFormDialog({ councilId, account, onClose, ...handlers }: 
       attempt={attempt}
       problem={change.problem}
       onSubmit={() => void change.submit()}
-      onClose={onClose}
+      onClose={leave.close}
     >
       <TextField {...shared} label="이름" field="name" />
       <TextField {...shared} label="은행" field="bank" />

@@ -11,9 +11,16 @@ import {
 import { BUDGET_A, budgetWithPeriod, budgetWithoutPeriod } from '@/test-support/budget-fixtures'
 import { asElement } from '@/test-support/elements'
 import { eventSummary } from '@/test-support/event-fixtures'
+import {
+  expectAsksOnEveryExit,
+  expectClosesQuietly,
+  leaveWindow,
+  showLeaveConfirm,
+} from '@/test-support/leave-window'
 import { json, mockApi } from '@/test-support/mock-api'
 import { BUDGET_ERRORS } from '@/lib/budget-messages'
 import { COUNCIL_ID } from '@/test-support/finance-at'
+import { BudgetItemDialog } from './BudgetItemDialog'
 import { BudgetTab } from './BudgetTab'
 
 // 예산 편성(024 조각 6): 학기 기본값, 여러 행 넣기, 항목 고치기·지우기·이력.
@@ -337,4 +344,57 @@ test('예산 편성: 금액이 계약 상한을 넘으면 보내지 않고 그 �
   expect(within(form).getByText('더 작은 값을 입력해 주세요')).toBeTruthy()
   await waitFor(() => expect(document.activeElement).toBe(input('항목 1 금액')))
   expect(posts(api)).toEqual([])
+})
+
+test('예산 편성 창은 쓴 값이 있으면 닫는 길마다 묻고, 없으면 묻지 않는다', async () => {
+  show()
+  showLeaveConfirm()
+  await openPlan()
+  await expectClosesQuietly('예산 편성')
+  await openPlan()
+  fill('항목 1 이름', '홍보비')
+  await expectAsksOnEveryExit('예산 편성')
+  expect(input('항목 1 이름').value).toBe('홍보비')
+  await leaveWindow('예산 편성')
+})
+
+test('행사 예산의 기본 행처럼 채워 둔 값만 있으면 묻지 않는다', async () => {
+  show()
+  showLeaveConfirm()
+  const onClose = vi.fn(() => {
+    cleanup()
+  })
+  render(
+    <BudgetItemDialog
+      councilId={COUNCIL_ID}
+      eventId={SPRING}
+      existing={[]}
+      onStale={vi.fn()}
+      onSaved={vi.fn()}
+      onLost={vi.fn()}
+      onForbidden={vi.fn()}
+      onClose={onClose}
+    />,
+  )
+  expect(input('항목 1 이름').value).toBe('행사 운영비')
+  await expectClosesQuietly('행사 예산 편성')
+  expect(onClose).toHaveBeenCalledTimes(1)
+})
+
+test('항목 고치기 창은 고친 값이 있으면 닫는 길마다 묻고, 그대로면 묻지 않는다', async () => {
+  show()
+  showLeaveConfirm()
+  const openEdit = async () => {
+    fireEvent.keyDown(await screen.findByRole('button', { name: '행사 홍보 더 보기' }), {
+      key: 'Enter',
+    })
+    fireEvent.click(await screen.findByRole('menuitem', { name: '고치기' }))
+    return screen.findByRole('form', { name: '예산 항목 고치기' })
+  }
+  await openEdit()
+  await expectClosesQuietly('예산 항목 고치기')
+  await openEdit()
+  fill('사유', '증액')
+  await expectAsksOnEveryExit('예산 항목 고치기')
+  await leaveWindow('예산 항목 고치기')
 })

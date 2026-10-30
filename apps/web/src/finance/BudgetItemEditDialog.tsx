@@ -3,6 +3,8 @@ import { UpdateBudgetItemSchema, type BudgetItemView } from '@vada/contracts'
 import { Field } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
+import { useUnsavedInput, useWindowLeave } from '@/lib/leave-guard'
+import { sameJson } from '@/lib/same-json'
 import { requiredText, useFormCheck, withContract } from '@/lib/use-form-check'
 import { wonOf } from '@/lib/won-input'
 import { BudgetFormDialog } from './BudgetFormDialog'
@@ -36,13 +38,17 @@ function overspentAfter(item: BudgetItemView, amount: number) {
 
 // 예산 항목 고치기(DEC-92): 이름, 금액, 담당 부서를 바로 고치고 사유(필수)를 판에 남긴다. 종류와 행사는 바꾸지 않는다.
 export function BudgetItemEditDialog({ councilId, item, onClose, ...handlers }: Props) {
-  const [values, setValues] = useState<Values>({
+  const [initial] = useState<Values>(() => ({
     purpose: item.purpose,
     amount: item.amount.toLocaleString('ko-KR'),
     departmentId: item.department?.id ?? null,
     reason: '',
-  })
+  }))
+  const [values, setValues] = useState(initial)
   const [saving, setSaving] = useState(false)
+  const leave = useWindowLeave(onClose)
+  // 보내는 동안은 풀어 둔다. 저장되면 그대로 닫히고, 실패하면 다시 지킨다.
+  useUnsavedInput(!sameJson(values, initial) && !saving, leave.holder)
   const [confirming, setConfirming] = useState(false)
   const body = {
     purpose: values.purpose,
@@ -70,7 +76,7 @@ export function BudgetItemEditDialog({ councilId, item, onClose, ...handlers }: 
         attempt={attempt}
         problem={confirming ? null : change.problem}
         onSubmit={() => (over === null ? void change.submit() : setConfirming(true))}
-        onClose={onClose}
+        onClose={leave.close}
       >
         <Field label="항목 이름" required error={errors.purpose}>
           <Input
