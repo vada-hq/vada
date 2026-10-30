@@ -1,7 +1,7 @@
 import { useState, type Dispatch, type SetStateAction } from 'react'
 import type { TaskCreateOptionsResponse } from '@vada/contracts'
 import { sameJson } from '@/lib/same-json'
-import { askLeave, useUnsavedInput } from '@/lib/leave-guard'
+import { useUnsavedInput, useWindowLeave } from '@/lib/leave-guard'
 import { useFormCheck, withContract } from '@/lib/use-form-check'
 import { selectAssignee, type QuickAddContext } from './task-defaults'
 import {
@@ -40,23 +40,14 @@ function departmentChange(props: Setup, setValues: Dispatch<SetStateAction<TaskC
   }
 }
 
+// 창의 입력만 묻고 버린다. 회의록에서 열면 뒤의 실패한 초안은 그대로 두고 그 지킴도 남는다.
 function useCreateClose(dirty: boolean, props: Setup) {
-  const [discarding, setDiscarding] = useState(false)
-  const settle = useUnsavedInput(dirty)
+  const leave = useWindowLeave(props.onClose)
+  const settle = useUnsavedInput(dirty, leave.holder)
   return {
     settle,
-    discarding,
-    keepWriting: () => setDiscarding(false),
-    discard: () => {
-      settle()
-      props.onClose()
-    },
     close: (busy: boolean) => {
-      if (busy) return
-      if (!props.origin) return askLeave(props.onClose)
-      // 회의록의 실패한 초안은 그대로 두므로 전역 나가기 확인으로 지킴을 풀지 않는다.
-      if (!dirty) props.onClose()
-      else setDiscarding(true)
+      if (!busy) leave.close()
     },
   }
 }

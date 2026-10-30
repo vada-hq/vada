@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { EventCreateDialog } from '@/events/EventCreateDialog'
 import { RequestCreateDialog } from '@/finance/RequestCreateDialog'
 import { useEventDetail } from '@/events/useEventDetail'
+import { useWindowLeave } from '@/lib/leave-guard'
 import { FormCreated } from '@/registrations/FormCreated'
 import { FormEditor } from '@/registrations/FormEditor'
 import { NoticeMakeDialog } from './NoticeMakeDialog'
@@ -25,13 +26,13 @@ function FormMakeDialog({ view, task, onClose, onMade, onLost, onForbidden }: Om
   const [created, setCreated] = useState<RegistrationForm | null>(null)
   const eventId = task.event?.id ?? ''
   const read = useEventDetail(view.council.id, eventId, { onLost, onForbidden })
+  const leave = useWindowLeave(created ? onMade : onClose)
   if (!task.event) return null
-  const finish = created ? onMade : onClose
   return (
     <Dialog
       open
       onOpenChange={open => {
-        if (!open) finish()
+        if (!open) leave.close()
       }}
     >
       <DialogContent aria-describedby={undefined}>
@@ -48,8 +49,9 @@ function FormMakeDialog({ view, task, onClose, onMade, onLost, onForbidden }: Om
             event={read.state.kind === 'ready' ? read.state.data.event : null}
             taskId={task.id}
             backLabel="닫기"
-            onEditEvent={onClose}
-            onClose={onClose}
+            onEditEvent={leave.close}
+            onClose={leave.close}
+            inputHolder={leave.holder}
             onDone={setCreated}
             onLost={onLost}
             onForbidden={onForbidden}

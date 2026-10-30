@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { showLeaveConfirm } from '@/test-support/leave-window'
 import { StrictMode, useState } from 'react'
 import type { MeetingDetail } from '@vada/contracts'
 import { afterEach, beforeEach, expect, test, vi } from 'vitest'
@@ -282,6 +283,7 @@ test('실패한 논의를 남겨 둔 채 빈 업무 창을 닫거나 업무 입�
   )
   api.on('POST', `${base}/agenda/${meeting.agenda[0]!.id}`, () => json({ error: 'FAILED' }, 500))
   draw(meeting)
+  showLeaveConfirm()
   fireEvent.change(screen.getByLabelText('논의 내용'), { target: { value: '실패해도 남길 논의' } })
   await act(() => vi.advanceTimersByTimeAsync(1500))
   expect(hasUnsavedInput()).toBe(true)

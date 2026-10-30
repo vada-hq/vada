@@ -13,6 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { useUnsavedInput, useWindowLeave } from '@/lib/leave-guard'
 import { requiredText, useFormCheck, withContract } from '@/lib/use-form-check'
 import { BudgetFormDialog } from '../finance/BudgetFormDialog'
 import { FeePaymentUploadFields, type FeePaymentValues } from './FeePaymentUploadFields'
@@ -47,6 +48,11 @@ function Done({ result, onClose }: { result: AddFeePaymentsResponse; onClose: ()
     </Dialog>
   )
 }
+
+// 학기를 고른 것은 쓴 값이 아니다. 학번과 직접 입력의 날짜만 지킨다.
+const writtenIn = (manual: FeePaymentValues, periodId: string) =>
+  manual.students.trim() !== '' ||
+  (periodId === 'manual' && manual.paidFrom + manual.paidUntil !== '')
 
 const uploadErrors = (values: FeePaymentValues) =>
   withContract(
@@ -84,6 +90,9 @@ export function FeePaymentUploadDialog({ councilId, onClose, ...handlers }: Prop
     { ...handlers, setSaving, onDone: setResult, onReplaceRequired: () => setPending(values) },
   )
   const { formRef, errors: fieldErrors, attempt } = useFormCheck(() => uploadErrors(values))
+  const leave = useWindowLeave(() => onClose(false))
+  // 올린 뒤에는 지킬 값이 없다.
+  useUnsavedInput(writtenIn(manual, periodId) && !saving && !result, leave.holder)
   if (pending && !result)
     return (
       <FeePaymentReplaceConfirm
@@ -106,7 +115,7 @@ export function FeePaymentUploadDialog({ councilId, onClose, ...handlers }: Prop
       onSubmit={() => {
         if (!reading) void post.submit()
       }}
-      onClose={() => onClose(false)}
+      onClose={leave.close}
     >
       <FeePaymentUploadFields
         values={values}

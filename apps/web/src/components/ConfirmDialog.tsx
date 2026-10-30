@@ -9,6 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { useUnsavedInput, useWindowLeave } from '@/lib/leave-guard'
 import { useFormCheck, withContract, type FieldErrors, type Parsed } from '@/lib/use-form-check'
 
 type Props = {
@@ -32,6 +33,8 @@ type Props = {
   check?: () => FieldErrors
   // 칸 확인이 못 잡는 계약 실패(너무 긴 글)를 칸 아래에 보인다.
   parse?: () => Parsed
+  // 칸에 사람이 쓴 값이 있는가. 있으면 닫을 때 떠날 때 확인을 거친다.
+  unsaved?: boolean
   onConfirm: () => void
   onClose: () => void
   // 닫을 때 포커스를 어디로 돌릴지. 메뉴 항목으로 연 대화상자는 연 버튼으로 직접 돌려줘야 한다.
@@ -39,6 +42,14 @@ type Props = {
 }
 
 const VALID: Parsed = { success: true }
+
+// 쓴 값이 있으면 닫을 때 묻는다. 보내는 동안은 풀어 둔다. 끝나서 닫으며 이어서 하는 이동이 확인에 막히지 않게 하고, 실패하면 다시 지킨다.
+function useConfirmClose(unsaved: boolean | undefined, busy: boolean, onClose: () => void) {
+  const leave = useWindowLeave(onClose)
+  useUnsavedInput(Boolean(unsaved) && !busy, leave.holder)
+  return leave.close
+}
+
 const touchClassOf = (touch: boolean) =>
   touch ? '[&_button]:max-sm:min-h-11 [&>button]:max-sm:min-w-11' : undefined
 
@@ -57,6 +68,7 @@ export function ConfirmDialog({
   field,
   check,
   parse,
+  unsaved,
   onConfirm,
   onClose,
   onCloseAutoFocus,
@@ -66,11 +78,12 @@ export function ConfirmDialog({
     errors: fieldErrors,
     attempt,
   } = useFormCheck<HTMLDivElement>(() => withContract(check?.() ?? {}, parse?.() ?? VALID))
+  const close = useConfirmClose(unsaved, busy, onClose)
   return (
     <Dialog
       open={open}
       onOpenChange={next => {
-        if (!next && !busy) onClose()
+        if (!next && !busy) close()
       }}
     >
       <DialogContent
@@ -92,7 +105,7 @@ export function ConfirmDialog({
         )}
         {error && <StateMessage kind="error">{error}</StateMessage>}
         <DialogFooter>
-          <Button variant="outline" touch busy={busy} onClick={onClose}>
+          <Button variant="outline" touch busy={busy} onClick={close}>
             닫기
           </Button>
           <Button

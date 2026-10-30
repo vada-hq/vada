@@ -19,6 +19,8 @@ import {
 import { Field } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { NativeSelect } from '@/components/ui/native-select'
+import { useUnsavedInput, useWindowLeave } from '@/lib/leave-guard'
+import { sameJson } from '@/lib/same-json'
 import { useFormCheck, type FieldErrors } from '@/lib/use-form-check'
 import { approvedItems, initialShipment, shipmentErrors } from './shipment-form'
 
@@ -91,14 +93,18 @@ function ShipmentFields({ request, busy, values, onChange, errors }: FieldsProps
 }
 
 export function ShipmentFormDialog({ request, shipment, busy, problem, onClose, onSave }: Props) {
-  const [values, setValues] = useState(() => initialShipment(request, shipment))
+  const [initial] = useState(() => initialShipment(request, shipment))
+  const [values, setValues] = useState(initial)
+  const leave = useWindowLeave(onClose)
+  // 보내는 동안은 풀어 둔다. 저장되면 부모가 닫고, 실패하면 다시 지킨다.
+  useUnsavedInput(!sameJson(values, initial) && !busy, leave.holder)
   const { formRef, errors, attempt } = useFormCheck(() => shipmentErrors(values))
   const title = shipment ? '송장 고치기' : '송장 넣기'
   return (
     <Dialog
       open
       onOpenChange={open => {
-        if (!open && !busy) onClose()
+        if (!open && !busy) leave.close()
       }}
     >
       <DialogContent aria-describedby={undefined}>
@@ -126,7 +132,7 @@ export function ShipmentFormDialog({ request, shipment, busy, problem, onClose, 
           />
           {problem && <StateMessage kind="error">{problem}</StateMessage>}
           <DialogFooter>
-            <Button type="button" variant="outline" busy={busy} onClick={onClose}>
+            <Button type="button" variant="outline" busy={busy} onClick={leave.close}>
               닫기
             </Button>
             <Button type="submit" busy={busy}>

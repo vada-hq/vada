@@ -9,11 +9,22 @@ import { eventSummary } from '@/test-support/event-fixtures'
 import { purchaseDetail } from '@/test-support/purchase-fixtures'
 import { taskDetail } from '@/test-support/task-detail-fixtures'
 import { resetAddress } from '@/test-support/address-reset'
+import { showLeaveConfirm } from '@/test-support/leave-window'
 import { PurchaseRoute } from '@/test-support/purchase-route'
+import { SidePanel, SidePanelContent } from '@/components/ui/side-panel'
+import { navigate } from '@/lib/app-location'
 import { confirmLeave } from '@/lib/leave-guard'
-import { ROOM_LOST, TASK_INVALID, PERMISSION_CHANGED } from '@/lib/messages'
+import {
+  LEAVE_CONFIRM,
+  LEAVE_TITLE,
+  ROOM_LOST,
+  TASK_INVALID,
+  PERMISSION_CHANGED,
+} from '@/lib/messages'
 import { eventDetail } from '@/test-support/event-fixtures'
 import { staffForm } from '@/test-support/staff-registration-fixtures'
+import { settle } from '@/test-support/settle'
+import { TaskMake } from './TaskMake'
 import { TaskPanel } from './TaskPanel'
 import { pickDateTime } from '@/test-support/date-field'
 
@@ -314,6 +325,60 @@ test('신청 양식 만들기는 업무의 행사로 양식 화면을 대화상�
   fireEvent.submit(form)
   await waitFor(() => expect(api.calls.some(call => call.method === 'POST')).toBe(true))
   expect(api.calls.find(call => call.method === 'POST')!.body).toMatchObject({ taskId: TASK_ID })
+})
+
+test('신청 양식 창에 쓴 값이 있으면 Esc가 먼저 묻고, 나가기면 닫는다', async () => {
+  setup(detail({ canMake: ['registration_form'], event: { id: EVENT_ID, name: '환영회' } }))
+  showLeaveConfirm()
+  await make('신청 양식')
+  const form = await screen.findByRole('form', { name: '신청 양식 만들기' })
+  await pickDateTime(within(form).getByLabelText(/신청 마감/), '2026-11-01T18:00')
+  fireEvent.keyDown(form, { key: 'Escape' })
+  await screen.findByRole('dialog', { name: LEAVE_TITLE })
+  expect(screen.getByRole('form', { name: '신청 양식 만들기', hidden: true })).toBeTruthy()
+  fireEvent.click(screen.getByRole('button', { name: LEAVE_CONFIRM }))
+  await waitFor(() =>
+    expect(screen.queryByRole('form', { name: '신청 양식 만들기', hidden: true })).toBeNull(),
+  )
+})
+
+test('업무 상세 위의 신청 양식 창을 버리고 나가도 업무 주소에 남는다', async () => {
+  const council = '0199d1a0-0000-7000-8000-0000000000c1'
+  const base = `/api/organizations/${council}`
+  const at = `/tasks/${council}/${TASK_ID}`
+  const api = mockApi()
+  api.on('GET', `${base}/events/${EVENT_ID}`, () =>
+    json({ event: eventDetail({ id: EVENT_ID, name: '환영회' }) }),
+  )
+  api.on('GET', `${base}/accounts`, () => json({ accounts: [], actions: [] }))
+  navigate(`/tasks/${council}`)
+  navigate(at)
+  const onClose = vi.fn()
+  showLeaveConfirm()
+  render(
+    <>
+      <SidePanel open>
+        <SidePanelContent title="업무 상세" record={{ kind: 'tasks', id: TASK_ID }} />
+      </SidePanel>
+      <TaskMake
+        view={councilView(council, { memberId: MEMBER_ID })}
+        task={detail({ canMake: ['registration_form'], event: { id: EVENT_ID, name: '환영회' } })}
+        kind="registration_form"
+        onClose={onClose}
+        onMade={vi.fn()}
+        onLost={vi.fn()}
+        onForbidden={vi.fn()}
+      />
+    </>,
+  )
+  const form = await screen.findByRole('form', { name: '신청 양식 만들기', hidden: true })
+  await settle()
+  await pickDateTime(within(form).getByLabelText(/신청 마감/), '2026-11-01T18:00')
+  fireEvent.keyDown(form, { key: 'Escape' })
+  fireEvent.click(await screen.findByRole('button', { name: LEAVE_CONFIRM }))
+  await waitFor(() => expect(onClose).toHaveBeenCalledTimes(1))
+  await settle()
+  expect(window.location.pathname).toBe(at)
 })
 
 test('공지 보내기가 404이면 업무가 아니라 방을 잃었다고 알린다', async () => {

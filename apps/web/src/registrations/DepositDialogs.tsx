@@ -30,6 +30,7 @@ export function ConfirmDepositDialog({ name, appliedFee, onSubmit, ...shared }: 
       {...shared}
       title={`${name}님의 입금을 확인할까요?`}
       confirmLabel="입금 확인"
+      unsaved={text !== String(appliedFee)}
       check={() => ({
         amount:
           requiredText(text, '입금 금액을') ??
@@ -88,6 +89,7 @@ export function RefundDialog({ name, deposited, onSubmit, ...shared }: RefundPro
       title={`${name}님에게 환불했나요?`}
       description="이름과 휴대폰 번호가 지워지고 되돌릴 수 없어요."
       confirmLabel="환불함"
+      unsaved={text !== String(deposited)}
       check={() => ({
         amount:
           requiredText(text, '환불한 금액을') ??

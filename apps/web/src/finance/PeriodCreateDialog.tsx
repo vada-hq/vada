@@ -3,7 +3,9 @@ import { CreateFiscalPeriodSchema, koreanDateOf, semesterOf } from '@vada/contra
 import { Field } from '@/components/ui/field'
 import { DateField } from '@/components/ui/date-field'
 import { Input } from '@/components/ui/input'
+import { useUnsavedInput, useWindowLeave } from '@/lib/leave-guard'
 import { DATE_CHECK } from '@/lib/messages'
+import { sameJson } from '@/lib/same-json'
 import { requiredText, useFormCheck, withContract } from '@/lib/use-form-check'
 import { BudgetFormDialog } from './BudgetFormDialog'
 import { fiscalPeriodsPath } from './finance-api'
@@ -27,8 +29,12 @@ const periodErrors = (values: { name: string; startsOn: string; endsOn: string }
 
 // 회계 기간 만들기. 오늘(한국)이 든 학기의 이름과 날짜로 채워 두고 고칠 수 있다(DEC-92, 024 정한 것 11).
 export function PeriodCreateDialog({ councilId, onClose, ...handlers }: Props) {
-  const [values, setValues] = useState(() => semesterOf(koreanDateOf(new Date())))
+  const [initial] = useState(() => semesterOf(koreanDateOf(new Date())))
+  const [values, setValues] = useState(initial)
   const [saving, setSaving] = useState(false)
+  const leave = useWindowLeave(onClose)
+  // 채워 둔 학기 값은 쓴 것이 아니다. 보내는 동안은 풀어 두고, 실패하면 다시 지킨다.
+  useUnsavedInput(!sameJson(values, initial) && !saving, leave.holder)
   const change = useBudgetChange(fiscalPeriodsPath(councilId), values, CreateFiscalPeriodSchema, {
     ...handlers,
     setSaving,
@@ -53,7 +59,7 @@ export function PeriodCreateDialog({ councilId, onClose, ...handlers }: Props) {
       attempt={attempt}
       problem={change.problem}
       onSubmit={() => void change.submit()}
-      onClose={onClose}
+      onClose={leave.close}
     >
       <Field label="이름" required error={fieldErrors.name}>
         <Input

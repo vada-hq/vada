@@ -25,6 +25,7 @@ import {
   SEND_ERRORS,
   SEND_FAILED,
 } from '@/lib/messages'
+import { useUnsavedInput, useWindowLeave } from '@/lib/leave-guard'
 import { requiredText, useFormCheck, withContract } from '@/lib/use-form-check'
 import type { TaskDialogHandlers } from './task-requests'
 
@@ -92,6 +93,9 @@ export function NoticeMakeDialog({
   const [saving, setSaving] = useState(false)
   const [problem, setProblem] = useState<string | null>(null)
   const sending = useRef(false)
+  const leave = useWindowLeave(onClose)
+  // 보내는 동안은 풀어 둔다. 올리면 부모가 닫고, 실패하면 다시 지킨다.
+  useUnsavedInput(body.trim() !== '' && !saving, leave.holder)
   const request = { body, taskId }
   const parsed = SendMessageSchema.safeParse(request)
   const { formRef, errors, attempt } = useFormCheck(() =>
@@ -120,7 +124,7 @@ export function NoticeMakeDialog({
     <Dialog
       open
       onOpenChange={open => {
-        if (!open && !saving) onClose()
+        if (!open && !saving) leave.close()
       }}
     >
       <DialogContent aria-describedby={undefined}>
@@ -147,7 +151,7 @@ export function NoticeMakeDialog({
           {room.failed && <StateMessage kind="error">{ROOMS_LOAD_FAILED}</StateMessage>}
           {problem && <StateMessage kind="error">{problem}</StateMessage>}
           <DialogFooter>
-            <Button type="button" variant="outline" busy={saving} onClick={onClose}>
+            <Button type="button" variant="outline" busy={saving} onClick={leave.close}>
               닫기
             </Button>
             {room.failed ? (

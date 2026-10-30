@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { LEAVE_CONFIRM } from '@/lib/messages'
 import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import type { CouncilView, TeamResponse } from '@vada/contracts'
@@ -101,6 +102,7 @@ test('같은 이름으로 저장하면 요청 없이 닫고, 닫기는 바꾸지
   dialog = await screen.findByRole('dialog', { name: '내 이름' })
   fireEvent.change(within(dialog).getByLabelText('내 이름'), { target: { value: '다른 이름' } })
   fireEvent.click(within(dialog).getAllByRole('button', { name: '닫기' })[0]!)
+  fireEvent.click(await screen.findByRole('button', { name: LEAVE_CONFIRM }))
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
   expect(within(footer()).getByRole('button', { name: '내 이름: 김바다, 회장' })).toBeTruthy()
   expect(api.calls.some(call => call.method === 'POST')).toBe(false)

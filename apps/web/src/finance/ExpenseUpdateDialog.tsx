@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/dialog'
 import { Field } from '@/components/ui/field'
 import { Textarea } from '@/components/ui/textarea'
+import { useUnsavedInput, useWindowLeave } from '@/lib/leave-guard'
 import { useFormCheck, withContract } from '@/lib/use-form-check'
 import {
   EXPENSE_ACCOUNT_CLOSED,
@@ -161,6 +162,9 @@ export function ExpenseUpdateDialog({
   const [accountId, setAccountId] = useState(linkedId(expense.account))
   const account = useExpenseAccount(councilId, onForbidden, accountId)
   const body = changesOf(expense, reason, eventId, accountId)
+  const leave = useWindowLeave(onClose)
+  // 보내는 동안은 풀어 둔다. 저장되면 부모가 닫고, 실패하면 다시 지킨다.
+  useUnsavedInput(body !== null && !busy, leave.holder)
   // 계약이 받지 않는 사유(너무 긴 글)는 사유 칸 아래에 보인다.
   const {
     formRef,
@@ -185,7 +189,7 @@ export function ExpenseUpdateDialog({
     <Dialog
       open
       onOpenChange={next => {
-        if (!next && !busy) onClose()
+        if (!next && !busy) leave.close()
       }}
     >
       <DialogContent aria-describedby={undefined}>
@@ -216,7 +220,7 @@ export function ExpenseUpdateDialog({
         </div>
         {error && <StateMessage kind="error">{error}</StateMessage>}
         <DialogFooter>
-          <Button variant="outline" busy={busy} onClick={onClose}>
+          <Button variant="outline" busy={busy} onClick={leave.close}>
             닫기
           </Button>
           <Button busy={busy} onClick={save}>

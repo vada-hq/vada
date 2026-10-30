@@ -37,6 +37,7 @@ export function CancelReasonDialog({
   return (
     <ConfirmDialog
       {...rest}
+      unsaved={reason.trim() !== ''}
       check={check}
       parse={() => parse(reason)}
       onConfirm={() => onConfirm(reason)}

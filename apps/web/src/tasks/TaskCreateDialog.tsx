@@ -1,8 +1,6 @@
 import type { ComponentProps, Ref } from 'react'
 import type { TaskCreateOptionsResponse } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
-import { ConfirmDialog } from '@/components/ConfirmDialog'
-import { LEAVE_CONFIRM, LEAVE_TITLE } from '@/lib/messages'
 import PageActions from '@/components/PageActions'
 import { Button } from '@/components/ui/button'
 import {
@@ -96,27 +94,16 @@ function OpenCreateDialog(props: Props & { options: TaskCreateOptionsResponse })
       : { id: chosen, name: list.find(event => event.id === chosen)?.name ?? text.currentEvent }
   const linkable = linkableEventsOf(list, props.options.linkableEvents, form.values.departmentId)
   return (
-    <>
-      <TaskCreateDialogView
-        {...form}
-        open
-        options={props.options}
-        onValues={form.setValues}
-        onSubmit={form.submit}
-        onClose={form.close}
-        formEl={form.formRef}
-        events={eventChoices(linkable, current)}
-      />
-      {form.discarding && (
-        <ConfirmDialog
-          title={LEAVE_TITLE}
-          confirmLabel={LEAVE_CONFIRM}
-          destructive
-          onConfirm={form.discard}
-          onClose={form.keepWriting}
-        />
-      )}
-    </>
+    <TaskCreateDialogView
+      {...form}
+      open
+      options={props.options}
+      onValues={form.setValues}
+      onSubmit={form.submit}
+      onClose={form.close}
+      formEl={form.formRef}
+      events={eventChoices(linkable, current)}
+    />
   )
 }
 

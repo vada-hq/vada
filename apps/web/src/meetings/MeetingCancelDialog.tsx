@@ -13,7 +13,7 @@ import { Field } from '@/components/ui/field'
 import { Textarea } from '@/components/ui/textarea'
 import { useFormCheck } from '@/lib/use-form-check'
 import { useActive } from '@/lib/use-active'
-import { useUnsavedInput } from '@/lib/leave-guard'
+import { useUnsavedInput, useWindowLeave } from '@/lib/leave-guard'
 import { MEETING_FIELD_ERROR } from './meeting-text'
 
 type Props = { onClose: () => void; onCancel: (reason: string) => Promise<string | null> }
@@ -23,16 +23,13 @@ export function MeetingCancelDialog({ onClose, onCancel }: Props) {
   const [busy, setBusy] = useState(false)
   const sending = useRef(false)
   const active = useActive()
-  const release = useUnsavedInput(Boolean(reason.trim()))
+  const leave = useWindowLeave(onClose)
+  useUnsavedInput(Boolean(reason.trim()) && !busy, leave.holder)
   const { formRef, errors, attempt } = useFormCheck(() =>
     CancelMeetingSchema.safeParse({ reason }).success
       ? {}
       : { reason: reason.trim() ? MEETING_FIELD_ERROR : '취소 사유를 입력해 주세요' },
   )
-  const close = () => {
-    release()
-    onClose()
-  }
   const submit = async () => {
     if (sending.current || !attempt()) return
     const parsed = CancelMeetingSchema.safeParse({ reason })
@@ -44,13 +41,13 @@ export function MeetingCancelDialog({ onClose, onCancel }: Props) {
     if (!active()) return
     setBusy(false)
     if (problem) setError(problem)
-    else close()
+    else onClose()
   }
   return (
     <Dialog
       open
       onOpenChange={open => {
-        if (!open && !sending.current) close()
+        if (!open && !sending.current) leave.close()
       }}
     >
       <DialogContent closeDisabled={busy} aria-describedby={undefined} className="break-keep">
@@ -78,7 +75,7 @@ export function MeetingCancelDialog({ onClose, onCancel }: Props) {
           </Field>
           {error && <StateMessage kind="error">{error}</StateMessage>}
           <DialogFooter>
-            <Button type="button" variant="outline" touch busy={busy} onClick={close}>
+            <Button type="button" variant="outline" touch busy={busy} onClick={leave.close}>
               닫기
             </Button>
             <Button touch busy={busy}>

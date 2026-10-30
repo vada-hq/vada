@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/dialog'
 import { Field } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
+import { useUnsavedInput, useWindowLeave } from '@/lib/leave-guard'
 import { myNameErrors } from '@/lib/my-name'
 import { useFormCheck } from '@/lib/use-form-check'
 
@@ -39,11 +40,14 @@ export default function MyNameDialog({
 }: Props) {
   const [name, setName] = useState(current)
   const { formRef, errors, attempt } = useFormCheck(() => myNameErrors(name))
+  const leave = useWindowLeave(onClose)
+  // 보내는 동안은 풀어 둔다. 저장되면 부모가 닫고, 실패하면 다시 지킨다.
+  useUnsavedInput(name !== current && !busy, leave.holder)
   return (
     <Dialog
       open
       onOpenChange={open => {
-        if (!open && !busy) onClose()
+        if (!open && !busy) leave.close()
       }}
     >
       <DialogContent aria-describedby={undefined}>
@@ -85,7 +89,7 @@ export default function MyNameDialog({
             >
               탈퇴
             </Button>
-            <Button type="button" variant="outline" busy={busy} onClick={onClose}>
+            <Button type="button" variant="outline" busy={busy} onClick={leave.close}>
               닫기
             </Button>
             <Button type="submit" busy={busy}>

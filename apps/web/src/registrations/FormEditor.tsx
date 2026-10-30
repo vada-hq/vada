@@ -47,6 +47,8 @@ type Props = EventDialogHandlers & {
   backLabel?: string
   onEditEvent: (focus: EventFieldFocus) => void
   onClose: () => void
+  // 창 안에서 열면 창의 입력 표시(useWindowLeave). onClose가 이미 묻는 닫기다.
+  inputHolder?: symbol
   onDone: (form: RegistrationForm) => void
   focus?: EditorFocus
 }
@@ -113,7 +115,7 @@ function useFormEditor(props: Props) {
   const [saving, setSaving] = useState(false)
   const account = useFeeAccount(props.councilId, onForbidden, chosen)
   const post = useStaffPost({ onForbidden, onLost }, setSaving)
-  useUnsavedInput(!sameJson(values, base) || chosen !== mode.chosen)
+  useUnsavedInput(!sameJson(values, base) || chosen !== mode.chosen, props.inputHolder)
   const request = {
     ...formRequest(values, account.pick.id),
     ...(!form && taskId ? { taskId } : {}),
@@ -150,7 +152,7 @@ function useFormEditor(props: Props) {
     errors,
     submit,
     // 목록으로 돌아가는 닫기도 앱 안의 이동이라 남은 입력이 있으면 먼저 묻는다.
-    close: () => askLeave(props.onClose),
+    close: props.inputHolder ? props.onClose : () => askLeave(props.onClose),
   }
 }
 
