@@ -39,14 +39,16 @@ export const openMessageRoom = (
   options: { overRecord?: boolean } = {},
 ) => navigate(chatRoomUrl(councilId, roomId, eventId), options)
 
-// 열려 있는 행사 안에서 탭을 바꾼다(창 안의 링크). 탭은 기록을 쌓지 않아(useEventAddress) 지금 칸을 바꿔 쓰는데,
-// 창이 열려 있으면 창의 칸을 먼저 거둔 뒤에 바꿔 쓴다. 먼저 바꿔 쓰면 창이 닫히며 되돌린 칸이 탭을 옛 주소로 되돌린다.
-// 창을 닫는 것은 부르는 쪽이 한다.
+// 창에서 부르는 바꿔 쓰기. 창의 칸을 먼저 거둔 뒤에 바꿔 쓴다. 먼저 바꿔 쓰면 창이 닫히며 되돌린 칸이 옛 주소로 돌아간다.
+// 칸을 이어받은 기록 상세 창이 그 칸의 쿼리를 바꾸는 길(navigate의 replace)은 칸을 거두면 안 되므로 공용 replace에 넣지 않는다.
+// 창을 닫는 것은 부르는 쪽이 한다. 닫히지 않은 창은 새 주소 위에 칸을 다시 쌓는다.
+export const replaceOverWindows = (target: string) =>
+  afterWindowsClosed(() => navigate(target, { replace: true }))
+
+// 열려 있는 행사 안에서 탭을 바꾼다(창 안의 링크). 탭은 기록을 쌓지 않는다(useEventAddress).
 export const openEventTab = (councilId: string, eventId: string, tab: EventTab) =>
-  afterWindowsClosed(() =>
-    navigate(recordTarget('events', councilId, eventId, tab === 'messages' ? undefined : tab), {
-      replace: true,
-    }),
+  replaceOverWindows(
+    recordTarget('events', councilId, eventId, tab === 'messages' ? undefined : tab),
   )
 
 // 열려 있는 행사의 업무 탭을 거르기와 함께 연다(개요의 '담당자 없음'). 누른 곳에서 한 칸 쌓아 뒤로 가면 누른 곳이다.

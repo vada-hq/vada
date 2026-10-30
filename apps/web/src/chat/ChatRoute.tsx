@@ -1,6 +1,6 @@
 import { menuPath, recordPath } from '@vada/contracts'
 import { leave, navigate, useHere } from '@/lib/app-location'
-import { openMessageRoom, openRecord } from '@/lib/go-to'
+import { openMessageRoom, openRecord, replaceOverWindows } from '@/lib/go-to'
 import ChatPage, { type Screen } from './ChatPage'
 import { councilRooms } from './space-rooms'
 import { useSplit } from '@/lib/use-split'
@@ -77,8 +77,9 @@ export default function ChatRoute(props: Props) {
     if (next.kind === 'list') navigate(menuPath('chat', councilId, { rooms: 'all' }))
     else if (next.kind === 'home') {
       // 탭을 바꿀 때 기록을 쌓지 않아 뒤로 가면 들어온 화면으로 돌아간다.
+      // 1:1 대화상자와 상품 정보 칸이 닫히면서도 이 길로 오므로 창의 칸을 거둔 뒤에 바꿔 쓴다.
       const roomId = next.sideRoomId ?? next.roomId
-      navigate(roomId ? recordPath('chat', councilId, roomId) : first, { replace: true })
+      replaceOverWindows(roomId ? recordPath('chat', councilId, roomId) : first)
     } else {
       const eventId =
         props.rooms.state.kind === 'ready'
