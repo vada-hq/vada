@@ -124,7 +124,7 @@ const department: HomeDepartment = {
   },
 }
 
-const received = { requests: [homeRequest('r1')], total: 1, truncated: false }
+const received = { requests: [homeRequest('r1')], total: 1, pendingItems: 1, truncated: false }
 const regions = () => screen.getAllByRole('region').map(item => item.getAttribute('aria-label'))
 
 test('맨 위 숫자 카드 다음 받은 것, 학생회 행사, 내 부서, 정산할 행사, 내 업무 차례로 있는 것만 보인다', async () => {
@@ -283,7 +283,7 @@ test('받은 것의 요청 줄을 누르면 그 요청이 열린다', async () =
 })
 
 test('받은 것이 잘렸으면 수에 +를 붙이고 모두 보기가 구매의 처리 단계를 연다', async () => {
-  open(homeResponse({ received: { requests: [homeRequest('r1')], total: 50, truncated: true } }))
+  open(homeResponse({ received: { requests: [homeRequest('r1')], total: 50, pendingItems: 50, truncated: true } }))
   const section = await screen.findByRole('region', { name: '받은 것' })
   expect(within(section).getByText('50+')).toBeTruthy()
   fireEvent.click(within(section).getByRole('button', { name: '모두 보기' }))
@@ -294,7 +294,7 @@ test('받은 것이 잘렸으면 수에 +를 붙이고 모두 보기가 구매�
 test('받은 것과 정산할 행사가 비면 한 줄로 말한다', async () => {
   open(
     homeResponse({
-      received: { requests: [], total: 0, truncated: false },
+      received: { requests: [], total: 0, pendingItems: 0, truncated: false },
       settling: { events: [], total: 0 },
     }),
   )
@@ -341,7 +341,7 @@ test('정산할 행사의 모두 보기는 그 학생회의 결산 탭을 연다
 
 test('재정부 홈의 예외·대기 전체 보기는 결산 탭을 연다', async () => {
   const financeBoard: HomeFinanceBoard = {
-    pending: { requests: [], total: 0, truncated: false },
+    pending: { requests: [], total: 0, pendingItems: 0, truncated: false },
     nearby: { items: [], total: 0 },
     settling: {
       events: [

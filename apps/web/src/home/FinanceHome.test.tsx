@@ -22,7 +22,7 @@ afterEach(() => {
   vi.unstubAllGlobals()
 })
 const board = (extra: Partial<HomeFinanceBoard> = {}): HomeFinanceBoard => ({
-  pending: { requests: [], total: 0, truncated: false },
+  pending: { requests: [], total: 0, pendingItems: 0, truncated: false },
   nearby: { items: [], total: 0 },
   settling: { events: [], total: 0 },
   budgets: { events: [], total: 0 },
@@ -99,11 +99,13 @@ test('결재 대기는 서버 차례의 앞 셋, 필요한 때 3일 임박은 �
           neededBy: '2026-10-26',
         })),
         total: 4,
+        pendingItems: 6,
         truncated: false,
       },
     }),
   )
   const pending = await card('결재 대기')
+  expect(within(pending).getByText('요청 4건 · 품목 6개')).toBeTruthy()
   const rows = within(pending).getAllByRole('listitem')
   expect(rows).toHaveLength(3)
   expect(rows.map(row => row.textContent)).toEqual(
@@ -112,8 +114,15 @@ test('결재 대기는 서버 차례의 앞 셋, 필요한 때 3일 임박은 �
   expect(within(rows[0]!).getByText('임박').className).toContain('warning')
   fireEvent.click(within(rows[0]!).getByRole('button', { name: '요청 r1' }))
   expect(path()).toBe('/purchases/01900000-0000-7000-8000-000000000001/r1')
-  fireEvent.click(within(pending).getByRole('button', { name: '전체 4건 보기' }))
+  fireEvent.click(within(pending).getByRole('button', { name: '전체 보기' }))
   expect(path()).toBe('/purchases/01900000-0000-7000-8000-000000000001?board=process')
+})
+
+test('결재 대기가 없으면 요청·품목으로 나누지 않고 0건이다', async () => {
+  open(finance())
+  const pending = await card('결재 대기')
+  expect(within(pending).getByText('0건')).toBeTruthy()
+  expect(within(pending).queryByText(/품목/)).toBeNull()
 })
 
 test('품목은 요청으로, 예산 미입력·음수 사용 가능은 받은 값 그대로 행사 재정으로 간다', async () => {

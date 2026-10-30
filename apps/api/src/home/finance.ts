@@ -23,6 +23,9 @@ export async function financeOf(
   const received: HomeReceived = {
     requests: pending.requests.slice(0, HOME_LIST_LIMIT),
     total: pending.requests.length,
+    pendingItems: pending.requests
+      .flatMap(request => request.itemBriefs ?? [])
+      .filter(item => item.status === 'pending').length,
     truncated: pending.truncated,
   }
   return leadership

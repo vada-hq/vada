@@ -87,7 +87,7 @@ export function FinanceHomeSection() {
         <FinanceHome
           home={{ ...financeHome, featuredEvents: [] }}
           board={{
-            pending: { requests: [], total: 0, truncated: false },
+            pending: { requests: [], total: 0, pendingItems: 0, truncated: false },
             nearby: { items: [], total: 0 },
             settling: { events: [], total: 0 },
             budgets: { events: [], total: 0 },

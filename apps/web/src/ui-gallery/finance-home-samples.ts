@@ -30,6 +30,7 @@ export const financeBoard: HomeFinanceBoard = {
       event,
     })),
     total: 5,
+    pendingItems: 8,
     truncated: false,
   },
   nearby: {
