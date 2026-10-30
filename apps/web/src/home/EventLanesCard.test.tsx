@@ -3,6 +3,7 @@ import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, render } from '@testing-library/react'
 import { eventLane } from '@/test-support/home-fixtures'
 import EventLanesCard from './EventLanesCard'
+import { milestoneText } from './event-lane-view'
 
 afterEach(() => {
   cleanup()
@@ -24,4 +25,12 @@ test('0건이던 구역에 행사가 생기면(홈을 다시 읽음) 시간 축 
   expect(observe).not.toHaveBeenCalled()
   rerender(<EventLanesCard lanes={{ events: [eventLane('e1')], total: 1 }} {...props} />)
   expect(observe).toHaveBeenCalledTimes(1)
+})
+
+test('진행 중 행사의 다음 일정은 아직 끝나지 않았으니 종료 예정이다', () => {
+  const milestone = { kind: 'event_end', date: '2026-10-23', days: 0 } as const
+  expect(milestoneText(eventLane('e1', { milestone }))).toMatchObject({
+    dday: '오늘',
+    name: '종료 예정',
+  })
 })
