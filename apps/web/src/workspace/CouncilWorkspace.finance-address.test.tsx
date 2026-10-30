@@ -175,6 +175,13 @@ test('옛 계좌 탭 주소는 설정의 계좌로 옮기고 기록을 쌓지 �
   expect(push).not.toHaveBeenCalled()
 })
 
+test('설정 머리 제목은 지금 탭을 따른다', async () => {
+  startAt(`/settings/${COUNCIL_ID}?section=accounts`)
+  expect(await screen.findByRole('heading', { level: 1, name: '계좌' })).toBeTruthy()
+  fireEvent.click(screen.getByRole('tab', { name: '학생회 정보' }))
+  expect(await screen.findByRole('heading', { level: 1, name: '학생회 정보' })).toBeTruthy()
+})
+
 test('새로 고침하면 주소의 탭이 그대로 열리고, 모르는 탭은 기본 탭으로 읽어 주소를 고쳐 쓴다', async () => {
   startAt(`/finance/${COUNCIL_ID}`)
   expect(await isSelected('예산 현황')).toBe(true)

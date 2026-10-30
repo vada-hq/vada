@@ -1,6 +1,14 @@
 import { expect, test } from 'vitest'
 import type { PageTrail } from '@/components/PageHeading'
-import { eventTrail, pageTitles, pageWidthOf, peopleTrail, trailOf, type Page } from './pages'
+import {
+  eventTrail,
+  pageTitles,
+  pageWidthOf,
+  peopleTrail,
+  settingsTrail,
+  trailOf,
+  type Page,
+} from './pages'
 
 const COUNCIL = '컴퓨터학부 학생회'
 const labels = (page: Page, deeper: PageTrail | null = null) =>
@@ -52,6 +60,11 @@ test.each<[Page, string]>([
   ['settings', '설정'],
 ])('%s의 경로는 학생회 이름 > %s이다', (page, crumb) => {
   expect(labels(page)).toEqual([COUNCIL, crumb])
+})
+
+test('설정의 경로 끝 칸과 제목은 지금 탭이다', () => {
+  expect(labels('settings', settingsTrail('계좌'))).toEqual([COUNCIL, '설정', '계좌'])
+  expect(trailOf('settings', COUNCIL, settingsTrail('계좌')).title).toBe('계좌')
 })
 
 test('설정의 제목은 학생회 정보이고, 다른 메뉴의 제목은 경로 끝 칸과 같다', () => {

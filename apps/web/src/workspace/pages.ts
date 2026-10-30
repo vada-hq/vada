@@ -68,6 +68,12 @@ export const peopleTrail = (tab: string | null): PageTrail => ({
   crumbs: tab === null ? [] : [{ label: tab, truncate: false }],
 })
 
+// 설정 화면이 넘기는 칸: 재정처럼 머리글이 지금 탭을 따른다. 제목이 탭 이름이라 계좌 탭에 '학생회 정보'가 남지 않는다.
+export const settingsTrail = (tab: string): PageTrail => ({
+  title: tab,
+  crumbs: [{ label: tab, truncate: false }],
+})
+
 export type WorkspaceProps = {
   onAddCouncil?: ((entry: CouncilEntry) => void) | undefined
   councils: MyCouncil[]
