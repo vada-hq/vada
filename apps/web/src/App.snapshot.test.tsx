@@ -92,7 +92,7 @@ test('학생회 없음', async () => {
   const api = mockApi()
   api.on('GET', '/api/me/councils', () => json({ councils: [] }))
   await renderApp()
-  await screen.findByRole('heading', { name: '아직 들어간 학생회가 없어요' })
+  await screen.findByRole('heading', { name: '들어간 학생회 없음' })
   expect(snapshotHtml()).toMatchSnapshot()
 })
 

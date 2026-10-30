@@ -282,7 +282,7 @@ test('학생회가 없으면 가운데 카드에 탈퇴가 있고, 탈퇴하면 
   councils([])
   withdrawalAnswers(() => json({ withdrawn: true }))
   await renderApp()
-  await screen.findByRole('heading', { name: '아직 들어간 학생회가 없어요' })
+  await screen.findByRole('heading', { name: '들어간 학생회 없음' })
   fireEvent.click(screen.getByRole('button', { name: '탈퇴' }))
   const dialog = await screen.findByRole('dialog', { name: '탈퇴' })
   expect(within(dialog).getByText(DESCRIPTION)).toBeTruthy()

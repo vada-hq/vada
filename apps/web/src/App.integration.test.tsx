@@ -113,7 +113,7 @@ test('학생회가 없으면 초대 코드와 학생회 만들기를 보이고, 
     json({ council: myCouncil('0199d1a0-0000-7000-8000-0000000000c1') }, 201),
   )
   await renderApp()
-  expect(await screen.findByRole('heading', { name: '아직 들어간 학생회가 없어요' })).toBeTruthy()
+  expect(await screen.findByRole('heading', { name: '들어간 학생회 없음' })).toBeTruthy()
   const enter = asElement(
     screen.getByRole('button', { name: '초대 코드로 들어가기' }),
     HTMLButtonElement,
@@ -337,7 +337,7 @@ test('코드를 직접 입력하면 초대 확인으로 가고, 틀린 코드면
     ),
   ).toBeTruthy()
   fireEvent.click(screen.getByRole('button', { name: '다시 입력' }))
-  expect(await screen.findByRole('heading', { name: '아직 들어간 학생회가 없어요' })).toBeTruthy()
+  expect(await screen.findByRole('heading', { name: '들어간 학생회 없음' })).toBeTruthy()
 })
 
 test('지금 기수가 없는 학생회에는 들어가지 못한 까닭을 보여 준다', async () => {
@@ -375,7 +375,7 @@ test('내보내진 사람의 다음 요청이 403이면 그 학생회를 닫고,
     json({ error: 'FORBIDDEN' }, 403),
   )
   await renderApp()
-  expect(await screen.findByRole('heading', { name: '아직 들어간 학생회가 없어요' })).toBeTruthy()
+  expect(await screen.findByRole('heading', { name: '들어간 학생회 없음' })).toBeTruthy()
   expect(api.calls.filter(call => call.path === '/api/me/councils').length).toBeGreaterThanOrEqual(
     2,
   )
@@ -490,7 +490,7 @@ test('내보내진 뒤 학생회 목록을 다시 읽지 못해도 남은 학생
     json({ error: 'FORBIDDEN' }, 403),
   )
   await renderApp()
-  expect(await screen.findByRole('heading', { name: '아직 들어간 학생회가 없어요' })).toBeTruthy()
+  expect(await screen.findByRole('heading', { name: '들어간 학생회 없음' })).toBeTruthy()
   await waitFor(() => expect(listCalls).toBeGreaterThanOrEqual(2))
   expect(screen.queryByRole('button', { name: /학생회 메뉴/ })).toBeNull()
 })
@@ -533,7 +533,7 @@ test('학생회를 불러오지 못해 다시 시도했는데 403이면 그 학�
   // 동의 읽기를 기다리지 않는다: 읽기 실패 화면은 잠깐만 떠 있다가 403으로 지워진다.
   render(<App />)
   fireEvent.click(await screen.findByRole('button', { name: '다시 시도' }))
-  expect(await screen.findByRole('heading', { name: '아직 들어간 학생회가 없어요' })).toBeTruthy()
+  expect(await screen.findByRole('heading', { name: '들어간 학생회 없음' })).toBeTruthy()
 })
 
 test('작업 공간이 열린 뒤 운영진 목록이 403이면 학생회를 다시 읽고, 운영진이 아니면 그 학생회를 떠난다', async () => {
@@ -554,7 +554,7 @@ test('작업 공간이 열린 뒤 운영진 목록이 403이면 학생회를 다
   await renderApp()
   await openPeople()
   fireEvent.click(await screen.findByRole('button', { name: '다시 시도' }))
-  expect(await screen.findByRole('heading', { name: '아직 들어간 학생회가 없어요' })).toBeTruthy()
+  expect(await screen.findByRole('heading', { name: '들어간 학생회 없음' })).toBeTruthy()
   expect(viewCalls).toBe(2)
 })
 

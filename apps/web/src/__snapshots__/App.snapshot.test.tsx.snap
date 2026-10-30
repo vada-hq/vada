@@ -3168,7 +3168,7 @@ exports[`학생회 없음 1`] = `
 <div class="flex flex-col gap-6">
 <form novalidate="" aria-label="초대 코드로 들어가기" class="flex flex-col gap-4">
 <div class="flex flex-col gap-1">
-<h2 class="text-lg font-semibold">아직 들어간 학생회가 없어요</h2>
+<h2 class="text-lg font-semibold">들어간 학생회 없음</h2>
 <p class="text-sm text-fg-muted">학생회에서 받은 초대 링크를 누르거나, 초대 코드를 입력해 주세요.</p>
 </div>
 <div class="flex flex-col gap-2">

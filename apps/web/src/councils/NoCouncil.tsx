@@ -32,7 +32,7 @@ export default function NoCouncil({ onEnterCode, onCreate, additional = false }:
       >
         <div className="flex flex-col gap-1">
           <h2 className="text-lg font-semibold">
-            {additional ? '초대 코드로 들어가기' : '아직 들어간 학생회가 없어요'}
+            {additional ? '초대 코드로 들어가기' : '들어간 학생회 없음'}
           </h2>
           <p className="text-sm text-fg-muted">
             학생회에서 받은 초대 링크를 누르거나, 초대 코드를 입력해 주세요.
