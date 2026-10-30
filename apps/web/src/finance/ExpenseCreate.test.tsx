@@ -14,6 +14,12 @@ import {
   serveFinance,
   showFinance,
 } from '@/test-support/expense-harness'
+import {
+  expectAsksOnEveryExit,
+  expectClosesQuietly,
+  leaveWindow,
+  showLeaveConfirm,
+} from '@/test-support/leave-window'
 import { deferredResponse, json } from '@/test-support/mock-api'
 import { purchaseDetail, purchaseSummary } from '@/test-support/purchase-fixtures'
 import { settle } from '@/test-support/settle'
@@ -863,12 +869,10 @@ test('닫았다 다시 열면 같은 값을 넣어도 새 번호다', async () =
   const api = serve()
   api.on('POST', EXPENSES, () => json({ error: 'FAILED' }, 500))
   showFinance()
+  showLeaveConfirm()
   await fillDirect()
   await press()
-  fireEvent.click(
-    within(screen.getByRole('form', { name: '지출 적기' })).getByRole('button', { name: '닫기' }),
-  )
-  await waitFor(() => expect(screen.queryByRole('form', { name: '지출 적기' })).toBeNull())
+  await leaveWindow('지출 적기')
   await fillDirect()
   await press()
   const [first, reopened] = postedIds(api)
@@ -902,6 +906,7 @@ test('409 COMMAND_CONFLICT는 같은 번호로 다시 보낼 수 있다', async 
 test('쓰던 입력이 남으면 떠날 때 확인을 걸고, 비우거나 닫으면 푼다', async () => {
   serve()
   showFinance()
+  showLeaveConfirm()
   await openForm()
   expect(hasUnsavedInput()).toBe(false)
   fill('사용처', '인쇄소')
@@ -909,8 +914,27 @@ test('쓰던 입력이 남으면 떠날 때 확인을 걸고, 비우거나 닫�
   fill('사용처', '')
   expect(hasUnsavedInput()).toBe(false)
   fill('사용처', '인쇄소')
-  fireEvent.click(screen.getAllByRole('button', { name: '닫기' }).at(-1)!)
-  await waitFor(() => expect(hasUnsavedInput()).toBe(false))
+  await leaveWindow('지출 적기')
+  expect(hasUnsavedInput()).toBe(false)
+})
+
+test('쓴 값이 없으면 묻지 않고 닫는다', async () => {
+  serve()
+  showFinance()
+  showLeaveConfirm()
+  await openForm()
+  await expectClosesQuietly('지출 적기')
+})
+
+test('쓴 값이 있으면 Esc·×·닫기·바깥·뒤로가 먼저 묻고, 계속 쓰면 값이 남는다', async () => {
+  serve()
+  showFinance()
+  showLeaveConfirm()
+  await openForm()
+  fill('사용처', '인쇄소')
+  await expectAsksOnEveryExit('지출 적기')
+  expect(inForm().getByLabelText('사용처')).toHaveProperty('value', '인쇄소')
+  await leaveWindow('지출 적기')
 })
 
 test('먼저 쓴 사용처와 내역은 요청을 고르거나 바꿔도 그대로이고 떠날 때 묻는다', async () => {

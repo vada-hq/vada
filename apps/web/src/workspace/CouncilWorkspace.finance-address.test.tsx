@@ -2,7 +2,7 @@
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import type { Action, HomeResponse } from '@vada/contracts'
-import { PURCHASE_LOST } from '@/lib/messages'
+import { LEAVE_CONFIRM, PURCHASE_LOST } from '@/lib/messages'
 import { resetWindowHistory, windowHistoryIdle } from '@/lib/use-window-history'
 import { roomList } from '@/test-support/chat-fixtures'
 import {
@@ -452,6 +452,7 @@ test('지출 적기에 쓰던 입력이 남았으면 새로 고침 때 브라우
   fireEvent.change(await within(dialog).findByLabelText(/사용처/), { target: { value: '인쇄소' } })
   expect(unloadBlocked()).toBe(true)
   fireEvent.click(within(dialog).getAllByRole('button', { name: '닫기' }).at(-1)!)
+  fireEvent.click(await screen.findByRole('button', { name: LEAVE_CONFIRM }))
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
   expect(unloadBlocked()).toBe(false)
 })

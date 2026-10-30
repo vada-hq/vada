@@ -19,7 +19,7 @@ import { Field } from '@/components/ui/field'
 import { DateField } from '@/components/ui/date-field'
 import { Input } from '@/components/ui/input'
 import { NativeSelect } from '@/components/ui/native-select'
-import { useUnsavedInput } from '@/lib/leave-guard'
+import { useUnsavedInput, useWindowLeave } from '@/lib/leave-guard'
 import { INCOME_PERIOD_NOT_STARTED } from '@/lib/messages'
 import { sameJson } from '@/lib/same-json'
 import { requiredText, useFormCheck, withContract, type FieldErrors } from '@/lib/use-form-check'
@@ -131,6 +131,7 @@ function DateAndNote({
 type FormProps = Omit<Props, 'open'> & {
   saving: boolean
   setSaving: (saving: boolean) => void
+  inputHolder: symbol
 }
 
 function FormFooter({
@@ -160,12 +161,12 @@ function FormFooter({
   )
 }
 
-function CreateForm({ saving, setSaving, period, ...props }: FormProps) {
+function CreateForm({ saving, setSaving, period, inputHolder, ...props }: FormProps) {
   const [today] = useState(() => koreanDateOf(new Date()))
   const [initial] = useState(() => emptyIncome(period, today))
   const [values, setValues] = useState(initial)
-  // 쓰던 입력이 남았으면 새로고침이나 다른 곳으로 떠날 때 묻는다(떠날 때 확인).
-  useUnsavedInput(!sameJson(values, initial))
+  // 쓰던 입력이 남았으면 창을 닫거나 새로고침, 다른 곳으로 떠날 때 묻는다(떠날 때 확인).
+  useUnsavedInput(!sameJson(values, initial) && !saving, inputHolder)
   const account = useExpenseAccount(props.councilId, props.onForbidden, values.accountId)
   const range = receivedRange(period, today)
   const create = useIncomeCreate(
@@ -218,18 +219,25 @@ function CreateForm({ saving, setSaving, period, ...props }: FormProps) {
 
 function OpenCreateDialog(props: Omit<Props, 'open'>) {
   const [saving, setSaving] = useState(false)
+  const leave = useWindowLeave(props.onClose)
   return (
     <Dialog
       open
       onOpenChange={open => {
-        if (!open && !saving) props.onClose()
+        if (!open && !saving) leave.close()
       }}
     >
       <DialogContent aria-describedby={undefined}>
         <DialogHeader>
           <DialogTitle>{`수입 적기 · ${props.period.name}`}</DialogTitle>
         </DialogHeader>
-        <CreateForm {...props} saving={saving} setSaving={setSaving} />
+        <CreateForm
+          {...props}
+          saving={saving}
+          setSaving={setSaving}
+          onClose={leave.close}
+          inputHolder={leave.holder}
+        />
       </DialogContent>
     </Dialog>
   )

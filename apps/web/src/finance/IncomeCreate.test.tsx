@@ -24,6 +24,12 @@ import {
   openIncomesTab,
   serveIncomes,
 } from '@/test-support/income-harness'
+import {
+  expectAsksOnEveryExit,
+  expectClosesQuietly,
+  leaveWindow,
+  showLeaveConfirm,
+} from '@/test-support/leave-window'
 import { deferredResponse, json } from '@/test-support/mock-api'
 import { hasUnsavedInput } from '@/lib/leave-guard'
 import {
@@ -373,13 +379,35 @@ test('시작 전 기간이면 이유를 한 줄 보이고, 적기를 눌러도 �
   expect(api.calls.some(call => call.method === 'POST')).toBe(false)
 })
 
+const INCOME_WINDOW = `수입 적기 · ${periodSummary(CURRENT_PERIOD).name}`
+
 test('쓰던 입력이 남으면 떠날 때 확인을 걸고, 닫으면 푼다', async () => {
   serve()
   showFinance()
+  showLeaveConfirm()
   await openForm()
   expect(hasUnsavedInput()).toBe(false)
   fill('금액(원)', '1000')
   expect(hasUnsavedInput()).toBe(true)
-  fireEvent.click(screen.getAllByRole('button', { name: '닫기' }).at(-1)!)
-  await waitFor(() => expect(hasUnsavedInput()).toBe(false))
+  await leaveWindow(INCOME_WINDOW)
+  expect(hasUnsavedInput()).toBe(false)
+})
+
+test('쓴 값이 없으면 묻지 않고 닫는다', async () => {
+  serve()
+  showFinance()
+  showLeaveConfirm()
+  await openForm()
+  await expectClosesQuietly(INCOME_WINDOW)
+})
+
+test('쓴 값이 있으면 Esc·×·닫기·바깥·뒤로가 먼저 묻고, 계속 쓰면 값이 남는다', async () => {
+  serve()
+  showFinance()
+  showLeaveConfirm()
+  await openForm()
+  fill('금액(원)', '1000')
+  await expectAsksOnEveryExit(INCOME_WINDOW)
+  expect(screen.getByLabelText('금액(원)')).toHaveProperty('value', '1000')
+  await leaveWindow(INCOME_WINDOW)
 })

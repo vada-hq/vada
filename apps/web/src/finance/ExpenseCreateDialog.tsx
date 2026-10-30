@@ -9,7 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { useUnsavedInput } from '@/lib/leave-guard'
+import { useUnsavedInput, useWindowLeave } from '@/lib/leave-guard'
 import { EXPENSE_OPTIONS_FAILED } from '@/lib/messages'
 import { useFormCheck, withContract } from '@/lib/use-form-check'
 import { useTeam } from '@/team/useTeam'
@@ -96,6 +96,7 @@ type FormProps = Omit<Props, 'open'> & {
   team: TeamResponse
   saving: boolean
   setSaving: (saving: boolean) => void
+  inputHolder: symbol
 }
 
 function CreateForm({ team, saving, setSaving, memberId, eventId, start, ...props }: FormProps) {
@@ -107,8 +108,8 @@ function CreateForm({ team, saving, setSaving, memberId, eventId, start, ...prop
   // 연결된 요청은 창을 열 때 한 번만 골라 둔다. 방식을 오가며 요청 칸이 다시 그려져도 사람이 푼 것을 되돌리지 않게 여기 둔다.
   const [linkedRequestIds, setLinkedRequestIds] = useState(start?.linkedRequestIds)
   const onLinkedUsed = useCallback(() => setLinkedRequestIds(undefined), [])
-  // 쓰던 입력이 남았으면 새로고침이나 다른 곳으로 떠날 때 묻는다(떠날 때 확인).
-  const settle = useUnsavedInput(dirty)
+  // 쓰던 입력이 남았으면 창을 닫거나 새로고침, 다른 곳으로 떠날 때 묻는다(떠날 때 확인).
+  const settle = useUnsavedInput(dirty && !saving, props.inputHolder)
   const account = useExpenseAccount(props.councilId, props.onForbidden, values.accountId)
   const body = expenseOf({ ...values, accountId: account.pick.id })
   const create = useExpenseCreate(props.councilId, body, {
@@ -198,11 +199,12 @@ function CreateForm({ team, saving, setSaving, memberId, eventId, start, ...prop
 function OpenCreateDialog(props: Omit<Props, 'open'>) {
   const team = useTeam(props.councilId, props.onForbidden)
   const [saving, setSaving] = useState(false)
+  const leave = useWindowLeave(props.onClose)
   return (
     <Dialog
       open
       onOpenChange={open => {
-        if (!open && !saving) props.onClose()
+        if (!open && !saving) leave.close()
       }}
     >
       <DialogContent aria-describedby={undefined}>
@@ -210,7 +212,14 @@ function OpenCreateDialog(props: Omit<Props, 'open'>) {
           <DialogTitle>지출 적기</DialogTitle>
         </DialogHeader>
         {team.data ? (
-          <CreateForm {...props} team={team.data} saving={saving} setSaving={setSaving} />
+          <CreateForm
+            {...props}
+            team={team.data}
+            saving={saving}
+            setSaving={setSaving}
+            onClose={leave.close}
+            inputHolder={leave.holder}
+          />
         ) : (
           <StateMessage kind={team.loadFailed ? 'error' : 'loading'}>
             {team.loadFailed ? EXPENSE_OPTIONS_FAILED : '불러오는 중이에요'}
