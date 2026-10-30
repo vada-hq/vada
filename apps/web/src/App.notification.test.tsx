@@ -14,6 +14,7 @@ import { purchaseDetail } from './test-support/purchase-fixtures'
 import { budgetWithoutPeriod } from './test-support/budget-fixtures'
 import { CURRENT_PERIOD, incomeDetail, standardPeriods } from './test-support/income-fixtures'
 import { expenseDetail } from './test-support/expense-fixtures'
+import { SCHEDULE_NOT_FOUND } from './lib/calendar-messages'
 import { ADDRESS_LOST, ADDRESS_LOST_BACK, PURCHASE_LOST, TASK_LOST } from './lib/messages'
 import { EVENT_ID, eventDetail } from './test-support/event-fixtures'
 import { saveSideRoom } from './chat/last-room'
@@ -339,6 +340,23 @@ test('지운 업무의 알림을 누르면 "이 업무를 볼 수 없어요"가 
   expect((await screen.findByRole('alert', {}, { timeout: 5000 })).textContent).toBe(TASK_LOST)
   await lostSettled(`/tasks/${C1}`)
   expect(screen.getByRole('alert').textContent).toBe(TASK_LOST)
+  expect(screen.queryByRole('dialog')).toBeNull()
+})
+
+test('없는 일정 주소는 업무처럼 캘린더 맨 위에 까닭이 남는다', async () => {
+  api.onPrefix('GET', `/api/organizations/${C1}/calendar`, () =>
+    json({ items: [], truncated: false }),
+  )
+  api.on('GET', `/api/organizations/${C1}/schedule/${T1}`, () => json({ error: 'NOT_FOUND' }, 404))
+  window.history.replaceState(null, '', `/schedule/${C1}/${T1}`)
+  await renderApp()
+  await lostSettled(`/calendar/${C1}`)
+  const alert = await screen.findByRole('alert', {}, { timeout: 5000 })
+  expect(alert.textContent).toBe(SCHEDULE_NOT_FOUND)
+  // 빈 날의 '일정 없음'과 다른 글이고, 달력 아래로 밀려 화면 밖에 있지 않다.
+  expect(alert.textContent).not.toBe('일정 없음')
+  const month = screen.getByRole('button', { name: '오늘' })
+  expect(alert.compareDocumentPosition(month) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
   expect(screen.queryByRole('dialog')).toBeNull()
 })
 

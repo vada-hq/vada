@@ -13,7 +13,7 @@ import { CALENDAR_LOAD_FAILED } from '@/lib/calendar-messages'
 import { useMenuQuery } from '@/lib/use-menu-query'
 import { weeksOf } from '@/tasks/calendar-month'
 import { CalendarView } from './CalendarView'
-import { CalendarSchedule, useCalendarSchedule } from './CalendarSchedule'
+import { CalendarSchedule, ScheduleLost, useCalendarSchedule } from './CalendarSchedule'
 import { CalendarSubscription } from './CalendarSubscription'
 import { useCalendar } from './useCalendar'
 import { useCalendarNavigation, useDefaultCalendarView } from './use-calendar-navigation'
@@ -43,6 +43,7 @@ export default function CalendarPage({ view, onForbidden }: Props) {
   const { state } = calendar
   return (
     <PageColumn className="break-keep">
+      <ScheduleLost flow={schedule} />
       <CalendarView
         actions={
           <CalendarSubscription key={councilId} councilId={councilId} onForbidden={onForbidden} />

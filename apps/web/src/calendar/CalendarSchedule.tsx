@@ -20,6 +20,13 @@ export function useCalendarSchedule(
 }
 
 type Flow = ReturnType<typeof useCalendarSchedule>
+
+// 없는 일정의 까닭. 업무처럼 페이지 맨 위 오류 한 줄이다. 달력 아래에 두면 화면 밖으로 밀린다.
+export function ScheduleLost({ flow }: { flow: Flow }) {
+  const { notice } = flow.record
+  return notice && <StateMessage kind="error">{notice}</StateMessage>
+}
+
 export function CalendarSchedule({
   flow,
   view,
@@ -45,7 +52,6 @@ export function CalendarSchedule({
   }
   return (
     <>
-      {record.notice && <StateMessage kind="notice">{record.notice}</StateMessage>}
       {record.id &&
         (record.item ? (
           <ScheduleDetail

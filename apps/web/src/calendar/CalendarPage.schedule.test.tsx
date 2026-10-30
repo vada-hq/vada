@@ -4,6 +4,7 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-li
 import type { CalendarItem } from '@vada/contracts'
 import { resetWindowHistory, windowHistoryIdle } from '@/lib/use-window-history'
 import { navigate } from '@/lib/app-location'
+import { SCHEDULE_NOT_FOUND } from '@/lib/calendar-messages'
 import { councilView, teamResponse } from '@/test-support/council-fixtures'
 import { eventSummary } from '@/test-support/event-fixtures'
 import { json, mockApi } from '@/test-support/mock-api'
@@ -130,12 +131,12 @@ test('일정 주소는 시작한 달과 날을 고르고 읽기 권한을 동작
   await waitFor(() => expect(window.location.pathname).toBe(`/calendar/${COUNCIL_ID}`))
 })
 
-test('없는 일정 주소는 일정 없음 안내 후 캘린더로 돌아간다', async () => {
+test('없는 일정 주소는 까닭을 맨 위에 보이고 캘린더로 돌아간다', async () => {
   window.history.replaceState(null, '', `/schedule/${COUNCIL_ID}/${SCHEDULE_ID}`)
   api.on('GET', `${base}/schedule/${SCHEDULE_ID}`, () => json({ error: 'NOT_FOUND' }, 404))
   mount()
   await waitFor(() => expect(window.location.pathname).toBe(`/calendar/${COUNCIL_ID}`))
-  expect(await screen.findByRole('status')).toHaveProperty('textContent', '일정 없음')
+  expect(await screen.findByText(SCHEDULE_NOT_FOUND)).toHaveProperty('role', 'alert')
 })
 
 test('부서는 서버가 준 선택지만 보이고 서버 403은 부서 칸 오류로 보인다', async () => {
