@@ -1,7 +1,12 @@
 // @vitest-environment jsdom
 import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import type { EventDetail, RegistrationForm } from '@vada/contracts'
+import {
+  EVENT_NAME_MAX,
+  EVENT_PLACE_MAX,
+  type EventDetail,
+  type RegistrationForm,
+} from '@vada/contracts'
 import LeaveConfirm from '@/components/LeaveConfirm'
 import { resetLeaveGuard } from '@/lib/leave-guard'
 import { EVENT_ERRORS, LEAVE_CONFIRM, LEAVE_TITLE } from '@/lib/messages'
@@ -285,4 +290,18 @@ test('저장이 실패하면 패널은 열린 채 버튼 줄 바로 위에 이�
   const alert = await within(panel).findByRole('alert')
   expect(alert.textContent).toBe(EVENT_ERRORS.TOO_MANY_REQUESTS)
   expect(alert.nextElementSibling?.textContent).toBe('닫기')
+})
+
+test('행사명과 장소가 계약 상한을 넘으면 보내지 않고 그 칸 아래에 알리며 첫 칸으로 옮긴다', async () => {
+  const { api } = setup(editable({ place: '학생회관' }))
+  const panel = await openPanel()
+  const name = within(panel).getByLabelText('행사명')
+  const place = within(panel).getByLabelText('장소명')
+  fireEvent.change(name, { target: { value: '가'.repeat(EVENT_NAME_MAX + 1) } })
+  fireEvent.change(place, { target: { value: '가'.repeat(EVENT_PLACE_MAX + 1) } })
+  fireEvent.click(within(panel).getByRole('button', { name: '저장' }))
+  expect(within(panel).getAllByText('더 짧게 입력해 주세요')).toHaveLength(2)
+  expect(place.getAttribute('aria-invalid')).toBe('true')
+  await waitFor(() => expect(document.activeElement).toBe(name))
+  expect(api.calls.some(call => call.method === 'POST')).toBe(false)
 })

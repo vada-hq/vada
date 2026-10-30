@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import { statusOf, type EventDetail, type EventResponse } from '@vada/contracts'
 import { postJson } from '@/lib/api'
+import type { Parsed } from '@/lib/use-form-check'
 import { EVENT_ERRORS, EVENT_FAILED, EVENT_LOST, PERMISSION_CHANGED } from '@/lib/messages'
 
 export type EventDialogHandlers = {
@@ -16,19 +17,19 @@ type Handlers = EventDialogHandlers & {
   setSaving: (saving: boolean) => void
 }
 
-// 행사 쓰기 요청 하나(만들기, 고치기). 버튼은 계약의 safeParse로 켜고, 보내는 동안 다시 보내지 않는다.
+// 행사 쓰기 요청 하나(만들기, 고치기). 계약의 safeParse를 넘을 때만 보내고, 보내는 동안 다시 보내지 않는다.
 export function useEventSubmit(
   path: string,
-  schema: { safeParse: (input: unknown) => { success: boolean } },
+  schema: { safeParse: (input: unknown) => Parsed },
   request: unknown,
   handlers: Handlers,
 ) {
   const [problem, setProblem] = useState<string | null>(null)
   const sending = useRef(false)
-  const valid = schema.safeParse(request).success
+  const parsed = schema.safeParse(request)
 
   async function submit() {
-    if (!valid || sending.current) return
+    if (!parsed.success || sending.current) return
     sending.current = true
     handlers.setSaving(true)
     setProblem(null)
@@ -44,5 +45,5 @@ export function useEventSubmit(
     setProblem(EVENT_ERRORS[result.code] ?? EVENT_FAILED)
   }
 
-  return { valid, problem, submit }
+  return { parsed, problem, submit }
 }

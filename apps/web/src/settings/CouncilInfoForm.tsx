@@ -1,12 +1,12 @@
 import type { FormEvent, ReactNode } from 'react'
-import type { CouncilUnit } from '@vada/contracts'
+import { UpdateCouncilSettingsSchema, type CouncilUnit } from '@vada/contracts'
 import { unitChoices, unitLabels } from '../councils/unit-labels'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Field } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { NativeSelect } from '@/components/ui/native-select'
-import { requiredText, useFormCheck, type FieldErrors } from '@/lib/use-form-check'
+import { requiredText, useFormCheck, withContract, type FieldErrors } from '@/lib/use-form-check'
 import { titleFields, type CouncilDraft, type TitleKey } from './council-settings-form'
 
 type Props = {
@@ -32,7 +32,7 @@ function TitleFields({ titles, canEdit, onEdit, errors }: TitleProps) {
       <legend className="mb-2 text-xs font-medium text-fg-secondary">직급 표시 이름</legend>
       <div className="grid grid-cols-2 gap-3">
         {titleFields.map(([key, label]) => (
-          <Field key={key} label={label} required={canEdit} error={errors[key]}>
+          <Field key={key} label={label} required={canEdit} error={errors[`titles.${key}`]}>
             <Input
               value={titles[key]}
               readOnly={!canEdit}
@@ -85,14 +85,21 @@ function BasicFields({ value, canEdit, onEdit, errors }: BasicProps) {
   )
 }
 
-// 모든 칸이 필수다(직급 표시 이름 넷 포함).
-const councilErrors = (value: CouncilDraft) => ({
-  name: requiredText(value.name, '학생회 이름을'),
-  schoolName: requiredText(value.schoolName, '학교를'),
-  ...Object.fromEntries(
-    titleFields.map(([key, label]) => [key, requiredText(value.titles[key], `${label} 표시를`)]),
-  ),
-})
+// 모든 칸이 필수다(직급 표시 이름 넷 포함). 칸 이름은 계약의 경로와 같다.
+const councilErrors = (value: CouncilDraft) =>
+  withContract(
+    {
+      name: requiredText(value.name, '학생회 이름을'),
+      schoolName: requiredText(value.schoolName, '학교를'),
+      ...Object.fromEntries(
+        titleFields.map(([key, label]) => [
+          `titles.${key}`,
+          requiredText(value.titles[key], `${label} 표시를`),
+        ]),
+      ),
+    },
+    UpdateCouncilSettingsSchema.safeParse(value),
+  )
 
 // 설정 > 학생회 정보 양식: 이름, 단위, 학교, 직급 표시 이름 4개. 저장은 누를 때 확인한다.
 export default function CouncilInfoForm(props: Props) {

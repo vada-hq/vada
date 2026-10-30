@@ -33,23 +33,32 @@ export function useFormCheck<T extends HTMLElement = HTMLFormElement>(check: () 
   return { formRef, errors, attempt, reset }
 }
 
-// 숫자 칸의 문제 글. 그 밖(글자 칸의 refine 등)은 '더 짧게 입력해 주세요'다.
+export const TOO_BIG = '더 작은 값을 입력해 주세요'
+// 계약이 막은 시각은 길이 문제가 아니라서 칸 이름마다 messages로 준다.
+export const TIME_CHECK = '시각을 확인해 주세요'
+
+// 숫자 칸의 문제 글. 글자 칸의 상한도 too_big이라 origin으로 가른다. 그 밖(글자 칸의 refine 등)은 '더 짧게 입력해 주세요'다.
 const CODE_TEXT: Record<string, string> = {
   invalid_type: '숫자를 입력해 주세요',
   too_small: '더 큰 값을 입력해 주세요',
-  too_big: '더 작은 값을 입력해 주세요',
+  too_big: TOO_BIG,
 }
+
+type Issue = { code: string; path: readonly PropertyKey[]; origin?: string }
 
 // 계약의 safeParse 결과. zod를 화면에 들이지 않으려고 쓰는 모양만 적는다.
 export type Parsed = {
   success: boolean
-  error?: { issues: readonly { code: string; path: readonly PropertyKey[] }[] } | undefined
+  error?: { issues: readonly Issue[] } | undefined
 }
 
+const numberText = (issue: Issue) => (issue.origin === 'string' ? undefined : CODE_TEXT[issue.code])
+
 // 칸 확인(check)이 다루지 않는 길이 상한과 형식은 계약이 마지막에 막는다. 그 문제를 칸 이름 → 글로 바꿔 칸 아래에 보인다.
-// 그러지 않으면 버튼을 눌러도 아무 표시 없이 보내지 않는다. 칸 이름은 계약의 경로를 '.'로 이은 것이다(예: 'items.0.link').
+// 그러지 않으면 버튼을 눌러도 아무 표시 없이 보내지 않는다(src/structure/form-check-contract.test.ts가 지킨다).
+// 칸 이름은 계약의 경로를 '.'로 이은 것이다(예: 'items.0.link'). 화면의 칸도 이 이름으로 글을 읽어야 칸 아래에 보인다.
 // 글자 칸(text)은 길이와 쓸 수 없는 글자를 함께 거르는데, 빈 칸은 칸 확인이 먼저 잡으므로 남는 경우는 거의 너무 긴 글이다.
-// messages는 경로의 마지막 이름 → 글로, 형식이 따로 있는 칸(링크 등)에 준다. 칸 확인의 글이 있으면 그 글이 먼저다.
+// messages는 경로의 마지막 이름 → 글로, 형식이나 refine이 따로 있는 칸(링크, 날짜 등)에 준다. 칸 확인의 글이 있으면 그 글이 먼저다.
 export function withContract(
   errors: FieldErrors,
   parsed: Parsed,
@@ -59,7 +68,7 @@ export function withContract(
   for (const issue of parsed.error?.issues ?? []) {
     const key = issue.path.map(String).join('.')
     found[key] ??=
-      messages[String(issue.path.at(-1))] ?? CODE_TEXT[issue.code] ?? '더 짧게 입력해 주세요'
+      numberText(issue) ?? messages[String(issue.path.at(-1))] ?? '더 짧게 입력해 주세요'
   }
   return { ...found, ...present(errors) }
 }

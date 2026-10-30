@@ -2,6 +2,7 @@ import { useRef } from 'react'
 import type { EventSummary, RegistrationFormsResponse } from '@vada/contracts'
 import { KkirukLine } from '@/components/KkirukLine'
 import { SidePanel, SidePanelContent } from '@/components/ui/side-panel'
+import type { Parsed } from '@/lib/use-form-check'
 import type { PolledState } from '@/lib/use-polled-read'
 import type { EventFieldValues } from './event-fields'
 import { EventEditFacts } from './EventEditFacts'
@@ -15,7 +16,7 @@ type Props = {
   forms: PolledState<RegistrationFormsResponse>
   // 열면서 포커스를 둘 칸. 없으면 이름 칸이다.
   focus?: EventFieldFocus | undefined
-  valid: boolean
+  parsed: Parsed
   saving: boolean
   problem: string | null
   onSubmit: () => void
@@ -49,7 +50,7 @@ export function EventEditPanel({ focus, saving, onClose, ...props }: Props) {
           submitLabel="저장"
           values={props.values}
           layout="panel"
-          valid={props.valid}
+          parsed={props.parsed}
           saving={saving}
           problem={props.problem}
           onSubmit={props.onSubmit}

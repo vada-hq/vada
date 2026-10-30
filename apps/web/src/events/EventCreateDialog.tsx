@@ -79,7 +79,7 @@ function CreateForm({ view, saving, setSaving, onClose, taskId, ...handlers }: F
       submitLabel="만들기"
       values={values}
       layout="dialog"
-      valid={submit.valid}
+      parsed={submit.parsed}
       saving={saving}
       problem={submit.problem}
       onSubmit={() => void submit.submit()}

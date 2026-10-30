@@ -11,7 +11,7 @@ import type { EventFieldFocus } from '@/events/EventFields'
 import type { EventDialogHandlers } from '@/events/useEventSubmit'
 import { askLeave, useUnsavedInput } from '@/lib/leave-guard'
 import { sameJson } from '@/lib/same-json'
-import { useFormCheck, withContract } from '@/lib/use-form-check'
+import { TIME_CHECK, useFormCheck, withContract } from '@/lib/use-form-check'
 import { EditorHeader, EditorTitle } from './EditorHeader'
 import { CollectSection } from './FormItems'
 import { PhonePreview, PreviewDialog } from './FormPreview'
@@ -74,10 +74,7 @@ function modeOf(props: Props) {
 }
 
 // 계약이 막은 시각(행사 기간 밖 등)은 길이 문제가 아니므로 글을 따로 준다.
-const FORM_CONTRACT_MESSAGES = {
-  opensAt: '시각을 확인해 주세요',
-  closesAt: '시각을 확인해 주세요',
-}
+const FORM_CONTRACT_MESSAGES = { opensAt: TIME_CHECK, closesAt: TIME_CHECK }
 
 // 참가비가 있으면 받을 계좌가 있어야 한다(서버 규칙). 초안은 계좌 없이 저장된다(활성화 때 묻는다).
 function accountError(

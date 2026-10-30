@@ -81,7 +81,7 @@ function Opened({ sample, onClose }: { sample: Sample; onClose: () => void }) {
       onValues={setValues}
       owner={{ id: 'p1', name: '김새내', current: true }}
       forms={sample.forms}
-      valid
+      parsed={{ success: true }}
       saving={sample.saving ?? false}
       problem={sample.problem ?? null}
       onSubmit={onClose}

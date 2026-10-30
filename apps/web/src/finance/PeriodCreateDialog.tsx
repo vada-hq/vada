@@ -3,7 +3,8 @@ import { CreateFiscalPeriodSchema, koreanDateOf, semesterOf } from '@vada/contra
 import { Field } from '@/components/ui/field'
 import { DateField } from '@/components/ui/date-field'
 import { Input } from '@/components/ui/input'
-import { requiredText, useFormCheck } from '@/lib/use-form-check'
+import { DATE_CHECK } from '@/lib/messages'
+import { requiredText, useFormCheck, withContract } from '@/lib/use-form-check'
 import { BudgetFormDialog } from './BudgetFormDialog'
 import { fiscalPeriodsPath } from './finance-api'
 import { useBudgetChange, type BudgetChangeHandlers } from './useBudgetChange'
@@ -33,7 +34,16 @@ export function PeriodCreateDialog({ councilId, onClose, ...handlers }: Props) {
     setSaving,
   })
   const set = (patch: Partial<typeof values>) => setValues({ ...values, ...patch })
-  const { formRef, errors: fieldErrors, attempt } = useFormCheck(() => periodErrors(values))
+  const {
+    formRef,
+    errors: fieldErrors,
+    attempt,
+  } = useFormCheck(() =>
+    withContract(periodErrors(values), change.parsed, {
+      startsOn: DATE_CHECK,
+      endsOn: DATE_CHECK,
+    }),
+  )
   return (
     <BudgetFormDialog
       title="회계 기간 만들기"

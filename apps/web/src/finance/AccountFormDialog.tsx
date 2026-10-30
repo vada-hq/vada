@@ -9,7 +9,7 @@ import {
 import { Field } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { NativeSelect } from '@/components/ui/native-select'
-import { requiredText, useFormCheck, type FieldErrors } from '@/lib/use-form-check'
+import { requiredText, useFormCheck, withContract, type FieldErrors } from '@/lib/use-form-check'
 import {
   ACCOUNT_TYPE_LABEL,
   emptyAccount,
@@ -78,7 +78,11 @@ export function AccountFormDialog({ councilId, account, onClose, ...handlers }: 
     account ? UpdateAccountSchema : CreateAccountSchema,
     { ...handlers, setSaving },
   )
-  const { formRef, errors: fieldErrors, attempt } = useFormCheck(() => accountErrors(values))
+  const {
+    formRef,
+    errors: fieldErrors,
+    attempt,
+  } = useFormCheck(() => withContract(accountErrors(values), change.parsed))
   const shared = { values, disabled: saving, onChange: setValues, errors: fieldErrors }
   return (
     <BudgetFormDialog

@@ -69,7 +69,7 @@ export default function CohortForm({
         }}
       >
         <h2 className="text-base font-semibold text-fg">지금 기수</h2>
-        <Field label="기수 이름" required={canEdit} error={fieldErrors.cohortName}>
+        <Field label="기수 이름" required={canEdit} error={fieldErrors.name}>
           <Input
             value={value.name}
             readOnly={!canEdit}

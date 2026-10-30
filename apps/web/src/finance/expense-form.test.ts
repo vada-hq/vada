@@ -1,3 +1,4 @@
+import { WON_MAX } from '@vada/contracts'
 import { expect, test } from 'vitest'
 import { purchaseDetail } from '@/test-support/purchase-fixtures'
 import {
@@ -110,4 +111,16 @@ test('요청 없이로 바꿔도 사람이 쓴 사용처와 내역은 그대로�
   expect(values).toMatchObject({ mode: 'direct', vendor: '쿠팡', description: '간식 구입' })
   expect(values.requestId).toBeNull()
   expect(values.lines).toEqual([])
+})
+
+test('요청 결제는 금액 칸이 없어, 고른 품목의 합이 상한을 넘으면 품목 쪽 문제로 보인다', () => {
+  const values = {
+    ...emptyExpense(TODAY),
+    requestId: 'r1',
+    lines: [
+      { lineItemId: 'a', amount: String(WON_MAX), approvedAmount: 1 },
+      { lineItemId: 'b', amount: '1', approvedAmount: 1 },
+    ],
+  }
+  expect(expenseErrors(values, TODAY)).toMatchObject({ lines: '더 작은 값을 입력해 주세요' })
 })

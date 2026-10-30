@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { EVENT_NAME_MAX } from '@vada/contracts'
 import { openHistory } from '@/test-support/history'
 import { councilView } from '@/test-support/council-fixtures'
 import {
@@ -670,4 +671,15 @@ test('행사가 없으면 빈 화면에서 새 행사를 만들고, 만들 수 �
   expect(memberEmpty.querySelector('svg.lucide-calendar-days')).toBeTruthy()
   expect(within(memberEmpty).getByText('회장단과 부서장이 만들어요')).toBeTruthy()
   expect(screen.queryByRole('button', { name: '새 행사' })).toBeNull()
+})
+
+test('만들기: 행사명이 계약 상한을 넘으면 보내지 않고 칸 아래에 알린다', async () => {
+  const { api } = setup()
+  const form = await openCreate()
+  const name = await within(form).findByLabelText('행사명')
+  fireEvent.change(name, { target: { value: '가'.repeat(EVENT_NAME_MAX + 1) } })
+  fireEvent.click(within(form).getByRole('button', { name: '만들기' }))
+  expect(within(form).getByText('더 짧게 입력해 주세요')).toBeTruthy()
+  expect(name.getAttribute('aria-invalid')).toBe('true')
+  expect(api.calls.some(call => call.method === 'POST')).toBe(false)
 })

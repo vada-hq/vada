@@ -2,6 +2,7 @@
 import { resetAddress } from '@/test-support/address-reset'
 import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { FISCAL_PERIOD_NAME_MAX } from '@vada/contracts'
 import {
   councilView,
   FINANCE_PERMISSIONS,
@@ -355,4 +356,15 @@ test('수입 항목은 예산과 들어온 돈만 있고 지출 예정과 사용
   expect(within(list).getByText('예산 100,000원')).toBeTruthy()
   expect(within(list).getByText('들어온 돈 40,000원')).toBeTruthy()
   expect(within(list).queryByText(/지출 예정|사용 가능|배정/)).toBeNull()
+})
+
+test('회계 기간 이름이 계약 상한을 넘으면 보내지 않고 칸 아래에 알리며 그 칸으로 옮긴다', async () => {
+  const { api } = show(FINANCE_PERMISSIONS, budgetWithoutPeriod())
+  fireEvent.click(await screen.findByRole('button', { name: '회계 기간 만들기' }))
+  await screen.findByRole('form', { name: '회계 기간 만들기' })
+  fill('이름', '가'.repeat(FISCAL_PERIOD_NAME_MAX + 1))
+  fireEvent.click(button('만들기'))
+  expect(screen.getByText('더 짧게 입력해 주세요')).toBeTruthy()
+  await waitFor(() => expect(document.activeElement).toBe(screen.getByLabelText('이름')))
+  expect(api.calls.some(call => call.method === 'POST')).toBe(false)
 })

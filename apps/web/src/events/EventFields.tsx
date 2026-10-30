@@ -121,6 +121,7 @@ export function EventEditFields({ values, disabled, onChange, errors = {} }: Pro
         <Field
           label="장소명"
           optional
+          error={errors.place}
           aside={
             <TbdCheck
               label="장소 미정"

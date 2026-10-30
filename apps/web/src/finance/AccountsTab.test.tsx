@@ -2,6 +2,7 @@
 import { resetAddress } from '@/test-support/address-reset'
 import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { ACCOUNT_NAME_MAX, ACCOUNT_NUMBER_MAX } from '@vada/contracts'
 import {
   accountItem,
   accountsResponse,
@@ -235,4 +236,18 @@ test('불러오지 못하면 오류와 [다시 시도]가 보인다', async () =
   showAccounts()
   expect(await screen.findByText(/계좌를 불러오지 못했어요/)).toBeTruthy()
   expect(screen.getByRole('button', { name: '다시 시도' })).toBeTruthy()
+})
+
+test('계좌 더하기: 계약 상한을 넘는 이름과 계좌번호는 보내지 않고 칸 아래에 알린다', async () => {
+  const { api } = await open()
+  fireEvent.click(button('계좌 더하기'))
+  await screen.findByRole('form', { name: '계좌 더하기' })
+  fill('이름', '가'.repeat(ACCOUNT_NAME_MAX + 1))
+  fill('은행', '우리은행')
+  fill('계좌번호', '1'.repeat(ACCOUNT_NUMBER_MAX + 1))
+  fill('예금주', '김회계')
+  fireEvent.click(button('더하기'))
+  expect(screen.getAllByText('더 짧게 입력해 주세요')).toHaveLength(2)
+  await waitFor(() => expect(document.activeElement).toBe(screen.getByLabelText('이름')))
+  expect(api.calls.filter(call => call.method === 'POST')).toHaveLength(0)
 })

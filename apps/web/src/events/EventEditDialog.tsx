@@ -47,7 +47,7 @@ export function EventEditDialog({ councilId, event, onClose, onDone, focus, ...h
       owner={event.owner}
       forms={forms.state}
       focus={focus}
-      valid={submit.valid}
+      parsed={submit.parsed}
       saving={saving}
       problem={submit.problem}
       onSubmit={() => void submit.submit()}

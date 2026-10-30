@@ -1,10 +1,11 @@
-import type {
-  ExpenseMethod,
-  PurchaseLineItem,
-  PurchaseRequestDetail,
-  PurchaseRequestSummary,
+import {
+  WON_MAX,
+  type ExpenseMethod,
+  type PurchaseLineItem,
+  type PurchaseRequestDetail,
+  type PurchaseRequestSummary,
 } from '@vada/contracts'
-import { requiredText } from '@/lib/use-form-check'
+import { requiredText, TOO_BIG } from '@/lib/use-form-check'
 
 // 지출 적기 폼의 값. 입력칸 값은 글자라 비운 칸은 빈 글이고, 요청으로 바꿀 때 null이나 NaN이 된다.
 // 요청한 품목 결제(request)는 승인된 품목을 골라 결제 금액을 적고, 요청 없이(direct)는 금액과 예산 항목을 직접 적는다.
@@ -138,6 +139,12 @@ const DIGITS = /^[0-9]+$/
 const methodError = (method: ExpenseValues['method']) =>
   method === '' ? '결제 수단을 골라 주세요' : undefined
 
+// 요청 결제의 금액은 고른 품목의 합이라 칸이 없다. 합이 계약의 상한을 넘으면 품목 쪽에 알린다.
+function linesError({ requestId, lines }: ExpenseValues) {
+  if (requestId !== null && lines.length === 0) return '결제한 품목을 골라 주세요'
+  return linesTotal(lines) > WON_MAX ? TOO_BIG : undefined
+}
+
 // 누를 때 확인하는 칸. 사용처·내역·결제일은 늘, 금액은 요청 없이 적을 때, 요청과 품목은 요청한 품목을 결제할 때 필수다.
 // 결제일은 오늘 뒤일 수 없다(서버도 막는다).
 export function expenseErrors(values: ExpenseValues, today: string) {
@@ -159,10 +166,7 @@ export function expenseErrors(values: ExpenseValues, today: string) {
         }
       : {
           requestId: values.requestId === null ? '결제할 요청을 골라 주세요' : undefined,
-          lines:
-            values.requestId !== null && values.lines.length === 0
-              ? '결제한 품목을 골라 주세요'
-              : undefined,
+          lines: linesError(values),
         }),
   }
 }

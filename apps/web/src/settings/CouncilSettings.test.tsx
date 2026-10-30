@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { COHORT_NAME_MAX, RANK_TITLE_MAX, SCHOOL_NAME_MAX } from '@vada/contracts'
 import {
   councilView,
   LEADER_PERMISSIONS,
@@ -257,4 +258,43 @@ test('고치던 중 회장단 권한을 잃으면 양식이 보기만으로 바�
   )
   expect(screen.getByText('회장단만 고칠 수 있어요.')).toBeTruthy()
   expect(screen.queryByRole('button', { name: '저장' })).toBeNull()
+})
+
+test('학생회 정보가 계약 상한을 넘으면 보내지 않고 그 칸 아래에 알리며 첫 칸으로 옮긴다', async () => {
+  const api = mockApi()
+  render(
+    <CouncilSettings
+      view={councilView('c1', { permissions: LEADER_PERMISSIONS })}
+      onSaved={() => {}}
+      onForbidden={() => {}}
+    />,
+  )
+  const form = screen.getByRole('form', { name: '학생회 정보' })
+  const field = (label: string) => within(form).getByLabelText(label)
+  fireEvent.change(field('학교'), { target: { value: '가'.repeat(SCHOOL_NAME_MAX + 1) } })
+  fireEvent.change(field('부부장'), { target: { value: '가'.repeat(RANK_TITLE_MAX + 1) } })
+  fireEvent.click(within(form).getByRole('button', { name: '학생회 정보 저장' }))
+  expect(within(form).getAllByText('더 짧게 입력해 주세요')).toHaveLength(2)
+  expect(field('학교').getAttribute('aria-invalid')).toBe('true')
+  expect(field('부부장').getAttribute('aria-invalid')).toBe('true')
+  await waitFor(() => expect(document.activeElement).toBe(field('학교')))
+  expect(api.calls.some(call => call.method === 'POST')).toBe(false)
+})
+
+test('기수 이름이 계약 상한을 넘으면 보내지 않고 칸 아래에 알리며 그 칸으로 옮긴다', async () => {
+  const api = mockApi()
+  render(
+    <CouncilSettings
+      view={councilView('c1', { permissions: LEADER_PERMISSIONS })}
+      onSaved={() => {}}
+      onForbidden={() => {}}
+    />,
+  )
+  const form = screen.getByRole('form', { name: '지금 기수' })
+  const name = within(form).getByLabelText('기수 이름')
+  fireEvent.change(name, { target: { value: '가'.repeat(COHORT_NAME_MAX + 1) } })
+  fireEvent.click(within(form).getByRole('button', { name: '기수 저장' }))
+  expect(within(form).getByText('더 짧게 입력해 주세요')).toBeTruthy()
+  await waitFor(() => expect(document.activeElement).toBe(name))
+  expect(api.calls.some(call => call.method === 'POST')).toBe(false)
 })
