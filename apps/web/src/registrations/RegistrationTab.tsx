@@ -240,15 +240,15 @@ type ToolbarProps = {
   onScan: () => void
 }
 
-// '신청 양식' 이름 + [참여 설문 만들기](목록의 form.create)와 [QR로 출석 확인](양식의 form.check_in).
-// 서버가 지금 사람이 할 수 있는 동작을 준다. 양식이 없으면 빈 종이의 [참여 설문 만들기]가 맡는다.
+// '신청 양식' 이름 + [신청 양식 만들기](목록의 form.create)와 [QR로 출석 확인](양식의 form.check_in).
+// 서버가 지금 사람이 할 수 있는 동작을 준다. 양식이 없으면 빈 종이의 [신청 양식 만들기]가 맡는다.
 function TabToolbar({ actions, scannable, onCreate, onScan }: ToolbarProps) {
   return (
     <div className="flex w-full flex-wrap items-center gap-x-1">
       <h2 className={`mr-auto ${type.small} font-semibold text-fg-tertiary`}>신청 양식</h2>
       {actions.includes('form.create') && (
         <TextAction icon={Plus} onClick={onCreate}>
-          참여 설문 만들기
+          신청 양식 만들기
         </TextAction>
       )}
       {scannable && (
@@ -291,7 +291,7 @@ function FormList({ state, onRetry, children, onCreate }: ListProps) {
           </div>
           {onCreate && (
             <MainButton icon={Plus} onClick={onCreate}>
-              참여 설문 만들기
+              신청 양식 만들기
             </MainButton>
           )}
         </article>
