@@ -723,3 +723,23 @@ test('[부장 지정]으로 부장을 정하고 창을 닫으면 초점이 부�
     expect(document.activeElement).toBe(head.getByRole('button', { name: '박새내 동작' })),
   )
 })
+
+test('부서를 만들면 비운 칸에 문제 글이 남지 않고, 다음 빈 제출에 다시 알린다', async () => {
+  const api = serve()
+  api.on('POST', '/api/organizations/c1/departments', () =>
+    withDepartments(team =>
+      team.departments.push({ id: 'd3', name: '홍보부', role: null, memberCount: 0 }),
+    ),
+  )
+  render(<Harness permissions={LEADER_PERMISSIONS} />)
+  const form = await openAdd()
+  const input = within(form).getByLabelText('새 부서 이름')
+  fireEvent.change(input, { target: { value: '홍보부' } })
+  fireEvent.click(within(form).getByRole('button', { name: '부서 추가' }))
+  expect(await screen.findByRole('heading', { name: '홍보부' })).toBeTruthy()
+  await waitFor(() => expect(input).toHaveProperty('value', ''))
+  expect(within(form).queryByText('부서 이름을 입력해 주세요')).toBeNull()
+  expect(input.getAttribute('aria-invalid')).toBeNull()
+  fireEvent.click(within(form).getByRole('button', { name: '부서 추가' }))
+  expect(within(form).getByText('부서 이름을 입력해 주세요')).toBeTruthy()
+})

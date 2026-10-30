@@ -29,11 +29,15 @@ export function DepartmentCreateForm({ saving, error, name, onName, onCreate, ..
     formRef,
     errors: fieldErrors,
     attempt,
+    reset,
   } = useFormCheck(() => withContract({ name: requiredText(name, '부서 이름을') }, created))
   async function submit(event: FormEvent) {
     event.preventDefault()
     if (!attempt()) return
-    if (created.success && !saving && (await onCreate(name))) onName('')
+    if (!created.success || saving || !(await onCreate(name))) return
+    // 이어 만들 빈 칸이다. 앞 부서의 확인이 남으면 쓰기 전부터 문제로 보인다.
+    onName('')
+    reset()
   }
   return (
     <div className="flex flex-col gap-2">
