@@ -6,13 +6,14 @@ import { NativeSelect } from '@/components/ui/native-select'
 import { RankOptions, rankOf } from './rank-select'
 
 // 더할 부서와 직급을 고른 값. 방금 넣은 부서는 고르는 칸에서 빠지므로 그때는 남은 첫 부서를 고른다.
-export function useAddDepartment(others: TeamDepartment[]) {
-  const [adding, setAdding] = useState(others[0]?.id ?? '')
-  const [rank, setRank] = useState('')
+// headOf는 [부장 지정]으로 누른 부서다. 부장 기본값은 그 부서가 골라져 있을 때만이다. 다른 부서로 따라가면 뜻밖의 권한이 붙는다.
+export function useAddDepartment(others: TeamDepartment[], headOf: string | null) {
+  const [adding, setAdding] = useState(headOf ?? others[0]?.id ?? '')
+  const [rank, setRank] = useState<string | null>(null)
   const selected = others.some(department => department.id === adding)
     ? adding
     : (others[0]?.id ?? '')
-  return { selected, rank, setAdding, setRank }
+  return { selected, rank: rank ?? (selected === headOf ? 'head' : ''), setAdding, setRank }
 }
 type AddDepartment = ReturnType<typeof useAddDepartment>
 
