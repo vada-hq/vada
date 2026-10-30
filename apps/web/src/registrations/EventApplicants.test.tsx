@@ -241,6 +241,48 @@ test('머리 수는 받은 명단에서 세고, 수를 누르면 그 상태로 �
   expect(gets(api)).toBe(1)
 })
 
+test('총 N명은 취소하지 않은 신청만 세고 환불 대기는 따로 세며, 줄도 그 수만큼이다', async () => {
+  const refund = row({
+    id: secondId,
+    name: '나환불',
+    cancelled: true,
+    deposit: { status: 'refund_pending', amount: 5000 },
+    needsAttention: true,
+  })
+  setup(data({ applicants: [row(), refund, row({ id: thirdId, name: '다신청' })] }))
+  await screen.findByText('김새내')
+  const filters = screen.getByRole('group', { name: '참가자 거르기' })
+  expect(within(filters).getByRole('button', { name: '총 2명' })).toBeTruthy()
+  expect(screen.queryByText('나환불')).toBeNull()
+  fireEvent.click(within(filters).getByRole('button', { name: '환불 대기 1명' }))
+  await screen.findByText('나환불')
+  expect(screen.queryByText('김새내')).toBeNull()
+  // 취소한 신청이 없으면 따로 보일 수도 없다.
+  cleanup()
+  setup(data({ applicants: [row()] }))
+  await screen.findByText('김새내')
+  expect(screen.queryByRole('button', { name: /환불 대기/ })).toBeNull()
+})
+
+test('신청자가 모두 환불 대기면 전체는 비고 환불 대기로 간다', async () => {
+  setup(
+    data({
+      applicants: [
+        row({
+          name: '나환불',
+          cancelled: true,
+          deposit: { status: 'refund_pending', amount: 5000 },
+        }),
+      ],
+    }),
+  )
+  const filters = await screen.findByRole('group', { name: '참가자 거르기' })
+  expect(within(filters).getByRole('button', { name: '총 0명' })).toBeTruthy()
+  expect(screen.getByText('신청자 없음')).toBeTruthy()
+  fireEvent.click(within(filters).getByRole('button', { name: '환불 대기 1명' }))
+  expect(await screen.findByText('나환불')).toBeTruthy()
+})
+
 test('50명이 넘어도 상태별 수는 명단 전부에서 세고, 확인 필요 줄은 첫 쪽 맨 위로 모인다', async () => {
   const rows = many(60)
   rows[55] = { ...rows[55]!, needsAttention: true, absent: true }

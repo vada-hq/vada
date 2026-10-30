@@ -16,11 +16,12 @@ export const STATUS_KEYS = ['registration', 'deposit', 'attendance', 'needsAtten
 type StatusKey = (typeof STATUS_KEYS)[number]
 export type StatusFilter = Pick<ApplicantFilter, StatusKey>
 
-type QuickKey = 'all' | 'unpaid' | 'attention' | 'attended' | 'absent'
+type QuickKey = 'all' | 'refund' | 'unpaid' | 'attention' | 'attended' | 'absent'
 export type Quick = { key: QuickKey; count: number; active: boolean; query: StatusFilter }
 
 const QUICK: Record<QuickKey, StatusFilter> = {
   all: {},
+  refund: { deposit: 'refund_pending' },
   unpaid: { deposit: 'none', registration: 'active' },
   attention: { needsAttention: true },
   attended: { attendance: 'attended' },
@@ -48,12 +49,13 @@ function matchesSearch(row: EventApplicant, search: string | undefined) {
   return [row.name, row.studentId ?? ''].some(value => value.toLowerCase().includes(needle))
 }
 
+// 상태를 고르지 않은 명단이 '총 N명'이다. 양식 카드의 신청 수와 같게 취소한 신청(환불 대기)은 빼고, 그 줄은 환불 대기에서 본다.
 function matchesStatus(row: EventApplicant, filter: StatusFilter) {
-  return STATUS_KEYS.every(key => {
-    const value = filter[key]
-    if (value === undefined) return true
-    return (MATCHES[key] as (row: EventApplicant, value: unknown) => boolean)(row, value)
-  })
+  const picked = STATUS_KEYS.filter(key => filter[key] !== undefined)
+  if (picked.length === 0) return !row.cancelled
+  return picked.every(key =>
+    (MATCHES[key] as (row: EventApplicant, value: unknown) => boolean)(row, filter[key]),
+  )
 }
 
 const filterRows = (rows: EventApplicant[], filter: ApplicantFilter) =>

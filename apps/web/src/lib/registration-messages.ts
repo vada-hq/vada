@@ -122,6 +122,7 @@ export const QUICK_FILTER_LABEL = {
   absent: '불참',
 } as const
 export const eventApplicantTotal = (count: number) => `총 ${count}명`
+export const eventApplicantRefund = (count: number) => `환불 대기 ${count}명`
 export const eventApplicantSelected = (count: number) => `${count}명 선택`
 export const eventApplicantSelectAll = (count: number) => `${count}명 모두 선택`
 export const eventApplicantCount = (kind: 'applicants' | 'attended', count: number) =>

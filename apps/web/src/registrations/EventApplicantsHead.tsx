@@ -10,6 +10,7 @@ import {
   clearApplicantFilter,
   DEPOSIT_LABEL,
   EVENT_APPLICANTS,
+  eventApplicantRefund,
   eventApplicantTotal,
   QUICK_FILTER_LABEL,
 } from '@/lib/registration-messages'
@@ -65,6 +66,7 @@ const ghost = `${listSize.text} gap-1.5 rounded-lg px-2 py-0 ${listType.body} fo
 
 function quickLabel(quick: Quick) {
   if (quick.key === 'all') return eventApplicantTotal(quick.count)
+  if (quick.key === 'refund') return eventApplicantRefund(quick.count)
   return `${QUICK_FILTER_LABEL[quick.key]} ${quick.count}`
 }
 
