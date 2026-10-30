@@ -157,7 +157,7 @@ export function MainButton({ icon: ActionIcon, className, children, ...props }: 
   )
 }
 
-// 옅은 회색 면 버튼 44px: 아직 주 행동이 아닌 것(조건이 덜 찬 [설문 링크 활성화], 멈춤·종료의 [링크 복사]). 끄지 않는다.
+// 옅은 회색 면 버튼 44px: 아직 주 행동이 아닌 것(조건이 덜 찬 [신청 양식 활성화], 멈춤·종료의 [링크 복사]). 끄지 않는다.
 export function SoftButton({ icon: ActionIcon, className, children, ...props }: ButtonProps) {
   return (
     <Button

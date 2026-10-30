@@ -11,7 +11,7 @@ import { applyUrl } from './registration-view'
 import type { FormCardActions } from './useFormCardActions'
 
 // 양식 카드 머리 띠: 왼쪽 상태 + 큰 수(신청 수, 초안이면 링크 열기까지 남은 수), 오른쪽 가져가기(받는 중 이후의 큰 QR·링크·
-// [링크 복사]·[QR 저장]) 또는 초안의 [설문 링크 활성화]. 선 하나로 아래 속성 줄과 나눈다(검토 지적: 상태·링크가 속성 줄에 묻힘).
+// [링크 복사]·[QR 저장]) 또는 초안의 [신청 양식 활성화]. 선 하나로 아래 속성 줄과 나눈다(검토 지적: 상태·링크가 속성 줄에 묻힘).
 
 function CopyLink({ url, strong }: { url: string; strong: boolean }) {
   const [result, setResult] = useState<'idle' | 'copied' | 'failed'>('idle')
@@ -55,7 +55,7 @@ function Share({ form, tone }: { form: RegistrationForm; tone: Tone }) {
   )
 }
 
-// 초안의 [설문 링크 활성화]. 조건이 덜 찼으면 옅은 면 버튼(끄지 않음), 누르면 빠진 조건 목록과 첫 [채우기]로 초점. 다 차면 주 버튼.
+// 초안의 [신청 양식 활성화]. 조건이 덜 찼으면 옅은 면 버튼(끄지 않음), 누르면 빠진 조건 목록과 첫 [채우기]로 초점. 다 차면 주 버튼.
 function Activate({
   checks,
   actions,
@@ -76,7 +76,7 @@ function Activate({
   return (
     <div className="flex flex-col gap-2 sm:items-end">
       <Action busy={actions.post.busy} onClick={press}>
-        설문 링크 활성화
+        신청 양식 활성화
       </Action>
       {tried && !ready && (
         <ul role="alert" className={`flex flex-col gap-0.5 ${type.small} sm:text-right`}>
