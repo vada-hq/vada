@@ -1,5 +1,5 @@
 import { PHOTO_MAX_COUNT } from '@vada/contracts'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { useActive } from '@/lib/use-active'
 import {
   PHOTO_CANNOT_OPEN,
@@ -9,21 +9,18 @@ import {
 } from '@/lib/messages'
 import { photoName, sendPhoto, TOO_BIG, UNREADABLE } from '@/lib/photo-upload'
 import { isRoomLost, sendErrorText, uploadsPath } from './chat-api'
-
-// 보내기 전 사진 한 장. 고르는 즉시 줄여서 올리고, 올라가면 키를 쥐고 있다가 보낼 때 싣는다.
-export type PhotoDraft = {
-  id: number
-  name: string
-  preview: string | null
-  state: 'uploading' | 'ready' | 'failed'
-  key?: string
-  error?: string
-}
+import { draftKey } from './composer-drafts'
+import {
+  addPhotos,
+  dropPhotos,
+  markPhotos,
+  patchPhoto,
+  photosOf,
+  useRoomPhotos,
+  type PhotoDraft,
+} from './photo-drafts'
 
 let nextId = 0
-const revoke = (photos: PhotoDraft[]) => {
-  for (const photo of photos) if (photo.preview) URL.revokeObjectURL(photo.preview)
-}
 
 const newDraft = (file: File): PhotoDraft => ({
   id: nextId++,
@@ -39,61 +36,52 @@ const failureText = (result: { status: number; code: string }) => {
 }
 
 // 입력칸의 사진 줄. 고르기·빼기·올리기 상태를 맡는다. 방을 잃으면(403·404) onLost로 알린다.
-export function usePhotoDrafts(councilId: string, roomId: string, onLost: () => void) {
-  const [photos, setPhotos] = useState<PhotoDraft[]>([])
+export function usePhotoDrafts(
+  meId: string,
+  councilId: string,
+  roomId: string,
+  onLost: () => void,
+) {
+  const room = draftKey(meId, councilId, roomId)
+  const photos = useRoomPhotos(room)
   const [note, setNote] = useState<string | null>(null)
-  // 아직 목록에 반영되지 않은 선택까지 센다. 연달아 골라도 상한을 넘지 않게 한다.
-  const count = useRef(0)
-  const latest = useRef<PhotoDraft[]>([])
   const isActive = useActive()
-  useEffect(() => {
-    latest.current = photos
-  }, [photos])
-  useEffect(() => () => revoke(latest.current), [])
 
-  const patch = useCallback(
-    (id: number, change: Partial<PhotoDraft>) =>
-      setPhotos(list => list.map(item => (item.id === id ? { ...item, ...change } : item))),
-    [],
-  )
-
+  // 방을 떠나도 올리기는 끝까지 간다. 결과를 사진에 남겨, 돌아오면 그대로 보내거나 이유를 본다.
   const process = useCallback(
     async (draft: PhotoDraft, file: File) => {
       const result = await sendPhoto(uploadsPath(councilId, roomId), file, preview =>
-        patch(draft.id, { preview }),
+        patchPhoto(room, draft.id, { preview }),
       )
-      if (!isActive()) return
-      if (result.ok) return patch(draft.id, { state: 'ready', key: result.key })
-      if (isRoomLost(result.status)) onLost()
-      const error = failureText(result)
-      patch(draft.id, { state: 'failed', error })
+      if (result.ok) return patchPhoto(room, draft.id, { state: 'ready', key: result.key })
+      if (isRoomLost(result.status) && isActive()) onLost()
+      patchPhoto(room, draft.id, { state: 'failed', error: failureText(result) })
     },
-    [councilId, roomId, onLost, isActive, patch],
+    [councilId, roomId, room, onLost, isActive],
   )
 
   const add = (files: File[]) => {
-    const accepted = files.slice(0, Math.max(0, PHOTO_MAX_COUNT - count.current))
+    const accepted = files.slice(0, Math.max(0, PHOTO_MAX_COUNT - photosOf(room).length))
     setNote(files.length > accepted.length ? PHOTO_TOO_MANY(PHOTO_MAX_COUNT) : null)
-    count.current += accepted.length
     const drafts = accepted.map(file => ({ draft: newDraft(file), file }))
-    setPhotos(list => [...list, ...drafts.map(item => item.draft)])
+    addPhotos(
+      room,
+      drafts.map(item => item.draft),
+    )
     for (const { draft, file } of drafts) void process(draft, file)
   }
 
-  // 남길 사진만 두고 나머지의 미리 보기를 거둔다. 보내는 사이에 더 고른 사진이 있어도 최신 목록에서 거른다.
-  const dropWhere = (drop: (item: PhotoDraft) => boolean) => {
-    revoke(latest.current.filter(drop))
+  const remove = (id: number) => {
     setNote(null)
-    setPhotos(list => {
-      const kept = list.filter(item => !drop(item))
-      count.current = kept.length
-      return kept
-    })
+    dropPhotos(room, item => item.id === id)
   }
-  const remove = (id: number) => dropWhere(item => item.id === id)
-  // 보낸 사진만 지운다. 보내는 동안 새로 고른 사진은 남는다.
-  const removeSent = (keys: string[]) =>
-    dropWhere(item => item.key !== undefined && keys.includes(item.key))
+  const holdForSend = (keys: string[]) => markPhotos(room, keys, 'sending')
+  // 보낸 사진만 지운다. 보내는 동안 새로 고른 사진은 남는다. 실패하면 다시 보낼 수 있게 돌려놓는다.
+  const settleSend = (keys: string[], sent: boolean) => {
+    if (!sent) return markPhotos(room, keys, 'ready')
+    setNote(null)
+    dropPhotos(room, item => item.key !== undefined && keys.includes(item.key))
+  }
 
-  return { photos, note, add, remove, removeSent }
+  return { photos, note, add, remove, holdForSend, settleSend }
 }

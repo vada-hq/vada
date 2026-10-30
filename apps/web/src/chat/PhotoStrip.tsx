@@ -1,7 +1,7 @@
 import { X } from 'lucide-react'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
-import type { PhotoDraft } from './usePhotoDrafts'
+import type { PhotoDraft } from './photo-drafts'
 
 type Props = { photos: PhotoDraft[]; onRemove: (id: number) => void }
 

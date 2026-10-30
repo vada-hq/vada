@@ -7,13 +7,14 @@ export type Draft = { body: string; picks: RoomParticipant[] }
 const EMPTY: Draft = { body: '', picks: [] }
 const drafts = new Map<string, Draft>()
 
-const keyOf = (meId: string, councilId: string, roomId: string) => `${meId}/${councilId}/${roomId}`
+export const draftKey = (meId: string, councilId: string, roomId: string) =>
+  `${meId}/${councilId}/${roomId}`
 
 export const draftOf = (meId: string, councilId: string, roomId: string) =>
-  drafts.get(keyOf(meId, councilId, roomId)) ?? EMPTY
+  drafts.get(draftKey(meId, councilId, roomId)) ?? EMPTY
 
 export function keepDraft(meId: string, councilId: string, roomId: string, draft: Draft) {
-  const key = keyOf(meId, councilId, roomId)
+  const key = draftKey(meId, councilId, roomId)
   if (draft.body === '' && draft.picks.length === 0) drafts.delete(key)
   else drafts.set(key, draft)
 }

@@ -46,7 +46,7 @@ export function useComposer({ councilId, meId, roomId, onSent, onLost }: Args) {
   const [readOnly, setReadOnly] = useState(false)
   const busy = useRef(false)
   const isActive = useActive()
-  const drafts = usePhotoDrafts(councilId, roomId, onLost)
+  const drafts = usePhotoDrafts(meId, councilId, roomId, onLost)
   const { photos } = drafts
 
   const mentions = mentionIds(body, picks)
@@ -70,15 +70,16 @@ export function useComposer({ councilId, meId, roomId, onSent, onLost }: Args) {
     }
     // 보내는 중에 방을 떠나도 보낸 글이 임시 글로 되살아나지 않게, 먼저 비우고 실패하면 되돌린다.
     keepDraft(meId, councilId, roomId, { body: '', picks: [] })
+    drafts.holdForSend(keys)
     const result = await postJson(messagesPath(councilId, roomId), payload)
     busy.current = false
     if (!result.ok) keepDraft(meId, councilId, roomId, { body, picks })
+    drafts.settleSend(keys, result.ok)
     if (!isActive()) return
     setSending(false)
     if (result.ok) {
       // 보낸 것만 지운다. 기다리는 사이 이어 친 글과 새로 고른 사진은 남긴다.
       setBody(now => unsentBody(now, body))
-      drafts.removeSent(keys)
       onSent()
     } else if (isRoomLost(result.status)) onLost()
     else if (result.code === 'ROOM_READ_ONLY') {

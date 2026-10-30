@@ -10,6 +10,12 @@ import { homeResponse, onHomeExtras } from './test-support/home-fixtures'
 import { json, mockApi } from './test-support/mock-api'
 import { ADDRESS_LOST } from './lib/messages'
 import { saveSideRoom } from './chat/last-room'
+import { resizeToJpeg } from './lib/photo-resize'
+
+vi.mock('./lib/photo-resize', async importOriginal => ({
+  ...(await importOriginal<typeof import('./lib/photo-resize')>()),
+  resizeToJpeg: vi.fn(),
+}))
 
 const auth = vi.hoisted(() => ({ useSession: vi.fn(), signOut: vi.fn() }))
 vi.mock('./auth/auth-client', () => ({
@@ -268,4 +274,34 @@ test('전체 보기는 한 칸 방 목록이고 학생회 방을 누르면 해�
   act(() => window.history.back())
   await screen.findByRole('tablist', { name: '대화방' })
   expect(pathNow()).toBe(`/chat/${C1}`)
+})
+
+test('방을 바꿨다 돌아오면 붙인 사진이 글과 함께 남고 다른 방의 입력칸에는 없다(이동 10)', async () => {
+  vi.stubGlobal(
+    'URL',
+    Object.assign(URL, { createObjectURL: () => 'blob:x', revokeObjectURL: () => {} }),
+  )
+  vi.mocked(resizeToJpeg).mockResolvedValue(new Blob(['jpeg'], { type: 'image/jpeg' }))
+  api.on('POST', `/api/organizations/${C1}/rooms/${ALL}/uploads`, () =>
+    json({ key: 'k1', url: '/r2/k1', headers: {}, expiresAt: '2026-10-21T00:10:00.000Z' }),
+  )
+  api.on('PUT', '/r2/k1', () => new Response(null, { status: 200 }))
+  window.history.replaceState(null, '', `/chat/${C1}/${ALL}`)
+  await renderApp()
+  fireEvent.change(await field(), { target: { value: '남을 글' } })
+  fireEvent.change(screen.getByLabelText('사진 고르기'), {
+    target: { files: [new File(['raw'], 'a.jpg', { type: 'image/jpeg' })] },
+  })
+  expect(await screen.findByRole('img', { name: 'a.jpg' })).toBeTruthy()
+  fireEvent.click(await roomTab(/회장단방/))
+  expect(await screen.findByText('회장단 글')).toBeTruthy()
+  expect(screen.queryByLabelText('보낼 사진')).toBeNull()
+  fireEvent.click(await roomTab(/공지방/))
+  expect(await screen.findByText('전체방 글')).toBeTruthy()
+  await waitFor(async () =>
+    expect((await field()) as HTMLTextAreaElement).toHaveProperty('value', '남을 글'),
+  )
+  expect(
+    within(screen.getByLabelText('보낼 사진')).getByRole('img', { name: 'a.jpg' }),
+  ).toBeTruthy()
 })
