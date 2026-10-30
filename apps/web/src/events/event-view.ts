@@ -65,6 +65,3 @@ export function visibleEvents(
     ? found.sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt))
     : found
 }
-
-export const eventCountLabel = (label: string, count: number, unit: string) =>
-  `${label} ${count}${count === 0 ? '건' : unit}`

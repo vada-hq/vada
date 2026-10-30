@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 import { ownerLine } from './event-header-view'
-import { eventCountLabel, momentLabel, whenLabel } from './event-view'
+import { momentLabel, whenLabel } from './event-view'
 import EventStatusChip from './EventStatusChip'
 
 type Props = { event: EventCard; onOpen: () => void }
@@ -18,7 +18,7 @@ function Count({ label, count, unit }: { label: string; count: number; unit: str
       tone="neutral"
       className={cn('justify-end text-right tabular-nums', count > 0 && 'text-fg-secondary')}
     >
-      {eventCountLabel(label, count, unit)}
+      {`${label} ${count}${unit}`}
     </Badge>
   )
 }

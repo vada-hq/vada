@@ -211,7 +211,8 @@ test('정렬 기본값은 행사 일시순이고 최근 활동순은 마지막 �
   expect(names()).toEqual(['완료 행사', '신입생 환영회'])
   fireEvent.click(screen.getByRole('button', { name: '완료' }))
   expect(names()).toEqual(['완료 행사'])
-  expect(screen.getByText('신청 0건').className).toContain('text-fg-muted')
+  expect(screen.getByText('신청 0명').className).toContain('text-fg-muted')
+  expect(screen.getByText('업무 0개')).toBeTruthy()
 })
 
 test('[새 행사]는 event.create가 있을 때만 보인다', async () => {
