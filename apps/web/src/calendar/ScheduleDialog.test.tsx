@@ -4,9 +4,18 @@ import type { ComponentProps } from 'react'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { CreateScheduleItemSchema, type UpdateScheduleItemRequest } from '@vada/contracts'
 import { windowHistoryIdle, resetWindowHistory } from '@/lib/use-window-history'
+import {
+  expectAsksOnEveryExit,
+  expectClosesQuietly,
+  leaveWindow,
+  showLeaveConfirm,
+} from '@/test-support/leave-window'
 import { DEPARTMENT_ID, EVENT_ID, scheduleDetail } from '@/test-support/schedule-fixtures'
 import { ScheduleDialog } from './ScheduleDialog'
 import { pickDate } from '@/test-support/date-field'
+import { settle } from '@/test-support/settle'
+import { hasUnsavedInput } from '@/lib/leave-guard'
+import { LEAVE_TITLE } from '@/lib/messages'
 
 afterEach(async () => {
   cleanup()
@@ -16,6 +25,7 @@ afterEach(async () => {
 
 const setup = (extra: Partial<ComponentProps<typeof ScheduleDialog>> = {}) => {
   const onSave = vi.fn(async (_body: UpdateScheduleItemRequest) => null)
+  showLeaveConfirm()
   render(
     <ScheduleDialog
       initialDate="2026-10-28"
@@ -91,4 +101,62 @@ test('서버 부서 오류를 부서 칸에 보이고 초점을 옮긴다', asyn
   fireEvent.click(screen.getByRole('button', { name: '저장' }))
   expect(await screen.findByText('이 부서는 고를 수 없어요.')).toBeTruthy()
   await waitFor(() => expect(document.activeElement).toBe(screen.getByLabelText('부서')))
+})
+
+test('쓴 값이 없으면 묻지 않고 닫는다', async () => {
+  const onClose = vi.fn(() => {
+    cleanup()
+  })
+  setup({ onClose })
+  await expectClosesQuietly('일정 추가')
+  expect(onClose).toHaveBeenCalledTimes(1)
+})
+
+test('쓴 값이 있으면 Esc·×·닫기·바깥·뒤로가 먼저 묻고, 계속 쓰면 값이 남으며, 나가기면 닫는다', async () => {
+  const onClose = vi.fn(() => {
+    cleanup()
+  })
+  setup({ onClose })
+  fireEvent.change(screen.getByLabelText('제목'), { target: { value: '답사' } })
+  await expectAsksOnEveryExit('일정 추가')
+  expect(screen.getByLabelText('제목')).toHaveProperty('value', '답사')
+  expect(onClose).not.toHaveBeenCalled()
+  await leaveWindow('일정 추가')
+  expect(onClose).toHaveBeenCalledTimes(1)
+})
+
+test('일정 수정 창도 고친 값이 있을 때만 묻는다', async () => {
+  const onClose = vi.fn(() => {
+    cleanup()
+  })
+  setup({ item: scheduleDetail(), onClose })
+  fireEvent.change(screen.getByLabelText('제목'), { target: { value: '바뀐 제목' } })
+  await expectAsksOnEveryExit('일정 수정')
+  fireEvent.change(screen.getByLabelText('제목'), {
+    target: { value: scheduleDetail().title },
+  })
+  await expectClosesQuietly('일정 수정')
+})
+
+test('보내는 중에는 닫히지도 묻지도 않고, 저장에 성공하면 묻지 않는다', async () => {
+  let finish = () => {}
+  const onClose = vi.fn()
+  const onSave = vi.fn(
+    () =>
+      new Promise<null>(resolve => {
+        finish = () => resolve(null)
+      }),
+  )
+  setup({ onSave, onClose })
+  fireEvent.change(screen.getByLabelText('제목'), { target: { value: '답사' } })
+  fireEvent.click(screen.getByRole('button', { name: '저장' }))
+  await waitFor(() => expect(onSave).toHaveBeenCalledTimes(1))
+  fireEvent.keyDown(screen.getByRole('dialog', { name: '일정 추가' }), { key: 'Escape' })
+  await settle()
+  expect(onClose).not.toHaveBeenCalled()
+  expect(screen.queryByRole('dialog', { name: LEAVE_TITLE })).toBeNull()
+  expect(hasUnsavedInput()).toBe(false)
+  finish()
+  await settle()
+  expect(screen.queryByRole('dialog', { name: LEAVE_TITLE })).toBeNull()
 })

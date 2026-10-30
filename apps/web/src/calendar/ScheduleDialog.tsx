@@ -9,6 +9,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { useUnsavedInput, useWindowLeave } from '@/lib/leave-guard'
+import { sameJson } from '@/lib/same-json'
 import { useFormCheck } from '@/lib/use-form-check'
 import { useActive } from '@/lib/use-active'
 import { ScheduleChoiceFields } from './ScheduleChoiceFields'
@@ -39,7 +41,8 @@ function useScheduleForm({
   showErrors,
   onSave,
 }: Pick<Props, 'initialDate' | 'item' | 'showErrors' | 'onSave'>) {
-  const [value, setValue] = useState(() => initialSchedule(initialDate, item))
+  const [initial] = useState(() => initialSchedule(initialDate, item))
+  const [value, setValue] = useState(initial)
   const [problem, setProblem] = useState<ScheduleSaveProblem | null>(null)
   const [busy, setBusy] = useState(false)
   const sending = useRef(false)
@@ -70,17 +73,27 @@ function useScheduleForm({
     errors: { ...(showErrors ? scheduleErrors(value, Boolean(item)) : form.errors), ...problem },
     onChange,
   }
-  return { fields, formRef: form.formRef, save, busy, sending }
+  return {
+    fields,
+    formRef: form.formRef,
+    save,
+    busy,
+    sending,
+    dirty: !sameJson(value, initial),
+  }
 }
 
 export function ScheduleDialog(props: Props) {
   const { item, departments, events, optionsNotice, onClose } = props
-  const { fields, formRef, save, busy, sending } = useScheduleForm(props)
+  const { fields, formRef, save, busy, sending, dirty } = useScheduleForm(props)
+  const leave = useWindowLeave(onClose)
+  // 보내는 동안은 풀어 둔다. 저장이 끝나 닫으며 이어서 하는 이동이 확인에 막히지 않게 하고, 실패하면 다시 지킨다.
+  useUnsavedInput(dirty && !busy, leave.holder)
   return (
     <Dialog
       open
       onOpenChange={open => {
-        if (!open && !sending.current) onClose()
+        if (!open && !sending.current) leave.close()
       }}
     >
       <DialogContent
@@ -111,7 +124,7 @@ export function ScheduleDialog(props: Props) {
           </fieldset>
           {fields.errors.form && <StateMessage kind="error">{fields.errors.form}</StateMessage>}
           <DialogFooter>
-            <Button type="button" variant="outline" touch busy={busy} onClick={onClose}>
+            <Button type="button" variant="outline" touch busy={busy} onClick={leave.close}>
               닫기
             </Button>
             <Button touch busy={busy}>
