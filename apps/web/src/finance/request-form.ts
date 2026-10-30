@@ -1,5 +1,6 @@
 // 요청 내기 폼의 값. 입력칸 값은 글자라 비운 칸은 빈 글이고, 요청으로 바꿀 때 null이 된다.
-import type { ProductInfo } from '@vada/contracts'
+import { purchaseEstimateOf, type ProductInfo } from '@vada/contracts'
+import type { Parsed } from '@/lib/use-form-check'
 
 export type ItemValues = {
   // 줄을 지워도 입력칸 상태가 섞이지 않게 하는 키(서버로 보내지 않는다)
@@ -98,3 +99,21 @@ export const requestOf = (values: RequestValues) => ({
       item.estimatedShippingFee.trim() === '' ? null : Number(item.estimatedShippingFee),
   })),
 })
+
+// 계약의 합계 확인(단가 × 수량 + 배송비)은 늘 단가 칸에 걸린다. 단가 × 수량만으로는 상한 안이면 배송비가 넘긴 것이라 그 칸으로 옮긴다.
+export function estimateParsed(
+  items: ReturnType<typeof requestOf>['items'],
+  parsed: Parsed,
+): Parsed {
+  if (!parsed.error) return parsed
+  const issues = parsed.error.issues.map(issue => {
+    const [list, at, field] = issue.path
+    const item = list === 'items' && typeof at === 'number' ? items[at] : undefined
+    if (!item || field !== 'estimatedUnitPrice' || issue.code !== 'custom') return issue
+    const { subtotal } = purchaseEstimateOf({ ...item, estimatedShippingFee: null })
+    return subtotal === null
+      ? issue
+      : { ...issue, path: [...issue.path.slice(0, -1), 'estimatedShippingFee'] }
+  })
+  return { ...parsed, error: { issues } }
+}

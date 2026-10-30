@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, expect, test, vi } from 'vitest'
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import type { ProductInfo } from '@vada/contracts'
+import { WON_MAX, type ProductInfo } from '@vada/contracts'
 import { navigate, pageState } from '@/lib/app-location'
 import { hasUnsavedInput } from '@/lib/leave-guard'
 import { resetAddress } from '@/test-support/address-reset'
@@ -268,4 +268,34 @@ test('새 품목은 맨 위에 더하고, 지운 원본 품목의 늦은 조회�
   fireEvent.click(screen.getByRole('button', { name: '품목 더하기' }))
   expect(screen.getByLabelText<HTMLInputElement>('품목 1 이름').value).toBe('')
   expect(screen.getByLabelText<HTMLInputElement>('품목 2 이름').value).toBe('남길 품목')
+})
+
+test.each([
+  {
+    where: '단가 × 수량이 넘으면 단가 칸',
+    failed: '품목 1 예상 단가',
+    shipping: '',
+    quantity: '2',
+  },
+  {
+    where: '배송비를 더해 넘으면 배송비 칸',
+    failed: '품목 1 예상 배송비',
+    shipping: '1',
+    quantity: '1',
+  },
+])('예상 금액: $where에 알리고 보내지 않는다', async ({ failed, shipping, quantity }) => {
+  const api = setup()
+  open()
+  fill('제목', '현수막')
+  fill('품목 1 이름', '현수막')
+  fill('품목 1 수량', quantity)
+  fill('품목 1 예상 단가', String(WON_MAX))
+  fill('품목 1 예상 배송비', shipping)
+  fireEvent.click(screen.getByRole('button', { name: '내기' }))
+  const field = screen.getByLabelText(failed)
+  expect(screen.getAllByText('더 작은 값을 입력해 주세요')).toHaveLength(1)
+  expect(screen.queryByText('더 짧게 입력해 주세요')).toBeNull()
+  expect(field.getAttribute('aria-invalid')).toBe('true')
+  await waitFor(() => expect(document.activeElement).toBe(field))
+  expect(api.calls.some(call => call.method === 'POST')).toBe(false)
 })

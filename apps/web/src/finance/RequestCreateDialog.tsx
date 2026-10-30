@@ -4,11 +4,18 @@ import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
 import { DialogFooter } from '@/components/ui/dialog'
 import { useUnsavedInput } from '@/lib/leave-guard'
-import { requiredText, useFormCheck, withContract } from '@/lib/use-form-check'
+import {
+  requiredText,
+  TOO_BIG,
+  useFormCheck,
+  withContract,
+  type Parsed,
+} from '@/lib/use-form-check'
 import type { Choice } from '@/tasks/task-form-options'
 import type { PurchaseDialogHandlers } from './purchase-requests'
 import {
   emptyRequest,
+  estimateParsed,
   restoredRequest,
   requestOf,
   type RequestStart,
@@ -95,8 +102,21 @@ function requestErrors(values: RequestValues) {
 }
 
 // 한 줄의 문제만 골라 그 줄에 넘긴다.
-// 계약이 막은 형식 문제 가운데 칸 이름만으로는 알기 어려운 것
-const CONTRACT_MESSAGES = { link: 'http:// 또는 https://로 시작하는 주소를 입력해 주세요' }
+// 계약이 막은 형식 문제 가운데 칸 이름만으로는 알기 어려운 것. 예상 금액 둘은 칸마다는 상한 안이어도 합이 넘은 경우다.
+const CONTRACT_MESSAGES = {
+  link: 'http:// 또는 https://로 시작하는 주소를 입력해 주세요',
+  estimatedUnitPrice: TOO_BIG,
+  estimatedShippingFee: TOO_BIG,
+}
+
+const useRequestCheck = (values: RequestValues, parsed: Parsed) =>
+  useFormCheck(() =>
+    withContract(
+      requestErrors(values),
+      estimateParsed(requestOf(values).items, parsed),
+      CONTRACT_MESSAGES,
+    ),
+  )
 
 type FormProps = Omit<Props, 'open'> & { saving: boolean; setSaving: (saving: boolean) => void }
 
@@ -156,11 +176,7 @@ function CreateForm({
   const request = { ...requestOf(values), ...(linked ? { taskId: linked } : {}) }
   const create = useRequestCreate(props.councilId, request, { ...props, setSaving })
   const set = (patch: Partial<typeof values>) => setValues({ ...values, ...patch })
-  const {
-    formRef,
-    errors: fieldErrors,
-    attempt,
-  } = useFormCheck(() => withContract(requestErrors(values), create.parsed, CONTRACT_MESSAGES))
+  const { formRef, errors: fieldErrors, attempt } = useRequestCheck(values, create.parsed)
   return (
     <form
       ref={formRef}
