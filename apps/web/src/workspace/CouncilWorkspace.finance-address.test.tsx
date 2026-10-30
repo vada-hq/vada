@@ -352,7 +352,7 @@ test('홈의 받은 것 모두 보기는 처리 단계의 요청 검토로 구�
     'home',
     FINANCE_PERMISSIONS,
     homeResponse({
-      received: { requests: [homeRequest('r1')], total: 50, truncated: true },
+      received: { requests: [homeRequest('r1')], total: 50, pendingItems: 50, truncated: true },
     }),
   )
   const section = await screen.findByRole('region', { name: '받은 것' })

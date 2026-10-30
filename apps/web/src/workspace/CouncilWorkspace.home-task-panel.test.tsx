@@ -130,7 +130,7 @@ test('재정 보기 홈에서 연 업무도 같은 보기를 뒤에 두고, 잃�
     {
       financeView: true,
       financeBoard: {
-        pending: { requests: [], total: 0, truncated: false },
+        pending: { requests: [], total: 0, pendingItems: 0, truncated: false },
         nearby: { items: [], total: 0 },
         settling: { events: [], total: 0 },
         budgets: { events: [], total: 0 },

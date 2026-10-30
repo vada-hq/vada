@@ -1,5 +1,10 @@
 import { ChevronRight, Clock, FileText, CircleAlert } from 'lucide-react'
-import { KOREAN_DATE_LENGTH, dateFromKorean, type HomeFinanceBoard } from '@vada/contracts'
+import {
+  HOME_CARD_ROWS,
+  KOREAN_DATE_LENGTH,
+  dateFromKorean,
+  type HomeFinanceBoard,
+} from '@vada/contracts'
 import { Badge } from '@/components/ui/badge'
 import { dueText, endedLabel } from '../events/event-header-view'
 import { neededMarkOf } from '../finance/purchase-view'
@@ -54,6 +59,11 @@ export function PendingCard({
       icon={FileText}
       read={{ kind: 'ready', total: pending.total, rows }}
       empty="결재 대기 없음"
+      // 도착하는 처리 단계는 품목으로 세므로 요청 수만 두면 답이 둘로 보인다. 수가 이미 머리에 있어 보기 단추에 되풀이하지 않는다.
+      aside={
+        pending.total > 0 ? `요청 ${pending.total}건 · 품목 ${pending.pendingItems}개` : undefined
+      }
+      seeAllLabel={pending.total > HOME_CARD_ROWS ? '전체 보기' : undefined}
       onSeeAll={onSeeAll}
     />
   )

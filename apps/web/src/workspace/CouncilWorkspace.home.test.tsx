@@ -97,7 +97,7 @@ const tabSelected = async (name: string) =>
 test('받은 것 줄을 누르면 재정 화면에서 그 요청 상세가 열린다', async () => {
   open(
     homeResponse({
-      received: { requests: [purchaseSummary(R1)], total: 1, truncated: false },
+      received: { requests: [purchaseSummary(R1)], total: 1, pendingItems: 1, truncated: false },
     }),
   )
   fireEvent.click(await screen.findByRole('button', { name: /요청 7c9e6679/ }))

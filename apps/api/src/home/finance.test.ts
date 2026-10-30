@@ -41,6 +41,25 @@ function open(t: SettlementKit) {
   return { api, read, pendingScreen, councilBase }
 }
 
+test('결재 대기 품목 수는 처리 단계의 검토 대기처럼 대기 요청에서 아직 결재하지 않은 품목만 센다', async () => {
+  await withSettlement(async t => {
+    const h = open(t)
+    const two = await t.requestWithItem(null, { title: '품목 둘' })
+    await t.make(t.council, 'line_item', { requestId: two.request, name: '둘째', quantity: 1 })
+    const partial = await t.requestWithItem(null, { title: '일부 승인' })
+    await t.approve(partial.line)
+    await t.make(t.council, 'line_item', { requestId: partial.request, name: '남음', quantity: 1 })
+    const decided = await t.requestWithItem(null, { title: '결재 끝' })
+    await t.approve(decided.line)
+    await t.requestWithItem(null, { title: '남의 학생회' }, t.other)
+    const { received } = await h.read('s-financeMember')
+    assert.equal(received!.total, 2)
+    assert.equal(received!.pendingItems, 3)
+    const pending = (await h.pendingScreen()).flatMap(row => row.itemBriefs ?? [])
+    assert.equal(pending.filter(item => item.status === 'pending').length, 3)
+  })()
+})
+
 test('재정부는 결재 대기 요청을 재정 화면과 같은 순서로 받고 취소·결재 끝난 요청과 다른 학생회 요청은 없다', async () => {
   await withSettlement(async t => {
     const h = open(t)

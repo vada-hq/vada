@@ -119,12 +119,12 @@ export function HomeOtherSection() {
     <Section title="홈 · 부서, 학생회, 받은 것, 정산할 행사">
       <div className="flex w-80 flex-col gap-3">
         <ReceivedSection
-          received={{ requests: [request], total: 12, truncated: false }}
+          received={{ requests: [request], total: 12, pendingItems: 18, truncated: false }}
           onOpenRequest={noop}
           onSeeAll={noop}
         />
         <ReceivedSection
-          received={{ requests: [], total: 0, truncated: false }}
+          received={{ requests: [], total: 0, pendingItems: 0, truncated: false }}
           onOpenRequest={noop}
           onSeeAll={noop}
         />

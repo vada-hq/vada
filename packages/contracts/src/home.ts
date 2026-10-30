@@ -81,9 +81,11 @@ export interface HomeCouncil {
 
 // 재정부가 받은 것: 결재 대기 요청(pending 보기와 같다), 필요한 때 순·비면 끝·같으면 오래된 순 HOME_LIST_LIMIT줄까지.
 // total은 그 보기가 준 수다(보기에 상한이 있어 truncated면 그보다 많다).
+// pendingItems는 그 요청들에서 아직 결재하지 않은 품목 수로, 처리 단계 '검토 대기'의 수와 같은 셈이다.
 export interface HomeReceived {
   requests: PurchaseRequestSummary[]
   total: number
+  pendingItems: number
   truncated: boolean
 }
 
