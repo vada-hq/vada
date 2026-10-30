@@ -87,11 +87,13 @@ function schedule() {
   queueMicrotask(sync)
 }
 
-// 보내는 중이라 창이 닫지 않은 채 남으면, 뒤로 가기로 쓴 칸을 다시 채운다.
+// 보내는 중이거나 입력을 물어 창이 닫지 않은 채 남으면, 뒤로 가기로 쓴 칸을 다시 채운다.
+// 묻는 확인 창이 그사이 맨 위에 섰으므로 창은 원래 자리로 돌아간다. 맨 위에 두면 다음 뒤로가 확인 창을 닫지 못한다.
 function closeEntry(entry: Entry) {
+  const place = stack.length
   entry.back()
   setTimeout(() => {
-    if (entry.mounted) stack.push(entry)
+    if (entry.mounted) stack.splice(place, 0, entry)
     schedule()
   }, 0)
 }

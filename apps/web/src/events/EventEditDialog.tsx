@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { UpdateEventSchema, type EventDetail } from '@vada/contracts'
 import { openEventTab } from '@/lib/go-to'
-import { askLeave, useUnsavedInput } from '@/lib/leave-guard'
+import { askLeave, useUnsavedInput, useWindowLeave } from '@/lib/leave-guard'
 import { sameJson } from '@/lib/same-json'
 import { useRegistrationForms } from '../registrations/useRegistrationForms'
 import { eventFieldsOf, eventFieldsRequest } from './event-fields'
@@ -25,7 +25,8 @@ export function EventEditDialog({ councilId, event, onClose, onDone, focus, ...h
   const [values, setValues] = useState(initial)
   const [saving, setSaving] = useState(false)
   // 고친 값이 남았으면 닫기(Esc, ×, 뒤로 가기, [닫기]), 다른 탭으로 가기, 새로 고침 전에 묻는다(DEC-78 이동 10).
-  const settle = useUnsavedInput(!sameJson(values, initial))
+  const leave = useWindowLeave(onClose)
+  const settle = useUnsavedInput(!sameJson(values, initial) && !saving, leave.holder)
   const forms = useRegistrationForms(councilId, event.id, handlers)
   const submit = useEventSubmit(
     eventPath(councilId, event.id),
@@ -51,7 +52,7 @@ export function EventEditDialog({ councilId, event, onClose, onDone, focus, ...h
       saving={saving}
       problem={submit.problem}
       onSubmit={() => void submit.submit()}
-      onClose={() => askLeave(onClose)}
+      onClose={leave.close}
       onOpenForms={() =>
         askLeave(() => {
           onClose()

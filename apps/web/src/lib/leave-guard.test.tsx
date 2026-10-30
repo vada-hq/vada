@@ -1,11 +1,12 @@
 // @vitest-environment jsdom
-import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { useLayoutEffect } from 'react'
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { useLayoutEffect, useState } from 'react'
 import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import LeaveConfirm from '@/components/LeaveConfirm'
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { leave, navigate } from './app-location'
 import { LEAVE_TITLE, LEAVE_CONFIRM } from './messages'
-import { hasUnsavedInput, resetLeaveGuard, useUnsavedInput } from './leave-guard'
+import { hasUnsavedInput, resetLeaveGuard, useUnsavedInput, useWindowLeave } from './leave-guard'
 import {
   adoptTag,
   resetWindowHistory,
@@ -266,4 +267,171 @@ test('입력이 생기거나 풀린 화면이 그려진 그때 지킴도 이미 
     </>,
   )
   expect(seen).toEqual([true, false])
+})
+
+// 입력 창 하나: 닫는 길(Esc, ×, 바깥, 뒤로)은 모두 onOpenChange로 오고, [끝내기]는 화면의 [닫기] 버튼이다.
+function InputWindow({
+  dirty,
+  sending = false,
+  onClose,
+}: {
+  dirty: boolean
+  sending?: boolean
+  onClose: () => void
+}) {
+  const leave = useWindowLeave(onClose)
+  useUnsavedInput(dirty, leave.holder)
+  return (
+    <Dialog
+      open
+      onOpenChange={open => {
+        if (!open && !sending) leave.close()
+      }}
+    >
+      <DialogContent aria-describedby={undefined}>
+        <DialogTitle>입력 창</DialogTitle>
+        <button onClick={leave.close}>끝내기</button>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+function Shown({ dirty, sending, page }: { dirty: boolean; sending?: boolean; page?: boolean }) {
+  const [open, setOpen] = useState(true)
+  return (
+    <>
+      {page && <Form dirty />}
+      {open && (
+        <InputWindow
+          dirty={dirty}
+          {...(sending === undefined ? {} : { sending })}
+          onClose={() => setOpen(false)}
+        />
+      )}
+      <LeaveConfirm />
+    </>
+  )
+}
+
+const inputWindow = () => screen.queryByRole('dialog', { name: '입력 창', hidden: true })
+const asked = () => screen.findByRole('dialog', { name: LEAVE_TITLE })
+const depth = () => (window.history.state as { vadaWindow?: number } | null)?.vadaWindow ?? 0
+const nextTask = () =>
+  act(async () => {
+    await new Promise(resolve => setTimeout(resolve, 0))
+  })
+// Radix는 바깥 누름 듣기를 다음 작업에서 건다. 그 뒤에 눌러야 바깥 누름이 닿는다.
+const opened = async () => {
+  await waitFor(() => expect(depth()).toBe(1))
+  await nextTask()
+}
+const stay = async () => {
+  fireEvent.click(within(await asked()).getAllByRole('button', { name: '닫기' })[0]!)
+  await waitFor(() => expect(screen.queryByRole('dialog', { name: LEAVE_TITLE })).toBeNull())
+  await settle()
+}
+const userBack = () => act(() => window.history.back())
+
+test('입력이 없는 창은 묻지 않고 닫히고 기록 칸도 거둔다', async () => {
+  render(<Shown dirty={false} />)
+  await opened()
+  fireEvent.keyDown(document.activeElement!, { key: 'Escape' })
+  await waitFor(() => expect(inputWindow()).toBeNull())
+  await waitFor(() => expect(depth()).toBe(0))
+  expect(screen.queryByRole('dialog', { name: LEAVE_TITLE })).toBeNull()
+})
+
+test.each([
+  ['Esc', () => fireEvent.keyDown(document.activeElement!, { key: 'Escape' })],
+  ['×', () => fireEvent.click(screen.getAllByRole('button', { name: '닫기' })[0]!)],
+  ['화면의 닫기', () => fireEvent.click(screen.getByRole('button', { name: '끝내기' }))],
+  [
+    '바깥 누름',
+    () => {
+      fireEvent.pointerDown(document.body, { button: 0 })
+      fireEvent.pointerUp(document.body, { button: 0 })
+      fireEvent.click(document.body)
+    },
+  ],
+  ['기기 뒤로', userBack],
+])('입력이 있는 창을 %s(으)로 닫으면 같은 확인을 거치고, 칸은 하나로 남는다', async (_, shut) => {
+  render(<Shown dirty />)
+  await opened()
+  shut()
+  await stay()
+  expect(inputWindow()).not.toBeNull()
+  expect(depth()).toBe(1)
+  shut()
+  fireEvent.click(await screen.findByRole('button', { name: LEAVE_CONFIRM }))
+  await waitFor(() => expect(inputWindow()).toBeNull())
+  await waitFor(() => expect(depth()).toBe(0))
+  expect(pathNow()).toBe(HOME)
+  expect(hasUnsavedInput()).toBe(false)
+})
+
+test('뒤로로 뜬 확인 창에서 또 뒤로를 누르면 확인 창만 닫히고 입력 창은 남는다', async () => {
+  render(<Shown dirty />)
+  await opened()
+  userBack()
+  await asked()
+  await settle()
+  await waitFor(() => expect(depth()).toBe(2))
+  userBack()
+  await waitFor(() => expect(screen.queryByRole('dialog', { name: LEAVE_TITLE })).toBeNull())
+  await settle()
+  expect(inputWindow()).not.toBeNull()
+  expect(depth()).toBe(1)
+})
+
+test('보내는 중인 창은 뒤로에도 묻지 않고 그대로 남고 칸을 다시 채운다', async () => {
+  render(<Shown dirty sending />)
+  await opened()
+  const pop = vi.fn()
+  window.addEventListener('popstate', pop, { once: true })
+  userBack()
+  await waitFor(() => expect(pop).toHaveBeenCalled())
+  await nextTask()
+  await waitFor(() => expect(depth()).toBe(1))
+  expect(inputWindow()).not.toBeNull()
+  expect(screen.queryByRole('dialog', { name: LEAVE_TITLE })).toBeNull()
+})
+
+test('입력 없는 창은 뒤 화면에 입력이 있어도 묻지 않고, 뒤 화면의 지킴은 남는다', async () => {
+  render(<Shown dirty={false} page />)
+  await opened()
+  fireEvent.keyDown(document.activeElement!, { key: 'Escape' })
+  await waitFor(() => expect(inputWindow()).toBeNull())
+  expect(screen.queryByRole('dialog', { name: LEAVE_TITLE })).toBeNull()
+  expect(hasUnsavedInput()).toBe(true)
+})
+
+test('창의 입력만 버리고 나가도 뒤 화면의 입력은 계속 지킨다', async () => {
+  render(<Shown dirty page />)
+  await opened()
+  fireEvent.keyDown(document.activeElement!, { key: 'Escape' })
+  fireEvent.click(await screen.findByRole('button', { name: LEAVE_CONFIRM }))
+  await waitFor(() => expect(inputWindow()).toBeNull())
+  await waitFor(() => expect(depth()).toBe(0))
+  expect(hasUnsavedInput()).toBe(true)
+  const event = new Event('beforeunload', { cancelable: true })
+  window.dispatchEvent(event)
+  expect(event.defaultPrevented).toBe(true)
+})
+
+test('기록 상세 창 위의 입력 창을 버리고 나가도 기록 주소를 떠나지 않는다', async () => {
+  const task = '3f2b8c1e-6a4d-4e0b-9c57-1a2b3c4d5e6f'
+  navigate(`/tasks/${C}`)
+  navigate(`/tasks/${C}/${task}`)
+  render(
+    <>
+      <Dialoglike onBack={vi.fn()} adopts={adoptTag('tasks', task)} />
+      <Shown dirty />
+    </>,
+  )
+  await settle()
+  fireEvent.keyDown(document.activeElement!, { key: 'Escape' })
+  fireEvent.click(await screen.findByRole('button', { name: LEAVE_CONFIRM }))
+  await waitFor(() => expect(inputWindow()).toBeNull())
+  await settle()
+  expect(pathNow()).toBe(`/tasks/${C}/${task}`)
 })
