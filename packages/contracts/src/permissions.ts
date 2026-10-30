@@ -48,3 +48,15 @@ export const ACTIONS = [
   'fee_payment.view', // 학생회비 납부자 명단 보기(재정부와 회장단)
 ] as const
 export type Action = (typeof ACTIONS)[number]
+
+// 빈 화면이 '누가 하는지' 말할 때의 주어(navigation.md 이동 규칙 9). who는 서버 권한표의 그 칸과 같아야 하고
+// 어긋나면 apps/api의 permissions.test.ts가 실패한다. 이 글은 표시만 하고, 보일지는 서버가 준 권한이 정한다(DEC-38).
+export const WHO_DOES = {
+  'event.create': { who: ['leadership', 'any_department_head'], subject: '회장단과 부서장이' },
+  'meeting.create': { who: ['leadership', 'any_department_head'], subject: '회장단과 부서장이' },
+  'finance.manage': { who: ['finance'], subject: '재정부가' },
+  'fee_payment.manage': { who: ['finance'], subject: '재정부가' },
+} as const satisfies Partial<Record<Action, { who: readonly string[]; subject: string }>>
+
+export const whoDoes = (action: keyof typeof WHO_DOES, verb: string) =>
+  `${WHO_DOES[action].subject} ${verb}`

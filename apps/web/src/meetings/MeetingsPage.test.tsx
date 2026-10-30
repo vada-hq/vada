@@ -95,6 +95,16 @@ test('내 회의 탭은 내 회의만 읽어 할 일 문구 셋으로 보이고,
   expect(window.location.pathname).toBe(`/meetings/${MEETING_COUNCIL}/${MEETING_ID}`)
 })
 
+test('회의가 없으면 만들 수 없는 사람에게 누가 만드는지 보이고, 만들 수 있으면 버튼이다', async () => {
+  api.on('GET', `${base}?view=council`, () => json({ meetings: [], truncated: false }))
+  const { rerender } = render(page())
+  await screen.findByText('회의 없음')
+  expect(screen.getByText('회장단과 부서장이 만들어요')).toBeTruthy()
+  rerender(page(['meeting.create']))
+  expect(screen.queryByText('회장단과 부서장이 만들어요')).toBeNull()
+  expect(screen.getAllByRole('button', { name: '새 회의' }).length).toBeGreaterThan(0)
+})
+
 test('내 회의는 주소로 바로 열리고 [학생회 회의 전체]로 첫 탭에 돌아간다', async () => {
   window.history.replaceState(null, '', `/meetings/${MEETING_COUNCIL}?tab=mine`)
   api.on('GET', `${base}?view=mine`, () => json({ meetings: [], truncated: false }))

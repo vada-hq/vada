@@ -72,6 +72,21 @@ test('기간마다 수가 보이고, 회장단(보기만)은 올리기가 없다
   expect(screen.queryByRole('button', { name: '납부자 올리기' })).toBeNull()
 })
 
+test('명단이 비면 보기만 하는 사람에게 누가 올리는지 보이고, 재정부에게는 보이지 않는다', async () => {
+  const api = serveFinance()
+  api.on('GET', FEES, () => json({ periods: [], matches: [] }))
+  api.on('GET', `${BASE}/fiscal-periods`, () => json({ periods: [] }))
+  showFinance(VIEWER)
+  fireEvent.click(screen.getByRole('tab', { name: '납부자 명단' }))
+  await screen.findByText('납부자 명단 없음')
+  expect(screen.getByText('재정부가 올려요')).toBeTruthy()
+  cleanup()
+  showFinance(MANAGER)
+  fireEvent.click(screen.getByRole('tab', { name: '납부자 명단' }))
+  await screen.findByText('납부자 명단 없음')
+  expect(screen.queryByText('재정부가 올려요')).toBeNull()
+})
+
 test('학번을 찾으면 기록이 보이고, 보기만 하는 사람에게는 빼기가 없다', async () => {
   const { api } = await open(VIEWER)
   api.on('GET', `${FEES}?studentId=20261234`, () => json(found))

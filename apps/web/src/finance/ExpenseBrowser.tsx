@@ -8,11 +8,13 @@ export function ExpenseBrowser({
   councilId,
   list,
   onOpen,
+  canManage,
   onForbidden,
 }: {
   councilId: string
   list: ExpenseList
   onOpen: (id: string) => void
+  canManage: boolean
   onForbidden: () => void
 }) {
   const url = useMenuQuery('finance', councilId)
@@ -33,6 +35,7 @@ export function ExpenseBrowser({
     <ExpensesPanel
       list={list}
       onOpen={onOpen}
+      canManage={canManage}
       periodId={periodId}
       onPeriod={period => url.set({ period })}
       eventId={url.query['event'] ?? ''}

@@ -87,6 +87,7 @@ function FinanceTabPanel({
             councilId={view.council.id}
             list={expenses}
             onOpen={openers.onOpenExpense}
+            canManage={view.permissions.includes('finance.manage')}
             onForbidden={onForbidden}
           />
         )

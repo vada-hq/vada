@@ -34,7 +34,15 @@ const list: ExpenseList = {
 
 function Sample() {
   const [periodId, setPeriod] = useState<string | null>('p')
-  return <ExpensesPanel list={list} onOpen={() => {}} periodId={periodId} onPeriod={setPeriod} />
+  return (
+    <ExpensesPanel
+      list={list}
+      onOpen={() => {}}
+      canManage
+      periodId={periodId}
+      onPeriod={setPeriod}
+    />
+  )
 }
 
 afterEach(() => {
@@ -83,7 +91,7 @@ const summaryList: ExpenseList = {
 }
 
 test('취소를 합계와 증빙 없음 수에서 빼고 건수에는 넣으며 행사 거르기로 세 수를 바꾼다', () => {
-  render(<ExpensesPanel list={summaryList} onOpen={() => {}} />)
+  render(<ExpensesPanel list={summaryList} onOpen={() => {}} canManage />)
   expect(summaryCell('지출 합계').textContent).toBe('지출 합계300원')
   expect(summaryCell('건수').textContent).toBe('건수3건')
   expect(summaryCell('증빙 없음').textContent).toBe('증빙 없음1건')
@@ -101,7 +109,7 @@ test.each([1280, 1024])(
   width => {
     navigationWidth(width)
     const onOpen = vi.fn()
-    render(<ExpensesPanel list={summaryList} onOpen={onOpen} />)
+    render(<ExpensesPanel list={summaryList} onOpen={onOpen} canManage />)
     const table = screen.getByRole('table', { name: '지출 목록' })
     expect(
       within(table)
@@ -137,7 +145,7 @@ test('표의 예산 항목과 금액은 선택한 배분 범위를 따른다', (
 
 test('390px에서는 카드만 보이고 1024px부터 표로 바뀐다', () => {
   const resize = navigationWidth(390)
-  render(<ExpensesPanel list={summaryList} onOpen={() => {}} />)
+  render(<ExpensesPanel list={summaryList} onOpen={() => {}} canManage />)
   expect(screen.queryByRole('table')).toBeNull()
   const card = screen.getByRole('heading', { name: '사용처 a' }).closest('li')!
   expect(within(card).getByText('축제 · 기획부, 재정부')).toBeTruthy()
@@ -146,11 +154,31 @@ test('390px에서는 카드만 보이고 1024px부터 표로 바뀐다', () => {
   expect(screen.queryByRole('heading', { name: '사용처 a' })).toBeNull()
 })
 
+test('지출이 하나도 없을 때만 적을 수 없는 사람에게 누가 적는지 보인다', () => {
+  const empty: ExpenseList = {
+    ...list,
+    state: {
+      kind: 'ready',
+      data: { expenses: [], allocations: [], periods: [], truncated: false },
+    },
+  }
+  const { rerender } = render(<ExpensesPanel list={empty} onOpen={() => {}} canManage={false} />)
+  expect(screen.getByText('재정부가 적어요')).toBeTruthy()
+  rerender(<ExpensesPanel list={empty} onOpen={() => {}} canManage />)
+  expect(screen.queryByText('재정부가 적어요')).toBeNull()
+  cleanup()
+  render(<ExpensesPanel list={list} onOpen={() => {}} canManage={false} periodId={null} />)
+  fireEvent.click(screen.getByRole('button', { name: /^필터/ }))
+  fireEvent.change(screen.getByLabelText('사용처·내역 검색'), { target: { value: '없음' } })
+  expect(screen.getByText('지출 없음')).toBeTruthy()
+  expect(screen.queryByText('재정부가 적어요')).toBeNull()
+})
+
 test.each([390, 1280])('%ipx에서 상한 안내는 요약 바로 다음이고 행 복사 글이 같다', async width => {
   navigationWidth(width)
   const writeText = vi.fn().mockResolvedValue(undefined)
   Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true })
-  render(<ExpensesPanel list={list} onOpen={() => {}} />)
+  render(<ExpensesPanel list={list} onOpen={() => {}} canManage />)
   const status = summaryCell('지출 합계').closest('[role="status"]')!
   const notice = screen.getByText('지출이 많아서 300개만 보여요.')
   expect(status.nextElementSibling).toBe(notice)
@@ -180,7 +208,7 @@ test('행 복사는 탭으로 나눈 두 칸(행사, 내역)을 쓰며 실패 �
 })
 
 test('모르는 기간의 주소는 전체 지출이나 0원으로 바꾸지 않는다', () => {
-  render(<ExpensesPanel list={list} onOpen={() => {}} periodId="missing" />)
+  render(<ExpensesPanel list={list} onOpen={() => {}} canManage periodId="missing" />)
   expect(screen.queryByRole('heading', { name: '문구점' })).toBeNull()
   expect(screen.getByRole('alert').textContent).toBe('회계 기간을 찾을 수 없어요.')
   expect(screen.queryByText('합계 0원')).toBeNull()

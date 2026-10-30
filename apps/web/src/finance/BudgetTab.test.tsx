@@ -207,6 +207,22 @@ test('재정부가 아니면 보기만 하고 만들기와 편성 버튼이 없�
   show(MEMBER_PERMISSIONS)
   await screen.findByText('회계 기간 없음')
   expect(screen.queryByRole('button', { name: '회계 기간 만들기' })).toBeNull()
+  expect(screen.getByText('재정부가 만들어요')).toBeTruthy()
+  cleanup()
+  show(MEMBER_PERMISSIONS, { ...budgetWithPeriod(), items: [] })
+  await screen.findByText('예산 항목 없음')
+  expect(screen.getByText('재정부가 편성해요')).toBeTruthy()
+})
+
+test('재정부에게는 빈 화면에 누가 하는지 대신 하는 버튼이 있다', async () => {
+  show()
+  await screen.findByText('회계 기간 없음')
+  expect(screen.getByRole('button', { name: '회계 기간 만들기' })).toBeTruthy()
+  expect(screen.queryByText('재정부가 만들어요')).toBeNull()
+  cleanup()
+  show(FINANCE_PERMISSIONS, { ...budgetWithPeriod(), items: [] })
+  await screen.findByText('예산 항목 없음')
+  expect(screen.queryByText('재정부가 편성해요')).toBeNull()
 })
 
 // 예산 편성 창을 열고 첫 행을 채운다(창은 지금 기간의 예산도 읽는다).

@@ -1,4 +1,5 @@
-import { INCOME_LIST_LIMIT, type FiscalPeriodSummary } from '@vada/contracts'
+import { INCOME_LIST_LIMIT, whoDoes, type FiscalPeriodSummary } from '@vada/contracts'
+import { EmptyMessage } from '@/components/EmptyMessage'
 import StateMessage from '@/components/StateMessage'
 import { NoPeriod } from './NoPeriod'
 import { Button } from '@/components/ui/button'
@@ -21,7 +22,15 @@ type Props = {
   onForbidden: () => void
 }
 
-function IncomeBody({ list, onOpen }: { list: IncomeList; onOpen: (incomeId: string) => void }) {
+function IncomeBody({
+  list,
+  canManage,
+  onOpen,
+}: {
+  list: IncomeList
+  canManage: boolean
+  onOpen: (incomeId: string) => void
+}) {
   const { state } = list
   if (state.kind === 'loading') return <StateMessage kind="loading">수입 불러오는 중…</StateMessage>
   if (state.kind === 'failed')
@@ -34,7 +43,12 @@ function IncomeBody({ list, onOpen }: { list: IncomeList; onOpen: (incomeId: str
       </div>
     )
   const { incomes, truncated } = state.data
-  if (incomes.length === 0) return <StateMessage kind="empty">수입 없음</StateMessage>
+  if (incomes.length === 0)
+    return (
+      <EmptyMessage who={canManage ? null : whoDoes('finance.manage', '적어요')}>
+        수입 없음
+      </EmptyMessage>
+    )
   return (
     <>
       <ul className="flex flex-col gap-2">
@@ -121,7 +135,11 @@ export function IncomesTab({ councilId, canManage, onForbidden }: Props) {
         )}
         {dialogs.lost && <StateMessage kind="error">{dialogs.lost}</StateMessage>}
       </div>
-      <IncomeBody list={incomes} onOpen={id => openRecord('incomes', councilId, id)} />
+      <IncomeBody
+        list={incomes}
+        canManage={canManage}
+        onOpen={id => openRecord('incomes', councilId, id)}
+      />
       <IncomeDialogs
         councilId={councilId}
         period={period}

@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import {
   FeePaymentSearchSchema,
+  whoDoes,
   type FeePaymentMatch,
   type FeePaymentsResponse,
   type FeePaymentPeriod,
 } from '@vada/contracts'
+import { EmptyMessage } from '@/components/EmptyMessage'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -24,8 +26,13 @@ type Props = {
   onForbidden: () => void
 }
 
-function Periods({ periods }: { periods: FeePaymentPeriod[] }) {
-  if (periods.length === 0) return <StateMessage kind="empty">납부자 명단 없음</StateMessage>
+function Periods({ periods, canManage }: { periods: FeePaymentPeriod[]; canManage: boolean }) {
+  if (periods.length === 0)
+    return (
+      <EmptyMessage who={canManage ? null : whoDoes('fee_payment.manage', '올려요')}>
+        납부자 명단 없음
+      </EmptyMessage>
+    )
   return (
     <ul aria-label="납부 기간" className="flex flex-col gap-2">
       {periods.map(period => (
@@ -193,7 +200,7 @@ function ListArea({
   if (state.kind === 'failed') return <LoadFailed onRetry={onRetry} />
   return (
     <>
-      <Periods periods={state.data.periods} />
+      <Periods periods={state.data.periods} canManage={canManage} />
       {applied && (
         <Matches matches={state.data.matches} canManage={canManage} onRemove={onRemove} />
       )}

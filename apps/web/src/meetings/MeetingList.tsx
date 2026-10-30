@@ -6,7 +6,9 @@ import {
   type MeetingsResponse,
   type MeetingStatus,
   type MeetingSummary,
+  whoDoes,
 } from '@vada/contracts'
+import { EmptyMessage } from '@/components/EmptyMessage'
 import PageActions from '@/components/PageActions'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -128,6 +130,31 @@ type Props = {
   onCreate?: (() => void) | undefined
   referenceTime?: string
 }
+
+// 회의가 하나도 없으면 만들 수 있는 사람에게 버튼, 없는 사람에게 누가 만드는지 보인다.
+function NoMeetings({
+  narrowed,
+  none,
+  onCreate,
+}: {
+  narrowed: boolean
+  none: boolean
+  onCreate: Props['onCreate']
+}) {
+  return (
+    <Card className="flex flex-col items-start gap-4 p-6">
+      <EmptyMessage who={none && !onCreate ? whoDoes('meeting.create', '만들어요') : null}>
+        {narrowed ? '맞는 회의 없음' : '회의 없음'}
+      </EmptyMessage>
+      {none && onCreate && (
+        <Button touch onClick={onCreate}>
+          새 회의
+        </Button>
+      )}
+    </Card>
+  )
+}
+
 export function MeetingList({ data, status, onStatus, onOpen, onCreate, referenceTime }: Props) {
   const [search, setSearch] = useState('')
   const clock = useNow()
@@ -170,16 +197,11 @@ export function MeetingList({ data, status, onStatus, onOpen, onCreate, referenc
         <Group key={group.id} group={group} onOpen={onOpen} />
       ))}
       {groups.length === 0 && (
-        <Card className="flex flex-col items-start gap-4 p-6">
-          <p className="text-sm text-muted-foreground">
-            {search.trim() || status ? '맞는 회의 없음' : '회의 없음'}
-          </p>
-          {!data.meetings.length && onCreate && (
-            <Button touch onClick={onCreate}>
-              새 회의
-            </Button>
-          )}
-        </Card>
+        <NoMeetings
+          narrowed={Boolean(search.trim() || status)}
+          none={data.meetings.length === 0}
+          onCreate={onCreate}
+        />
       )}
       {data.truncated && <p className="text-sm text-muted-foreground">{MEETING_LIST_TRUNCATED}</p>}
     </>

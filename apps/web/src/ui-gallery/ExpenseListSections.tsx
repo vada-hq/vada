@@ -54,7 +54,9 @@ const list: ExpenseList = {
 
 function Sample() {
   const [periodId, setPeriodId] = useState<string | null>(null)
-  return <ExpensesPanel list={list} onOpen={noop} periodId={periodId} onPeriod={setPeriodId} />
+  return (
+    <ExpensesPanel list={list} onOpen={noop} canManage periodId={periodId} onPeriod={setPeriodId} />
+  )
 }
 
 export function ExpenseListSection() {

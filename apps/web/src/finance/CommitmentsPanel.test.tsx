@@ -27,6 +27,7 @@ function show() {
       councilId={COUNCIL_ID}
       onForbidden={onForbidden}
       onOpen={() => {}}
+      canManage
       list={{ state: { kind: 'loading' }, reload: async () => {}, replace: () => {} }}
     />,
   )

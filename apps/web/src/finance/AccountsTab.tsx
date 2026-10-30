@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import type { AccountItem } from '@vada/contracts'
+import { whoDoes, type AccountItem } from '@vada/contracts'
+import { EmptyMessage } from '@/components/EmptyMessage'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
 import { ACCOUNTS_LOAD_FAILED } from '@/lib/messages'
@@ -54,13 +55,20 @@ function OpenDialog({
 function Cards({
   accounts,
   truncated,
+  canManage,
   onOpen,
 }: {
   accounts: AccountItem[]
   truncated: boolean
+  canManage: boolean
   onOpen: (open: Open) => void
 }) {
-  if (accounts.length === 0) return <StateMessage kind="empty">계좌 없음</StateMessage>
+  if (accounts.length === 0)
+    return (
+      <EmptyMessage who={canManage ? null : whoDoes('finance.manage', '더해요')}>
+        계좌 없음
+      </EmptyMessage>
+    )
   return (
     <>
       <ul aria-label="계좌" className="flex flex-col gap-2">
@@ -119,7 +127,12 @@ export function AccountsTab({ councilId, canManage, onForbidden }: Props) {
           계좌 더하기
         </Button>
       )}
-      <Cards accounts={state.data.accounts} truncated={state.data.truncated} onOpen={start} />
+      <Cards
+        accounts={state.data.accounts}
+        truncated={state.data.truncated}
+        canManage={canManage}
+        onOpen={start}
+      />
       <OpenDialog
         open={open}
         councilId={councilId}

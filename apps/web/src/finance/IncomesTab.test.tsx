@@ -94,6 +94,23 @@ test('빈 목록, 읽기 실패와 다시 시도, 넘침', async () => {
   await screen.findByText('수입 없음')
 })
 
+test('기록할 수 없는 사람에게는 빈 수입과 빈 기간에 누가 하는지 보인다', async () => {
+  const api = serveIncomes()
+  api.on('GET', `${BASE}/incomes?period=${CURRENT_PERIOD}`, () =>
+    json({ incomes: [], truncated: false }),
+  )
+  showFinance(MEMBER_PERMISSIONS)
+  openIncomesTab()
+  await screen.findByText('수입 없음')
+  expect(screen.getByText('재정부가 적어요')).toBeTruthy()
+  cleanup()
+  api.on('GET', PERIODS, () => json({ periods: [] }))
+  showFinance(MEMBER_PERMISSIONS)
+  openIncomesTab()
+  await screen.findByText('회계 기간 없음')
+  expect(screen.getByText('재정부가 만들어요')).toBeTruthy()
+})
+
 test('회계 기간이 없으면 만들라고 알리고, 기간 읽기 실패도 알린다', async () => {
   const api = serveIncomes()
   api.on('GET', PERIODS, () => json({ periods: [] }))

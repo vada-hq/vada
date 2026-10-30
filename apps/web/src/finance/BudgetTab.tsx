@@ -1,5 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react'
-import type { BudgetResponse } from '@vada/contracts'
+import { whoDoes, type BudgetResponse } from '@vada/contracts'
+import { EmptyMessage } from '@/components/EmptyMessage'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
 import { BUDGET_LOAD_FAILED } from '@/lib/budget-messages'
@@ -31,7 +32,12 @@ type ItemsProps = {
 
 // 항목마다 '⋯' 메뉴(고치기·지우기·이력 보기)를 둔다.
 function Items({ items, councilId, canManage, handlers }: ItemsProps) {
-  if (items.length === 0) return <StateMessage kind="empty">예산 항목 없음</StateMessage>
+  if (items.length === 0)
+    return (
+      <EmptyMessage who={canManage ? null : whoDoes('finance.manage', '편성해요')}>
+        예산 항목 없음
+      </EmptyMessage>
+    )
   return (
     <BudgetItemList
       items={items}
@@ -63,7 +69,9 @@ function Loaded({
   if (!data.period)
     return (
       <div className="flex flex-col items-start gap-3">
-        <StateMessage kind="empty">회계 기간 없음</StateMessage>
+        <EmptyMessage who={canManage ? null : whoDoes('finance.manage', '만들어요')}>
+          회계 기간 없음
+        </EmptyMessage>
         {canManage && <Button onClick={() => onOpen('period')}>회계 기간 만들기</Button>}
       </div>
     )

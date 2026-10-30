@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { BarChart2, ChevronRight, ClipboardList } from 'lucide-react'
-import type { RoomSummary } from '@vada/contracts'
+import { whoDoes, type RoomSummary } from '@vada/contracts'
 import { Button } from '@/components/ui/button'
 import { cardClass } from '@/components/ui/card'
 import EventStatusChip from '@/events/EventStatusChip'
@@ -161,7 +161,9 @@ export const participatingRows = [
 export const MORE_THAN_SHOWN = 5
 
 // 첫날 막 들어온 운영진: 행사를 만들 수 없는 사람의 빈 상태에는 누가 만드는지 한 줄을 둔다(DEC-78 규칙 9).
-export const whoCreates = <p className="text-xs text-fg-muted">회장단과 부서장이 만들어요</p>
+export const whoCreates = (
+  <p className="text-xs text-fg-muted">{whoDoes('event.create', '만들어요')}</p>
+)
 
 // 알림 꺼짐 띠 견본: PushOffBand의 보이는 부분 그대로다.
 export const pushBand = <PushOffAlert message={PUSH_OFF_CHAT} onTurnOn={noop} />

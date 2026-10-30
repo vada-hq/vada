@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { ACTIONS, type Action } from '@vada/contracts'
+import { ACTIONS, WHO_DOES, type Action } from '@vada/contracts'
 import type { Actor } from './actor.js'
 import { allows, can, permissionsOf, PERMISSIONS } from './permissions.js'
 
@@ -16,6 +16,12 @@ const actor = (
   councilRank,
   departments,
 })
+// 빈 화면의 '누가 하는지' 글이 권한표와 어긋나면 여기서 실패한다. 권한표를 바꾸면 그 글도 같이 고친다.
+test('빈 화면이 말하는 사람은 권한표의 기준과 같다', () => {
+  for (const [action, { who }] of Object.entries(WHO_DOES))
+    assert.deepEqual(PERMISSIONS[action as keyof typeof WHO_DOES].who, who, action)
+})
+
 const president = actor('president', 'president')
 const vicePresident = actor('vice', 'vice_president')
 const financeMember = actor('finance', null, [

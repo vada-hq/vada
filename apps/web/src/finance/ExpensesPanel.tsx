@@ -1,5 +1,6 @@
 import { useState, type ComponentProps } from 'react'
-import { EXPENSE_LIST_LIMIT, type ExpensesResponse } from '@vada/contracts'
+import { EXPENSE_LIST_LIMIT, whoDoes, type ExpensesResponse } from '@vada/contracts'
+import { EmptyMessage } from '@/components/EmptyMessage'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
 import { EXPENSES_LOAD_FAILED } from '@/lib/messages'
@@ -18,6 +19,8 @@ import { wonLabel } from './purchase-view'
 type Props = {
   list: ExpenseList
   onOpen: (expenseId: string) => void
+  // `finance.manage`가 있으면 지출 적기 버튼이 있다. 없으면 빈 목록에 누가 적는지 보인다.
+  canManage: boolean
   periodId?: string | null
   onPeriod?: (periodId: string | null) => void
   eventId?: string
@@ -39,9 +42,14 @@ export function ExpensesPanel({ list, ...props }: Props) {
   return <ReadyExpenses data={state.data} {...props} />
 }
 
+// 거르기로 빈 것은 지출이 있는 것이라 누가 적는지 말하지 않는다.
+const whoWrites = (canManage: boolean, expenses: ExpensesResponse['expenses']) =>
+  canManage || expenses.length > 0 ? null : whoDoes('finance.manage', '적어요')
+
 function ReadyExpenses({
   data,
   onOpen,
+  canManage,
   periodId = null,
   onPeriod,
   eventId,
@@ -74,7 +82,9 @@ function ReadyExpenses({
   return (
     <>
       <ExpenseHead filterProps={filterProps} summary={summary} truncated={truncated} />
-      {found.length === 0 && <StateMessage kind="empty">지출 없음</StateMessage>}
+      {found.length === 0 && (
+        <EmptyMessage who={whoWrites(canManage, expenses)}>지출 없음</EmptyMessage>
+      )}
       <ExpenseRows expenses={found} allocations={allocations} filters={selected} onOpen={onOpen} />
     </>
   )

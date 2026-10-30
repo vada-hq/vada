@@ -90,6 +90,8 @@ export {
   DEPARTMENT_RANKS,
   DEPARTMENT_ROLES,
   ACTIONS,
+  WHO_DOES,
+  whoDoes,
   type CouncilRank,
   type DepartmentRank,
   type DepartmentRole,

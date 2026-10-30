@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { CalendarDays } from 'lucide-react'
-import { EVENT_LIST_LIMIT, menuPath, type CouncilView } from '@vada/contracts'
+import { EVENT_LIST_LIMIT, menuPath, whoDoes, type CouncilView } from '@vada/contracts'
 import type { RoomPage } from '../chat/ChatPage'
 import { EmptyState } from '@/components/EmptyState'
 import PageActions from '@/components/PageActions'
@@ -38,7 +38,7 @@ export function NoEvents({ canCreate, onCreate }: { canCreate: boolean; onCreate
       iconClassName="bg-surface-muted text-fg-subtle"
       className="break-keep"
       title="행사 없음"
-      {...(canCreate ? {} : { description: '회장단과 부서장이 만들어요' })}
+      {...(canCreate ? {} : { description: whoDoes('event.create', '만들어요') })}
     >
       {canCreate && (
         <Button touch onClick={onCreate}>
