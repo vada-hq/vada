@@ -1,9 +1,12 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, expect, test, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { resetAddress } from '@/test-support/address-reset'
 import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
 import { myCouncil } from '@/test-support/council-fixtures'
 import { asElement } from '@/test-support/elements'
+import { settle } from '@/test-support/settle'
+import { LEAVE_CONFIRM, LEAVE_TITLE } from '@/lib/messages'
 import CreateCouncilForm from './CreateCouncilForm'
 
 // 학생회 만들기 단계(기능 020 조각 3): 기본 정보 1/3 → 조직 구조 2/3 → 초대 링크 3/3. 제목은 단계 이름이다.
@@ -13,8 +16,9 @@ beforeEach(() => {
   vi.setSystemTime(new Date('2026-06-15T03:00:00Z'))
   api = mockApi()
 })
-afterEach(() => {
+afterEach(async () => {
   cleanup()
+  await resetAddress()
   try {
     api.assertNoUnexpectedRequests()
   } finally {
@@ -29,12 +33,13 @@ function serve(linkedName: string | null = null) {
     json({ code: 'ABCD2345', createdAt: '2026-10-25T05:00:00.000Z' }),
   )
 }
-function open(props: { onCreated?: () => void; onCancel?: () => void } = {}) {
+function open(props: { onCreated?: () => void; onCancel?: () => void; onClose?: () => void } = {}) {
   render(
     <CreateCouncilForm
       userName="김구글"
       onCreated={props.onCreated ?? (() => {})}
       onCancel={props.onCancel ?? (() => {})}
+      {...(props.onClose ? { onClose: props.onClose } : {})}
     />,
   )
   return screen.getByRole('form', { name: '학생회 만들기' })
@@ -508,4 +513,123 @@ test('[부서 추가]는 부서 목록 밖이라 목록에는 부서만 있다',
   const list = screen.getByRole('list', { name: '부서' })
   expect(within(list).getAllByRole('listitem')).toHaveLength(3)
   expect(within(list).queryByRole('button', { name: '부서 추가' })).toBeNull()
+})
+
+const windowDepth = () => (window.history.state as { vadaWindow?: number } | null)?.vadaWindow ?? 0
+const userBack = async () => {
+  await settle()
+  act(() => window.history.back())
+}
+const asked = () => screen.findByRole('dialog', { name: LEAVE_TITLE })
+const keepWriting = async () => {
+  fireEvent.click(within(await asked()).getAllByRole('button', { name: '닫기' })[0]!)
+  await waitFor(() => expect(screen.queryByRole('dialog', { name: LEAVE_TITLE })).toBeNull())
+  await settle()
+}
+const reloadWarned = () => {
+  const event = new Event('beforeunload', { cancelable: true })
+  window.dispatchEvent(event)
+  return event.defaultPrevented
+}
+
+test('아무것도 쓰지 않았으면 새로고침을 막지 않고, 뒤로와 [이전]은 묻지 않고 처음 화면으로 간다', async () => {
+  serve()
+  const onCancel = vi.fn()
+  open({ onCancel })
+  expect(reloadWarned()).toBe(false)
+  await waitFor(() => expect(windowDepth()).toBe(1))
+  await userBack()
+  await waitFor(() => expect(onCancel).toHaveBeenCalledTimes(1))
+  expect(screen.queryByRole('dialog', { name: LEAVE_TITLE })).toBeNull()
+  await settle()
+  fireEvent.click(button('이전'))
+  expect(onCancel).toHaveBeenCalledTimes(2)
+})
+
+test('값을 쓰면 새로고침에 브라우저 확인을 걸고, 뒤로와 [이전]은 먼저 묻는다', async () => {
+  serve()
+  const onCancel = vi.fn()
+  open({ onCancel })
+  fillBasic()
+  expect(reloadWarned()).toBe(true)
+  await waitFor(() => expect(windowDepth()).toBe(1))
+  await userBack()
+  await keepWriting()
+  expect(onCancel).not.toHaveBeenCalled()
+  expect(nameInput('학교').value).toBe('한양대학교 ERICA')
+  fireEvent.click(button('이전'))
+  await keepWriting()
+  expect(onCancel).not.toHaveBeenCalled()
+  await userBack()
+  fireEvent.click(await screen.findByRole('button', { name: LEAVE_CONFIRM }))
+  await waitFor(() => expect(onCancel).toHaveBeenCalledTimes(1))
+  expect(reloadWarned()).toBe(false)
+})
+
+test('2단계의 뒤로는 값을 남긴 채 1단계로 가고, 1단계의 뒤로가 비로소 묻는다', async () => {
+  serve()
+  const onCancel = vi.fn()
+  open({ onCancel })
+  await toStructure()
+  await waitFor(() => expect(windowDepth()).toBe(2))
+  await userBack()
+  await screen.findByRole('heading', { level: 2, name: '기본 정보' })
+  expect(screen.queryByRole('dialog', { name: LEAVE_TITLE })).toBeNull()
+  expect(nameInput('학교').value).toBe('한양대학교 ERICA')
+  expect(windowDepth()).toBe(1)
+  await userBack()
+  await keepWriting()
+  expect(onCancel).not.toHaveBeenCalled()
+})
+
+test('보내는 중에는 뒤로가 묻지도 단계를 옮기지도 않고, 만들고 나면 지킴을 푼다', async () => {
+  serve()
+  const pending = deferredResponse()
+  api.on('POST', '/api/organizations/create', () => pending.promise)
+  open()
+  await toStructure()
+  await waitFor(() => expect(windowDepth()).toBe(2))
+  fireEvent.click(button('학생회 만들기'))
+  await waitFor(() => expect(api.calls.some(call => call.method === 'POST')).toBe(true))
+  expect(reloadWarned()).toBe(false)
+  await userBack()
+  await settle()
+  expect(title().textContent).toBe('조직 구조')
+  expect(screen.queryByRole('dialog', { name: LEAVE_TITLE })).toBeNull()
+  pending.resolve(json({ council: myCouncil('c9', '컴퓨터학부 학생회') }, 201))
+  await screen.findByRole('heading', { level: 2, name: '초대 링크' })
+  await waitFor(() => expect(windowDepth()).toBe(0))
+  expect(reloadWarned()).toBe(false)
+  expect(screen.queryByRole('dialog', { name: LEAVE_TITLE })).toBeNull()
+})
+
+test('둘째 학생회의 [닫기]는 보내는 중에 막히고, 만든 뒤에는 묻지 않고 닫는다', async () => {
+  serve()
+  const pending = deferredResponse()
+  api.on('POST', '/api/organizations/create', () => pending.promise)
+  const onClose = vi.fn()
+  open({ onClose })
+  await toStructure()
+  fireEvent.click(button('학생회 만들기'))
+  await waitFor(() => expect(api.calls.some(call => call.method === 'POST')).toBe(true))
+  const close = () => screen.getByRole('button', { name: '닫기' })
+  expect(asElement(close(), HTMLButtonElement).disabled).toBe(true)
+  fireEvent.click(close())
+  expect(onClose).not.toHaveBeenCalled()
+  pending.resolve(json({ council: myCouncil('c9', '컴퓨터학부 학생회') }, 201))
+  await screen.findByRole('heading', { level: 2, name: '초대 링크' })
+  await settle()
+  fireEvent.click(close())
+  expect(onClose).toHaveBeenCalledTimes(1)
+  expect(screen.queryByRole('dialog', { name: LEAVE_TITLE })).toBeNull()
+})
+
+test('실패하면 쓴 값을 다시 지킨다', async () => {
+  serve()
+  api.on('POST', '/api/organizations/create', () => json({ error: 'FAILED' }, 500))
+  open()
+  await toStructure()
+  fireEvent.click(button('학생회 만들기'))
+  await waitFor(() => expect(reloadWarned()).toBe(true))
+  expect(title().textContent).toBe('조직 구조')
 })

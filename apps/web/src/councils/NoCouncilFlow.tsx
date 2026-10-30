@@ -45,21 +45,15 @@ export default function NoCouncilFlow({
       onClose ? 'compact' : 'no-council',
     )
   return card(
-    <>
-      <CreateCouncilForm
-        userName={userName}
-        onCancel={() => setCreating(false)}
-        onCreated={council => {
-          setCreating(false)
-          onCreated(council)
-        }}
-      />
-      {onClose && (
-        <Button touch variant="outline" className="mt-4 w-full" onClick={onClose}>
-          닫기
-        </Button>
-      )}
-    </>,
+    <CreateCouncilForm
+      userName={userName}
+      onCancel={() => setCreating(false)}
+      onCreated={council => {
+        setCreating(false)
+        onCreated(council)
+      }}
+      onClose={onClose}
+    />,
     'compact',
   )
 }

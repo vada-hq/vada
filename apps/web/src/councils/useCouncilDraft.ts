@@ -1,12 +1,14 @@
 import { useRef, useState } from 'react'
 import { CreateCouncilSchema, koreanYearOf, operatingYearsOf } from '@vada/contracts'
+import { sameJson } from '@/lib/same-json'
 import { createRequestOf, initialDraft, type DraftTextKey } from './council-draft'
 import { isOperatingYear, YEAR_OUT_OF_RANGE } from './term'
 
 // 학생회 만들기 1·2단계가 같이 고치는 값과 운영 연도 선택지. 서버를 부르지 않아 부품 확인 화면도 그대로 쓴다.
 // opened는 연 때의 오늘이다(부품 확인 화면은 날짜를 고정한다).
 export function useCouncilDraft(memberName: string, opened?: Date) {
-  const [draft, setDraft] = useState(() => initialDraft(memberName, opened))
+  const [initial] = useState(() => initialDraft(memberName, opened))
+  const [draft, setDraft] = useState(initial)
   // 운영 연도 선택지. 연 때의 오늘로 두고 누를 때 다시 센다(양식을 연 채 해가 바뀌면 선택지도 바뀐다).
   const [years, setYears] = useState(() => operatingYearsOf(opened ?? new Date()))
   const [yearReset, setYearReset] = useState(false)
@@ -46,6 +48,8 @@ export function useCouncilDraft(memberName: string, opened?: Date) {
   const parse = (askName: boolean) => CreateCouncilSchema.safeParse(createRequestOf(draft, askName))
   return {
     draft,
+    // 미리 둔 값(학부·학과, 올해, 기본 부서, Google 이름)만 있으면 쓴 것이 아니다.
+    dirty: !sameJson(draft, initial),
     set,
     years,
     refreshYears,
