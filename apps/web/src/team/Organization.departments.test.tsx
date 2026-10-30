@@ -724,7 +724,7 @@ test('[부장 지정]으로 부장을 정하고 창을 닫으면 초점이 부�
   )
 })
 
-test('부서를 만들면 비운 칸에 문제 글이 남지 않고, 다음 빈 제출에 다시 알린다', async () => {
+test('부서를 만들면 비운 칸에 문제 글이 남지 않고, 다음 빈 제출에 다시 알린다. 이름 칸은 필수 표시가 있다', async () => {
   const api = serve()
   api.on('POST', '/api/organizations/c1/departments', () =>
     withDepartments(team =>
@@ -734,6 +734,7 @@ test('부서를 만들면 비운 칸에 문제 글이 남지 않고, 다음 빈 
   render(<Harness permissions={LEADER_PERMISSIONS} />)
   const form = await openAdd()
   const input = within(form).getByLabelText('새 부서 이름')
+  expect(input.getAttribute('aria-required')).toBe('true')
   fireEvent.change(input, { target: { value: '홍보부' } })
   fireEvent.click(within(form).getByRole('button', { name: '부서 추가' }))
   expect(await screen.findByRole('heading', { name: '홍보부' })).toBeTruthy()

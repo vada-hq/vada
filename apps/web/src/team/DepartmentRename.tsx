@@ -55,7 +55,7 @@ export function DepartmentRename({ department, name, error, saving, ...on }: Pro
         on.onClose()
       }}
     >
-      <Field label="부서 이름" error={errors.name ?? (error || undefined)}>
+      <Field label="부서 이름" required error={errors.name ?? (error || undefined)}>
         <Input ref={inputRef} value={name} onChange={event => on.onName(event.target.value)} />
       </Field>
       <div className="flex gap-2">

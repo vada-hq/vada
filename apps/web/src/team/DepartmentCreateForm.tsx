@@ -55,7 +55,7 @@ export function DepartmentCreateForm({ saving, error, name, onName, onCreate, ..
           on.onClose()
         }}
       >
-        <Field label="새 부서 이름" error={fieldErrors.name}>
+        <Field label="새 부서 이름" required error={fieldErrors.name}>
           <Input
             ref={inputRef}
             value={name}
