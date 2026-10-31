@@ -28,7 +28,8 @@ export function useApplyDraft({ code, writing, reload, onLost, onApplied }: Opti
       saveToken(code, token)
       setStarted(false)
       // 칸을 남기고 주소를 바꾸면 내 신청의 뒤로가 신청 칸으로 돌아온다(PublicApp).
-      afterAllWindowEntries(() => onApplied(token))
+      // 기록 이동의 popstate 안에서 주소를 바꾸면 브라우저가 그 이동을 취소해 화면에 남는다.
+      afterAllWindowEntries(() => setTimeout(() => onApplied(token), 0))
     },
   })
   const leave = useWindowLeave(() => {
