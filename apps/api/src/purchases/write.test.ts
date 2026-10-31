@@ -74,7 +74,7 @@ test(
       body: emoji(1000),
       items: Array.from({ length: 20 }, () => ({
         name: emoji(100),
-        quantity: 999,
+        quantity: 99_999,
         link: `https://a.example/${'a'.repeat(1982)}`,
         options: emoji(200),
       })),
@@ -103,7 +103,7 @@ test(
       ['품목 이름 NUL', { title: 'a', items: [{ name: 'a\u0000', quantity: 1 }] }],
       ['수량 없음', { title: 'a', items: [{ name: 'a' }] }],
       ['수량 0', { title: 'a', items: [{ name: 'a', quantity: 0 }] }],
-      ['수량 1000', { title: 'a', items: [{ name: 'a', quantity: 1000 }] }],
+      ['수량 100000', { title: 'a', items: [{ name: 'a', quantity: 100_000 }] }],
       ['수량 음수', { title: 'a', items: [{ name: 'a', quantity: -1 }] }],
       ['수량 소수', { title: 'a', items: [{ name: 'a', quantity: 1.5 }] }],
       ['수량 글자', { title: 'a', items: [{ name: 'a', quantity: '1' }] }],
@@ -355,7 +355,7 @@ test(
       neededBy: '2026-10-30',
       items: Array.from({ length: 20 }, () => ({
         name: control(100),
-        quantity: 999,
+        quantity: 99_999,
         link: `https://a.example/${'한'.repeat(1982)}`,
         options: control(200),
       })),

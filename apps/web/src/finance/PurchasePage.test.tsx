@@ -439,3 +439,24 @@ test('예상 단가·배송비는 쉼표와 공백을 받고 1e3은 칸 아래�
     items: [{ estimatedUnitPrice: 12000, estimatedShippingFee: 3000 }],
   })
 })
+
+test('수량은 99,999까지 받고 넘으면 칸 아래에 알린다. 단가 × 수량이 상한을 넘으면 단가 칸에 알린다', async () => {
+  const api = setup()
+  api.on('POST', REQUESTS, () => json({ request: purchaseDetail(REQUEST) }, 201))
+  open()
+  write()
+  fill('품목 1 수량', '100000')
+  fireEvent.click(screen.getByRole('button', { name: '내기' }))
+  expect(screen.getByText('더 작은 값을 입력해 주세요')).toBeTruthy()
+  expect(screen.getByLabelText('품목 1 수량').getAttribute('aria-invalid')).toBe('true')
+  fill('품목 1 수량', '99999')
+  fill('품목 1 예상 단가', '10001')
+  expect(screen.getByLabelText('품목 1 예상 단가').getAttribute('aria-invalid')).toBe('true')
+  expect(screen.getByLabelText('품목 1 수량').getAttribute('aria-invalid')).not.toBe('true')
+  expect(postedIds(api)).toHaveLength(0)
+  fill('품목 1 예상 단가', '10000')
+  await press(api)
+  expect(api.calls.find(call => call.path === REQUESTS)?.body).toMatchObject({
+    items: [{ quantity: 99999, estimatedUnitPrice: 10000 }],
+  })
+})

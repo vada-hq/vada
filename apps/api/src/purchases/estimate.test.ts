@@ -126,3 +126,37 @@ test(
     assert.equal((await usage()).available, 99223)
   }),
 )
+
+test(
+  '수량 상한 99,999: 단가 × 수량 + 배송비가 금액 상한까지는 저장되고 1원이라도 넘으면 400이다',
+  runPurchases(async s => {
+    const edge = { name: '기념품', quantity: 99_999, estimatedUnitPrice: 10_000 }
+    const full = await s.made({
+      title: '상한',
+      items: [{ ...edge, estimatedShippingFee: WON_MAX - 99_999 * 10_000 }],
+    })
+    assert.deepEqual(full.estimate, { subtotal: 999_990_000, total: WON_MAX })
+    const before = await s.count('SELECT count(*) AS n FROM request')
+    for (const item of [
+      { ...edge, estimatedUnitPrice: 10_001 },
+      { ...edge, estimatedShippingFee: WON_MAX - 99_999 * 10_000 + 1 },
+    ])
+      assert.equal((await s.create({ title: '넘음', items: [item] })).status, 400)
+    assert.equal(await s.count('SELECT count(*) AS n FROM request'), before)
+    // 예상 단가가 없는 상한 수량은 금액 칸이 없어 그대로 받는다.
+    const bare = await s.made({ title: '수량만', items: [{ name: '기념품', quantity: 99_999 }] })
+    assert.equal(bare.items[0]!.quantity, 99_999)
+  }),
+)
+
+test(
+  'DB도 단가 × 수량 + 배송비가 금액 상한을 넘는 품목을 막는다',
+  runPurchases(async s => {
+    const made = await s.made({ title: '기념품', items: [{ name: '기념품', quantity: 99_999 }] })
+    await assert.rejects(
+      s.pg.query('UPDATE line_item SET estimated_unit_price = 10001 WHERE id = $1', [
+        made.items[0]!.id,
+      ]),
+    )
+  }),
+)
