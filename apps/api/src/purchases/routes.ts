@@ -110,17 +110,15 @@ function addCancelItemRoute({ routes, auth, clock, push, db }: WriteKit) {
   )
 }
 
+type RouteOptions = {
+  clock?: () => Date
+  writeLimiter?: RateLimiter
+  push?: PurchasePush | undefined
+  receiptKey: string
+}
+
 // 구매 요청: 모든 운영진이 읽고 낸다. 취소는 요청한 사람만이다(DEC-27, DEC-28).
-export function createPurchaseRoutes(
-  db: Db,
-  getSession: SessionReader,
-  options: {
-    clock?: () => Date
-    writeLimiter?: RateLimiter
-    push?: PurchasePush | undefined
-    receiptKey: string
-  },
-) {
+export function createPurchaseRoutes(db: Db, getSession: SessionReader, options: RouteOptions) {
   const clock = options.clock ?? (() => new Date())
   const writeLimiter = options.writeLimiter ?? createPurchaseWriteLimiter()
   const routes = new Hono<SessionEnv>()
@@ -149,15 +147,8 @@ export function createPurchaseRoutes(
     )
     return c.json({ request: detail } satisfies PurchaseRequestResponse)
   })
-  const kit = {
-    routes,
-    auth,
-    writeLimiter,
-    clock,
-    push: options.push,
-    db,
-    receiptKey: options.receiptKey,
-  }
+  const { push, receiptKey } = options
+  const kit = { routes, auth, writeLimiter, clock, push, db, receiptKey }
   addWriteRoutes(kit)
   addCancelItemRoute(kit)
   return routes

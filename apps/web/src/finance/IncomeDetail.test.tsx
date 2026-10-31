@@ -14,7 +14,8 @@ import { ME } from '@/test-support/expense-harness'
 import { incomeDetail, incomeSummary } from '@/test-support/income-fixtures'
 import { INCOMES, openIncomesTab, serveIncomes } from '@/test-support/income-harness'
 import { deferredResponse, json } from '@/test-support/mock-api'
-import { ACTION_GONE, INCOME_ERRORS, INCOME_LOST, PERMISSION_CHANGED } from '@/lib/messages'
+import { INCOME_ERRORS, INCOME_LOST } from '@/lib/income-messages'
+import { ACTION_GONE, PERMISSION_CHANGED } from '@/lib/messages'
 import { COUNCIL_ID, FinanceAt } from '@/test-support/finance-at'
 
 afterEach(async () => {

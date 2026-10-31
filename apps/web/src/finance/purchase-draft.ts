@@ -31,7 +31,13 @@ export function savePurchaseDraft(
   draft: PurchaseDraft,
   values: RequestValues,
   picked: Choice | null,
-  command: CommandMemo,
 ) {
+  // 번호는 보낼 때 savePurchaseCommand가 이 칸에 남긴다. 입력이 바뀌어도 잃지 않는다.
+  const command = purchaseDraftOf(draft.councilId, draft.memberId)?.command ?? null
   savePageState({ ...draft, values, picked, command })
+}
+
+export function savePurchaseCommand(command: CommandMemo) {
+  const saved = pageState()
+  if (saved && typeof saved === 'object') savePageState({ ...saved, command })
 }
