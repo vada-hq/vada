@@ -2,6 +2,7 @@ import { ChartNoAxesColumn, ChevronRight } from 'lucide-react'
 import type { HomeFinanceBoard, FinanceOverviewEvent } from '@vada/contracts'
 import { TwoPartMeter } from '@/components/TwoPartMeter'
 import { Button } from '@/components/ui/button'
+import { BUDGET_NOT_ENTERED } from '../finance/overview-view'
 import { wonLabel } from '../finance/purchase-view'
 import HomeCard from './HomeCard'
 
@@ -60,7 +61,7 @@ export default function FinanceBudgets({
           <span className="line-clamp-2">{event.name}</span>
         </Button>
         <span className="shrink-0 text-right text-xs text-fg-muted tabular-nums">
-          {budget === null ? '예산 미입력' : `배정 ${wonLabel(budget.amount)}`}
+          {budget === null ? BUDGET_NOT_ENTERED : `배정 ${wonLabel(budget.amount)}`}
         </span>
         <ChevronRight aria-hidden className="size-4 shrink-0 text-fg-subtle" />
       </div>

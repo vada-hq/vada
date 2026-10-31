@@ -45,6 +45,9 @@ export interface FinanceOverview {
   paidCount: number
   committedCount: number
   events: FinanceOverviewEvent[]
+  // 예산 미입력: 완료 전 행사 가운데 이 기간의 지출 예산 항목이 없는 것. 완료 전은 오늘의 사실이라 오늘이 든 기간에만 있고 그 밖의 기간은 빈 목록이다.
+  // 홈의 '행사별 예산 전체 N개'는 events와 이것을 더한 수다.
+  missingEvents: EventRef[]
   items: FinanceOverviewItem[]
   noItem: number
   recent: FinanceOverviewExpense[]

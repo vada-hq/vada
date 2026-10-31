@@ -10,6 +10,7 @@ import { budgetWithPeriod, budgetWithoutPeriod } from '@/test-support/budget-fix
 import { CURRENT_PERIOD, OLD_PERIOD, standardPeriods } from '@/test-support/income-fixtures'
 import { PERIODS } from '@/test-support/income-harness'
 import { json } from '@/test-support/mock-api'
+import { navigationWidth } from '@/test-support/navigation-width'
 import { OVERVIEW_EVENT, OVERVIEW_EXPENSE, overviewFixture } from '@/test-support/overview-fixtures'
 
 afterEach(async () => {
@@ -154,6 +155,34 @@ test('행사별 표의 줄을 누르면 그 행사의 예산·정산이 열린�
   fireEvent.click(within(table).getByRole('button', { name: '체육대회' }))
   expect(window.location.pathname).toBe(`/events/${COUNCIL_ID}/${OVERVIEW_EVENT}`)
   expect(window.location.search).toBe('?tab=money')
+})
+
+const MISSING_EVENT = '99999999-9999-4999-8999-999999999993'
+
+test.each([
+  ['넓은 화면', 1280],
+  ['좁은 화면', 390],
+])('%s의 행사별은 예산 미입력 행사도 보이고 누르면 그 행사 재정으로 간다', async (_, width) => {
+  navigationWidth(width)
+  serve(overviewFixture({ missingEvents: [{ id: MISSING_EVENT, name: '가을 축제' }] }))
+  atFinanceHome()
+  showFinance()
+  const events = await screen.findByRole('region', { name: '행사별' })
+  const name = await within(events).findByRole('button', { name: '가을 축제' })
+  expect(within(events).getByText('예산 미입력')).toBeTruthy()
+  expect(within(events).getByRole('button', { name: '체육대회' })).toBeTruthy()
+  fireEvent.click(name)
+  expect(window.location.pathname).toBe(`/events/${COUNCIL_ID}/${MISSING_EVENT}`)
+  expect(window.location.search).toBe('?tab=money')
+})
+
+test('행사별은 예산 있는 행사가 없어도 미입력 행사가 있으면 비었다고 하지 않는다', async () => {
+  serve(overviewFixture({ events: [], missingEvents: [{ id: MISSING_EVENT, name: '가을 축제' }] }))
+  atFinanceHome()
+  showFinance()
+  const events = await screen.findByRole('region', { name: '행사별' })
+  expect(await within(events).findByText('가을 축제')).toBeTruthy()
+  expect(within(events).queryByText('행사 예산 없음')).toBeNull()
 })
 
 test('최근 지출과 예산 항목별 현황(항목 없는 지출 포함)을 보이고, 지출을 누르면 그 지출이 열린다', async () => {
