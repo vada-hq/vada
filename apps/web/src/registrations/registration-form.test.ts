@@ -10,6 +10,7 @@ import {
   newFormValues,
   previewOf,
   valuesOfForm,
+  withLockedFee,
 } from './registration-form'
 import { periodRow } from './registration-view'
 import { ACCOUNT_ID, staffForm } from '@/test-support/staff-registration-fixtures'
@@ -169,4 +170,18 @@ test('양식 카드의 신청 기간은 올해가 아니면 연도를 붙인다'
     '2025년 3월 2일 (일) 18:00',
   )
   vi.useRealTimers()
+})
+
+test('신청이 있으면 쓰던 참가비 대신 서버의 참가비를 쓴다. 다른 칸은 쓰던 값이다', () => {
+  const server = { payerFee: 5000, nonPayerFee: 10000, applicantCount: 2 }
+  const typed = { ...emptyFormValues, name: '쓰던 이름', feeKind: 'one' as const, fee: '7000' }
+  expect(withLockedFee(typed, server)).toEqual({
+    ...typed,
+    feeKind: 'split',
+    fee: '',
+    payerFee: '5000',
+    nonPayerFee: '10000',
+  })
+  expect(withLockedFee(typed, { ...server, applicantCount: 0 })).toBe(typed)
+  expect(withLockedFee(typed, undefined)).toBe(typed)
 })

@@ -580,7 +580,7 @@ test('만들기 429는 문구를, 403은 학생회를 다시 읽게 하고 만�
 })
 
 test('고치기는 양식 값으로 채운 화면을 열고, 404면 화면을 닫고 이유를 보인다', async () => {
-  const { api } = setup()
+  const { api } = setup({ forms: [staffForm({ applicantCount: 0 })] })
   api.on('POST', FORM_PATH, () => json({ error: 'NOT_FOUND' }, 404))
   fireEvent.click(await screen.findByRole('button', { name: '고치기' }))
   const form = await screen.findByRole('form', { name: '신청 양식 고치기' })
@@ -593,7 +593,8 @@ test('고치기는 양식 값으로 채운 화면을 열고, 404면 화면을 �
   expect(screen.getByText(REGISTRATION_STAFF_LOST)).toBeTruthy()
 })
 
-const noFeeForm = () => staffForm({ payerFee: null, nonPayerFee: null, feeAccount: null })
+const noFeeForm = () =>
+  staffForm({ payerFee: null, nonPayerFee: null, feeAccount: null, applicantCount: 0 })
 
 async function openEditWithFee() {
   fireEvent.click(await screen.findByRole('button', { name: '고치기' }))
@@ -1024,4 +1025,37 @@ test('새 값을 읽지 못해도 입력이 남고, 판이 그대로라 다시 �
   fireEvent.click(save())
   await waitFor(() => expect(posts(api)).toHaveLength(2))
   expect(posts(api)[1]?.body).toMatchObject({ baseVersionNo: 3 })
+})
+
+test('신청이 있으면 참가비 칸이 잠겨 까닭을 보이고 저장은 서버의 참가비를 그대로 보낸다', async () => {
+  const { api } = setup({ forms: [staffForm({ payerFee: 5000, nonPayerFee: 10000 })] })
+  api.on('POST', FORM_PATH, () => json({ form: staffForm() }))
+  fireEvent.click(await screen.findByRole('button', { name: '고치기' }))
+  const form = await screen.findByRole('form', { name: '신청 양식 고치기' })
+  expect(within(form).getByText('신청이 있어 참가비를 바꿀 수 없어요')).toBeTruthy()
+  expect(within(form).queryByLabelText('납부자')).toBeNull()
+  expect(within(form).queryByLabelText('있음')).toBeNull()
+  expect(within(form).queryByLabelText('학생회비 납부자 금액 다름')).toBeNull()
+  fireEvent.click(save())
+  await waitFor(() => expect(posts(api)).toHaveLength(1))
+  expect(posts(api)[0]?.body).toMatchObject({ payerFee: 5000, nonPayerFee: 10000 })
+})
+
+test('취소한 신청만 남으면(신청 수 0) 참가비 칸이 잠기지 않는다', async () => {
+  setup({ forms: [staffForm({ applicantCount: 0 })] })
+  fireEvent.click(await screen.findByRole('button', { name: '고치기' }))
+  const form = await screen.findByRole('form', { name: '신청 양식 고치기' })
+  expect(within(form).queryByText('신청이 있어 참가비를 바꿀 수 없어요')).toBeNull()
+  expect(within(form).getByLabelText('납부자')).toHaveProperty('value', '5000')
+})
+
+test('연 뒤에 신청이 들어와 서버가 참가비를 막으면 까닭을 보이고 입력을 남긴다', async () => {
+  const { api } = setup({ forms: [staffForm({ applicantCount: 0 })] })
+  api.on('POST', FORM_PATH, () => json({ error: 'FORM_FEE_LOCKED' }, 409))
+  fireEvent.click(await screen.findByRole('button', { name: '고치기' }))
+  const form = await screen.findByRole('form', { name: '신청 양식 고치기' })
+  fireEvent.change(within(form).getByLabelText('납부자'), { target: { value: '7000' } })
+  fireEvent.click(save())
+  expect(await within(form).findByText(REGISTRATION_STAFF_ERRORS.FORM_FEE_LOCKED!)).toBeTruthy()
+  expect(within(form).getByLabelText('납부자')).toHaveProperty('value', '7000')
 })

@@ -11,6 +11,7 @@ import StateMessage from '@/components/StateMessage'
 import type { EventFieldFocus } from '@/events/EventFields'
 import type { EventDialogHandlers } from '@/events/useEventSubmit'
 import { getJson } from '@/lib/api'
+import { feeText } from '@/public/registration-text'
 import { askLeave, useUnsavedInput } from '@/lib/leave-guard'
 import { sameJson } from '@/lib/same-json'
 import { useEditVersion } from '@/lib/use-edit-version'
@@ -24,11 +25,13 @@ import { formPath, formsPath } from './registration-api'
 import {
   formErrors,
   formRequest,
+  hasApplicants,
   hasFee,
   missingRequired,
   newFormValues,
   previewOf,
   valuesOfForm,
+  withLockedFee,
   type FormValues,
 } from './registration-form'
 import { questionErrors } from './question-draft'
@@ -120,7 +123,8 @@ async function readForm(councilId: string, form: RegistrationForm | undefined) {
 
 function useFormEditor(props: Props) {
   const { form, taskId, onDone, onForbidden, onLost } = props
-  const { mode, base, values, setValues } = useStartValues(props)
+  const { mode, base, values: typed, setValues } = useStartValues(props)
+  const values = withLockedFee(typed, form)
   const [chosen, setChosen] = useState(mode.chosen)
   const [saving, setSaving] = useState(false)
   const account = useFeeAccount(props.councilId, onForbidden, chosen)
@@ -243,6 +247,7 @@ export function FormEditor(props: Props) {
               values={values}
               errors={errors}
               closesRequired={!draft}
+              feeLock={props.form && hasApplicants(props.form) ? feeText(props.form) : undefined}
               account={account}
               event={props.event}
               onChange={change}
@@ -260,7 +265,7 @@ export function FormEditor(props: Props) {
             <div className="pt-4">
               <CollectSection
                 values={values}
-                locked={(props.form?.applicantCount ?? 0) > 0}
+                locked={hasApplicants(props.form)}
                 errors={errors}
                 onChange={change}
               />

@@ -1,7 +1,7 @@
 import { useId } from 'react'
 import { Input } from '@/components/ui/input'
 import type { FieldErrors } from '@/lib/use-form-check'
-import { ErrorLine, invalid } from './DocParts'
+import { ErrorLine, LockNote, invalid } from './DocParts'
 import { fieldSurface, size, type } from './doc-look'
 import type { Change, FieldIds } from './FormSettings'
 import type { FormValues } from './registration-form'
@@ -61,15 +61,25 @@ export function FeeValue({
   ids,
   values,
   errors,
+  locked,
   onChange,
 }: {
   ids: FieldIds
   values: FormValues
   errors: FieldErrors
+  // 신청이 있어 바꿀 수 없을 때 보일 참가비 글. 잠기면 고치는 칸 대신 값과 까닭이 남는다(규칙 14).
+  locked?: string | undefined
   onChange: Change
 }) {
   const name = useId()
   const charged = values.feeKind !== 'none'
+  if (locked !== undefined)
+    return (
+      <div className="flex flex-col gap-1 py-1 pl-2.5">
+        <span className="text-fg-body wrap-anywhere">{locked}</span>
+        <LockNote>신청이 있어 참가비를 바꿀 수 없어요</LockNote>
+      </div>
+    )
   return (
     // relative: 숨긴 legend(absolute)가 화면 밖으로 나가 페이지 전체가 스크롤되지 않게 한다.
     <fieldset className="relative flex flex-col py-1 pl-2.5">

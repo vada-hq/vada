@@ -82,6 +82,7 @@ export const ERROR_STATUS = {
   FORM_CLOSED: 409,
   // 신청이 있는 양식의 질문은 바꾸지 않는다. 이미 낸 답이 다른 질문의 답이 된다(DEC-93)
   FORM_HAS_APPLICANTS: 409,
+  FORM_FEE_LOCKED: 409,
   FORM_NOT_READY: 409,
   // 마감은 신청이 없는 멈춘 양식(초안)만 비울 수 있다(DEC-93)
   CLOSES_AT_REQUIRED: 409,

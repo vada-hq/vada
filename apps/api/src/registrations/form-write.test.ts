@@ -14,6 +14,7 @@ import {
   MISSING,
   startRegistrations,
   withRegistrations,
+  type RegistrationKit,
 } from '../test-support/registrations.js'
 
 test(
@@ -669,5 +670,92 @@ test(
       401,
     )
     assert.equal(await t.versions(form.id), 1)
+  }),
+)
+
+// 참가비 있는 양식과 그대로 저장하는 본문. 칸을 바꾸는 시험의 바탕이다(규칙 14).
+async function feeForm(t: RegistrationKit, fees: { payerFee: number; nonPayerFee: number }) {
+  const feeAccountId = await t.makeAccount()
+  const { form } = await t.created(await t.makeEvent(), { ...fees, feeAccountId })
+  return { form, kept: { ...EDIT, name: form.name, ...fees, feeAccountId } }
+}
+
+test(
+  '신청자가 있는 양식의 참가비는 바꿀 수 없다: 금액, 없애기, 나누기 모두 409이고 값과 판이 그대로다',
+  withRegistrations(async t => {
+    const { form, kept } = await feeForm(t, { payerFee: 5000, nonPayerFee: 5000 })
+    await t.makeRegistration(form.id)
+    for (const fees of [
+      { payerFee: 6000, nonPayerFee: 6000 },
+      { payerFee: 3000, nonPayerFee: 5000 },
+      { payerFee: 0, nonPayerFee: 0 },
+      { payerFee: null, nonPayerFee: null, feeAccountId: null },
+    ]) {
+      const response = await t.editForm(form.id, { ...kept, ...fees })
+      assert.equal(response.status, 409, JSON.stringify(fees))
+      assert.deepEqual(await response.json(), { error: 'FORM_FEE_LOCKED' })
+    }
+    const after = await t.detail(form.id)
+    assert.deepEqual([after.payerFee, after.nonPayerFee], [5000, 5000])
+    assert.equal(after.versionNo, form.versionNo)
+  }),
+)
+
+test(
+  '금액을 나눈 양식도 신청이 있으면 납부자·미납자 금액을 하나도 못 바꾼다',
+  withRegistrations(async t => {
+    const { form, kept } = await feeForm(t, { payerFee: 3000, nonPayerFee: 5000 })
+    await t.makeRegistration(form.id)
+    for (const fees of [
+      { payerFee: 2000, nonPayerFee: 5000 },
+      { payerFee: 3000, nonPayerFee: 6000 },
+      { payerFee: 5000, nonPayerFee: 5000 },
+    ]) {
+      const response = await t.editForm(form.id, { ...kept, ...fees })
+      assert.equal(response.status, 409, JSON.stringify(fees))
+      assert.deepEqual(await response.json(), { error: 'FORM_FEE_LOCKED' })
+    }
+  }),
+)
+
+test(
+  '신청이 있어도 같은 참가비로 다른 칸은 고치고 계좌는 바꾼다',
+  withRegistrations(async t => {
+    const { form, kept } = await feeForm(t, { payerFee: 5000, nonPayerFee: 5000 })
+    await t.makeRegistration(form.id)
+    const other = await t.makeAccount({ name: '사업', type: 'business' })
+    const saved = await t.editForm(form.id, { ...kept, capacity: 30, feeAccountId: other })
+    assert.equal(saved.status, 200)
+    const after = await t.detail(form.id)
+    assert.deepEqual([after.capacity, after.payerFee, after.feeAccount?.id], [30, 5000, other])
+  }),
+)
+
+test(
+  '취소한 신청만 남으면 질문 잠금과 같이 참가비를 바꾼다. 그 신청의 금액은 신청 때 값 그대로다',
+  withRegistrations(async t => {
+    const { form, kept } = await feeForm(t, { payerFee: 5000, nonPayerFee: 5000 })
+    const cancelled = await t.makeRegistration(form.id, {
+      appliedFee: '5000',
+      cancelledAt: new Date('2026-10-20T03:00:00Z'),
+    })
+    const saved = await t.editForm(form.id, { ...kept, payerFee: 7000, nonPayerFee: 7000 })
+    assert.equal(saved.status, 200)
+    assert.equal((await t.detail(form.id)).payerFee, 7000)
+    assert.equal(
+      await t.count(`SELECT applied_fee::int AS n FROM registration WHERE id = $1`, [cancelled]),
+      5000,
+    )
+  }),
+)
+
+test(
+  '신청이 없으면 참가비를 바꾼다',
+  withRegistrations(async t => {
+    const { form, kept } = await feeForm(t, { payerFee: 5000, nonPayerFee: 5000 })
+    const saved = await t.editForm(form.id, { ...kept, payerFee: 7000, nonPayerFee: 3000 })
+    assert.equal(saved.status, 200)
+    const after = await t.detail(form.id)
+    assert.deepEqual([after.payerFee, after.nonPayerFee], [7000, 3000])
   }),
 )

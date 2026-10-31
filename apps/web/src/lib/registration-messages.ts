@@ -34,6 +34,7 @@ export const REGISTRATION_STAFF_ERRORS = changeErrors({
   FORM_NOT_READY: '링크 활성화 조건을 확인해 주세요.',
   CLOSES_AT_REQUIRED: '받는 중이거나 신청이 있는 양식은 신청 마감을 비울 수 없어요.',
   FORM_HAS_APPLICANTS: '신청이 들어와 질문을 바꿀 수 없어요. 양식을 새로 불러와 확인해 주세요.',
+  FORM_FEE_LOCKED: '신청이 들어와 참가비를 바꿀 수 없어요. 바꾸려면 새 양식을 만들어 주세요.',
   TASK_INVALID,
   FEE_ACCOUNT_REQUIRED: '참가비가 있으면 닫지 않은 계좌를 골라야 해요.',
   ACCOUNT_INVALID: '고를 수 없는 계좌예요. 닫았을 수 있어요. 다른 계좌를 골라 주세요.',
