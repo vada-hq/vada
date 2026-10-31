@@ -98,6 +98,112 @@ test(
   }),
 )
 
+// 운영진이 고치는 사이 신청 화면을 연 학생의 답은 화면이 질문 번호로 들고 있다. 안 바뀐 질문의 번호가 남아야 답이 남는다(결정 11).
+test(
+  '질문을 고쳐도 안 바뀐 질문과 선택지는 번호가 그대로다: 차례 바꾸기, 필수 바꾸기, 선택지 더하기·빼기',
+  withRegistrations(async t => {
+    const { form } = await t.created(await t.makeEvent(), { questions: QUESTIONS })
+    const [initial, size, sports] = form.questions
+    const response = await update(t, form, {
+      questions: [
+        { ...QUESTIONS[2]!, required: true },
+        { kind: 'short_text', title: '하고 싶은 말', required: false, choices: [] },
+        QUESTIONS[0],
+        { ...QUESTIONS[1]!, choices: [{ label: 'L' }, { label: 'XL' }, { label: 'M' }] },
+      ],
+    })
+    assert.equal(response.status, 200)
+    const next = ((await response.json()) as { form: RegistrationForm }).form
+    assert.deepEqual(shapeOf(next), [
+      ['multiple_choice', '참가 종목', true, ['축구', '농구']],
+      ['short_text', '하고 싶은 말', false, []],
+      ['short_text', '이니셜', true, []],
+      ['single_choice', '티셔츠 사이즈', true, ['L', 'XL', 'M']],
+    ])
+    assert.deepEqual(next.questions[0], { ...sports!, required: true })
+    assert.deepEqual(next.questions[2], initial)
+    assert.equal(next.questions[3]!.id, size!.id)
+    const choiceId = (label: string) => size!.choices.find(c => c.label === label)!.id
+    assert.equal(next.questions[3]!.choices[0]!.id, choiceId('L'))
+    assert.equal(next.questions[3]!.choices[2]!.id, choiceId('M'))
+    const before = form.questions.flatMap(q => [q.id, ...q.choices.map(c => c.id)])
+    assert.ok(!before.includes(next.questions[1]!.id))
+    assert.ok(!before.includes(next.questions[3]!.choices[1]!.id))
+    // 빠진 선택지 S는 행이 남지 않고, 차례는 1부터 빈틈이 없다.
+    assert.equal(await t.count('SELECT count(*) AS n FROM registration_question_choice'), 5)
+    assert.deepEqual(await t.detail(form.id), next)
+    const { rows } = await t.pg.query<{ position: number }>(
+      'SELECT position FROM registration_question WHERE form_id = $1 ORDER BY position',
+      [form.id],
+    )
+    assert.deepEqual(
+      rows.map(row => row.position),
+      [1, 2, 3, 4],
+    )
+  }),
+)
+
+test(
+  '제목이나 종류가 바뀐 질문은 다른 질문이라 새 번호이고, 같은 제목이 둘이면 앞에서부터 짝짓는다',
+  withRegistrations(async t => {
+    const twin = { kind: 'short_text', title: '이름표', required: false, choices: [] }
+    const { form } = await t.created(await t.makeEvent(), {
+      questions: [twin, twin, QUESTIONS[1]],
+    })
+    const ids = form.questions.map(question => question.id)
+    const response = await update(t, form, {
+      questions: [twin, { ...QUESTIONS[1]!, kind: 'multiple_choice' }, { ...twin, title: '별명' }],
+    })
+    assert.equal(response.status, 200)
+    const next = ((await response.json()) as { form: RegistrationForm }).form
+    assert.equal(next.questions[0]!.id, ids[0])
+    for (const question of next.questions.slice(1)) assert.ok(!ids.includes(question.id))
+  }),
+)
+
+test(
+  '열린 화면의 답: 질문이 더해지면 옛 번호만 보낸 신청은 409이고, 남은 질문의 번호로 새 질문까지 답하면 된다',
+  withRegistrations(async t => {
+    const event = await t.makeEvent({ startsAt: new Date('2026-11-02T03:00:00Z') })
+    const { form } = await t.created(event, { questions: QUESTIONS })
+    assert.equal((await t.post(`/registration-forms/${form.id}/activate`, {})).status, 200)
+    const open = JSON.parse((await t.publicRead(form.publicCode)).text) as {
+      questions: RegistrationForm['questions']
+    }
+    const added = { kind: 'short_text', title: '하고 싶은 말', required: false, choices: [] }
+    const changed = await update(t, form, { questions: [...QUESTIONS, added] })
+    assert.equal(changed.status, 200)
+    const next = ((await changed.json()) as { form: RegistrationForm }).form
+    const stale = await t.apply(form.publicCode, {
+      name: '김신청',
+      studentId: '202612345',
+      answers: answersOf(open),
+    })
+    assert.equal(stale.status, 409)
+    assert.deepEqual(await stale.json(), { error: 'FORM_CHANGED' })
+    await t.applied(form.publicCode, {
+      name: '김신청',
+      studentId: '202612345',
+      answers: [...answersOf(open), { questionId: next.questions[3]!.id, text: null }],
+    })
+  }),
+)
+
+test(
+  '질문을 고쳐도 양식의 판이 늘지 않고 같은 학생회의 다른 양식 질문은 그대로다',
+  withRegistrations(async t => {
+    const { form } = await t.created(await t.makeEvent(), { questions: QUESTIONS })
+    const { form: neighbor } = await t.created(await t.makeEvent(), { questions: QUESTIONS })
+    const versions = () =>
+      t.count('SELECT count(*) AS n FROM record_version WHERE record_id = $1', [form.id])
+    const before = await versions()
+    const swapped = await update(t, form, { questions: [QUESTIONS[1], QUESTIONS[0]] })
+    assert.equal(swapped.status, 200)
+    assert.equal(await versions(), before)
+    assert.deepEqual((await t.detail(neighbor.id)).questions, neighbor.questions)
+  }),
+)
+
 test(
   '신청이 한 명이라도 있으면 질문 더하기·고치기·지우기가 409이고 같은 질문으로 다른 칸을 고치는 것은 된다',
   withRegistrations(async t => {
