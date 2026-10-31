@@ -98,7 +98,10 @@ function make(
     step.who,
   )('council.view', async (tx, actor) => {
     if (step.kind === 'request')
-      await createPurchaseRequest(tx, actor, requestFrom(step.messageId), context.now)
+      await createPurchaseRequest(tx, actor, requestFrom(step.messageId), {
+        now: context.now,
+        receiptKey: SMOKE_RECEIPT_KEY,
+      })
     else
       await createExpense(tx, actor, expenseFrom(step.messageId, context.now), {
         now: context.now,

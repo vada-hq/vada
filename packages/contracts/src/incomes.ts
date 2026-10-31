@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { WON_MAX } from './budget.js'
-import { text } from './input.js'
+import { commandIdInput, text } from './input.js'
 import { koreanDate } from './korean-time.js'
 import { PURCHASE_REASON_MAX, type PurchasePerson } from './purchases.js'
 import { recordIdInput } from './team.js'
@@ -18,6 +18,9 @@ export type IncomeSource =
 
 // 수입 적기. 기간은 받은 날로 서버가 고른다. 받은 날이 오늘(한국) 뒤인지는 서버 시계로 본다.
 export const CreateIncomeSchema = z.strictObject({
+  // 화면이 보내기 전에 만드는 명령 번호(DEC-84). 같은 번호를 다시 보내면 수입은 하나만 남는다.
+  // 배포 전에 연 화면은 번호를 보내지 않으므로, 그 탭이 사라질 때까지 비워도 받는다. 그 뒤 필수로 바꾼다.
+  commandId: commandIdInput.optional(),
   source: z.enum(INCOME_SOURCES),
   amount: z.number().int().min(1).max(WON_MAX),
   receivedOn: koreanDate,

@@ -8,6 +8,7 @@ import { resetAddress } from '@/test-support/address-reset'
 import { councilView, MEMBER_PERMISSIONS } from '@/test-support/council-fixtures'
 import { COUNCIL_ID as C, PurchasesAt } from '@/test-support/finance-at'
 import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
+import { PURCHASE_ERRORS } from '@/lib/messages'
 import { purchaseDetail } from '@/test-support/purchase-fixtures'
 import { taskDetail } from '@/test-support/task-detail-fixtures'
 import { ProductPreview } from './ProductPreview'
@@ -298,4 +299,122 @@ test.each([
   expect(field.getAttribute('aria-invalid')).toBe('true')
   await waitFor(() => expect(document.activeElement).toBe(field))
   expect(api.calls.some(call => call.method === 'POST')).toBe(false)
+})
+
+// 명령 번호: 초안이 남아 있는 동안의 재시도는 같은 번호이고, 새로 쓰는 요청은 값이 같아도 새 번호다.
+const REQUESTS = `${BASE}/purchase-requests`
+const postedIds = (api: ReturnType<typeof setup>) =>
+  api.calls
+    .filter(call => call.method === 'POST' && call.path === REQUESTS)
+    .map(call => (call.body as { commandId: string }).commandId)
+const write = () => {
+  fill('제목', '테이프')
+  fill('품목 1 이름', '박스 테이프')
+}
+async function press(api: ReturnType<typeof setup>) {
+  const before = postedIds(api).length
+  fireEvent.click(screen.getByRole('button', { name: '내기' }))
+  await waitFor(() => expect(postedIds(api).length).toBe(before + 1))
+}
+const whenFree = () =>
+  waitFor(() =>
+    expect(screen.getByRole<HTMLButtonElement>('button', { name: '내기' }).disabled).toBe(false),
+  )
+
+test('응답을 잃고 새로고침해도 초안이 남아 있으면 같은 번호로 다시 보낸다', async () => {
+  const api = setup()
+  api.on('POST', REQUESTS, () => json({ error: 'FAILED' }, 500))
+  const first = open()
+  write()
+  await press(api)
+  await whenFree()
+  first.unmount()
+  render(<PurchasesAt view={view} onForbidden={() => {}} />)
+  await press(api)
+  const [sent, resent] = postedIds(api)
+  expect(resent).toBe(sent)
+})
+
+test('보내는 중에 새로고침해도 같은 번호다', async () => {
+  const api = setup()
+  const pending = deferredResponse()
+  api.on('POST', REQUESTS, () => pending.promise)
+  const first = open()
+  write()
+  await press(api)
+  first.unmount()
+  render(<PurchasesAt view={view} onForbidden={() => {}} />)
+  pending.resolve(json({ error: 'FAILED' }, 500))
+  await press(api)
+  const [sent, resent] = postedIds(api)
+  expect(resent).toBe(sent)
+})
+
+test('초안을 고치면 새 번호다', async () => {
+  const api = setup()
+  api.on('POST', REQUESTS, () => json({ error: 'FAILED' }, 500))
+  open()
+  write()
+  await press(api)
+  await whenFree()
+  fill('품목 1 수량', '2')
+  await press(api)
+  const [sent, edited] = postedIds(api)
+  expect(edited).not.toBe(sent)
+})
+
+test('낸 뒤 새로 쓰는 요청은 값이 같아도 새 번호다', async () => {
+  const api = setup()
+  api.on('POST', REQUESTS, () => json({ request: purchaseDetail(REQUEST) }, 201))
+  const first = open()
+  write()
+  await press(api)
+  await screen.findByRole('heading', { name: '행사 포스터 인쇄' })
+  first.unmount()
+  open()
+  write()
+  await press(api)
+  const [sent, fresh] = postedIds(api)
+  expect(fresh).not.toBe(sent)
+})
+
+test('작성을 나갔다가 새로 열면 값이 같아도 새 번호다', async () => {
+  const api = setup()
+  api.on('POST', REQUESTS, () => json({ error: 'FAILED' }, 500))
+  const first = open()
+  write()
+  await press(api)
+  await whenFree()
+  first.unmount()
+  open()
+  write()
+  await press(api)
+  const [sent, fresh] = postedIds(api)
+  expect(fresh).not.toBe(sent)
+})
+
+test('422 COMMAND_REUSED는 문구를 보이고 새로고침해도 다음에는 새 번호를 보낸다', async () => {
+  const api = setup()
+  api.on('POST', REQUESTS, () => json({ error: 'COMMAND_REUSED' }, 422))
+  const first = open()
+  write()
+  await press(api)
+  expect(await screen.findByText(PURCHASE_ERRORS.COMMAND_REUSED!)).toBeTruthy()
+  first.unmount()
+  render(<PurchasesAt view={view} onForbidden={() => {}} />)
+  await press(api)
+  const [sent, fresh] = postedIds(api)
+  expect(fresh).not.toBe(sent)
+})
+
+test('409 COMMAND_CONFLICT는 같은 번호로 다시 보낼 수 있다', async () => {
+  const api = setup()
+  api.on('POST', REQUESTS, () => json({ error: 'COMMAND_CONFLICT' }, 409))
+  open()
+  write()
+  await press(api)
+  expect(await screen.findByText(PURCHASE_ERRORS.COMMAND_CONFLICT!)).toBeTruthy()
+  await press(api)
+  const [sent, resent] = postedIds(api)
+  expect(resent).toBe(sent)
 })

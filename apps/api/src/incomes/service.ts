@@ -4,12 +4,14 @@ import type { Actor } from '../access/actor.js'
 import { assertUsableAccount } from '../accounts/queries.js'
 import { can } from '../access/permissions.js'
 import { assertPeriodIncomeItem, periodIdOn } from '../budget/queries.js'
+import { saveReceipt } from '../commands/receipt.js'
 import { income } from '../db/schema.js'
 import type { Tx } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
 import { clockNow, createRecord, updateRecord } from '../records/records.js'
 import { assertIncomeWritable } from './lock.js'
 import { canCancelIncome, incomeDetailOf, incomeRowOf, isAutomaticSource } from './queries.js'
+import { incomeCommandOf, resendIncome } from './resend.js'
 
 // 쓰기 거래는 학생회 행 잠금 → 운영진 확인(inCouncilChange) → 수입 행 순서다. 이 함수들은 앞의 둘이 끝난 거래에서 부른다.
 // 재정부만 쓴다(회장단도 403). 403이 다른 실패보다 먼저다.
@@ -26,13 +28,7 @@ async function lockedIncomeRow(tx: Tx, actor: Actor, incomeId: string) {
 }
 
 // 수입은 사람이 적는 출처로만 만들고(참가비·이월금은 계약이 400으로 거른다) 고치지 않는다. 기간은 받은 날로 정한다.
-export async function createIncome(
-  tx: Tx,
-  actor: Actor,
-  input: CreateIncome,
-  now: Date,
-): Promise<IncomeDetail> {
-  if (!can(actor, 'finance.manage')) throw new ApiError('FORBIDDEN')
+async function insertIncome(tx: Tx, actor: Actor, input: CreateIncome, now: Date) {
   // 받은 날은 오늘(한국)까지다. 오늘 23:59:59는 받고 내일은 받지 않는다.
   if (input.receivedOn > koreanDateOf(now)) throw new ApiError('INVALID_INPUT')
   const periodId = await periodIdOn(tx, actor, input.receivedOn)
@@ -41,7 +37,7 @@ export async function createIncome(
   // 학생회 행을 잠근 뒤에 읽으므로 계좌 닫기와 겹쳐도 하나로 정해진다.
   if (input.accountId) await assertUsableAccount(tx, actor, input.accountId)
   await assertIncomeWritable(tx, actor, { budgetItemId: input.budgetItemId, periodId })
-  const incomeId = await createRecord(tx, {
+  return createRecord(tx, {
     kind: 'income',
     councilId: actor.councilId,
     actor: actor.memberId,
@@ -55,6 +51,27 @@ export async function createIncome(
       accountId: input.accountId,
     },
   })
+}
+
+// 같은 명령 번호의 재전송은 새로 만들지 않고 처음 수입의 지금 상세를 준다(DEC-84). 403이 먼저이고, 거절한 요청은 거래가 물러나 영수증도 없다.
+export async function createIncome(
+  tx: Tx,
+  actor: Actor,
+  input: CreateIncome,
+  command: { now: Date; receiptKey: string },
+): Promise<IncomeDetail> {
+  if (!can(actor, 'finance.manage')) throw new ApiError('FORBIDDEN')
+  const sent = incomeCommandOf(actor, input, command)
+  const resent = sent && (await resendIncome(tx, actor, sent))
+  if (resent) return resent
+  const incomeId = await insertIncome(tx, actor, input, command.now)
+  if (sent)
+    await saveReceipt(
+      tx,
+      sent.key,
+      { bodyHash: sent.bodyHash, resultId: incomeId, resultKind: 'income' },
+      command.now,
+    )
   return incomeDetailOf(tx, actor, incomeId)
 }
 

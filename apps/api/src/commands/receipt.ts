@@ -1,5 +1,6 @@
 import { createHmac } from 'node:crypto'
 import { and, eq, sql } from 'drizzle-orm'
+import type { Actor } from '../access/actor.js'
 import { commandReceipt } from '../db/schema.js'
 import type { Tx } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
@@ -13,11 +14,18 @@ const MS_PER_HOUR = 3_600_000
 const RECEIPT_TTL_MS = HOURS * MS_PER_HOUR
 
 export type ReceiptKey = {
-  kind: 'registration_apply' | 'expense_create'
-  // 같은 번호도 범위가 다르면 따로 센다: 신청은 양식 번호, 지출은 '학생회 번호:보낸 운영진 번호'
+  kind: 'registration_apply' | 'expense_create' | 'income_create' | 'request_create'
+  // 같은 번호도 범위가 다르면 따로 센다: 신청은 양식 번호, 그 밖은 '학생회 번호:보낸 운영진 번호'
   scopeKey: string
   commandId: string
 }
+
+// 운영진이 보내는 명령의 키. 같은 번호도 학생회와 보낸 사람이 다르면 따로 센다. 다른 사람의 번호로 남의 기록을 받을 수 없다.
+export const memberCommandKey = (
+  kind: ReceiptKey['kind'],
+  actor: Pick<Actor, 'councilId' | 'memberId'>,
+  commandId: string,
+): ReceiptKey => ({ kind, scopeKey: `${actor.councilId}:${actor.memberId}`, commandId })
 
 // 번호를 뺀 본문의 HMAC(서버 비밀 값 키). 소금 없는 해시는 이름·휴대폰 목록으로 되돌릴 수 있어 쓰지 않는다.
 // 칸 사이를 JSON으로 갈라 '가나'+'다'와 '가'+'나다'가 같아지지 않는다.
@@ -43,6 +51,18 @@ export async function receiptOf(tx: Tx, key: ReceiptKey, now: Date) {
   return { resultId: found.resultId, bodyHash: found.bodyHash }
 }
 
+// 이 번호로 이미 만든 기록의 번호. 같은 번호에 다른 본문은 COMMAND_REUSED이고 아무것도 바꾸지 않는다.
+// 학생회 행을 잠근 뒤(inCouncilChange)에 불러야 겹친 같은 명령 둘 중 나중 것이 앞의 영수증을 본다.
+export async function resentResultId(
+  tx: Tx,
+  sent: { key: ReceiptKey; bodyHash: string; now: Date },
+) {
+  const receipt = await receiptOf(tx, sent.key, sent.now)
+  if (!receipt) return undefined
+  if (receipt.bodyHash !== sent.bodyHash) throw new ApiError('COMMAND_REUSED')
+  return receipt.resultId
+}
+
 export async function dropReceipt(tx: Tx, key: ReceiptKey) {
   await tx.delete(commandReceipt).where(matches(key))
 }
@@ -51,7 +71,11 @@ export async function dropReceipt(tx: Tx, key: ReceiptKey) {
 export async function saveReceipt(
   tx: Tx,
   key: ReceiptKey,
-  saved: { bodyHash: string; resultId: string; resultKind: 'registration' | 'expense' },
+  saved: {
+    bodyHash: string
+    resultId: string
+    resultKind: 'registration' | 'expense' | 'income' | 'request'
+  },
   now: Date,
 ) {
   try {

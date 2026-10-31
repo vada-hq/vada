@@ -121,6 +121,7 @@ test('출처는 사람이 적는 다섯만 보이고, 금액이 없거나 0이�
   fireEvent.click(submit())
   await waitFor(() => expect(screen.queryByRole('form', { name: '수입 적기' })).toBeNull())
   expect(api.calls.find(call => call.method === 'POST')?.body).toEqual({
+    commandId: expect.stringMatching(/^[0-9a-f-]{36}$/) as string,
     source: 'grant',
     amount: 500000,
     receivedOn: today(),
@@ -410,4 +411,71 @@ test('쓴 값이 있으면 Esc·×·닫기·바깥·뒤로가 먼저 묻고, 계
   await expectAsksOnEveryExit(INCOME_WINDOW)
   expect(screen.getByLabelText('금액(원)')).toHaveProperty('value', '1000')
   await leaveWindow(INCOME_WINDOW)
+})
+
+// 명령 번호: 실패 뒤 다시 누르면 같은 번호, 칸을 바꾸면 새 번호, 닫으면 버린다.
+const postedIds = (api: ReturnType<typeof serve>) =>
+  api.calls
+    .filter(call => call.method === 'POST')
+    .map(call => (call.body as { commandId: string }).commandId)
+
+async function fillAndPress(api: ReturnType<typeof serve>, amount = '12000') {
+  const before = postedIds(api).length
+  fill('금액(원)', amount)
+  fireEvent.click(submit())
+  await waitFor(() => expect(postedIds(api).length).toBe(before + 1))
+  await waitFor(() => expect(submit().disabled).toBe(false))
+}
+
+test('실패 뒤 다시 누르면 같은 번호, 칸을 바꾸면 새 번호를 보낸다', async () => {
+  const api = serve()
+  api.on('POST', INCOMES, () => json({ error: 'FAILED' }, 500))
+  showFinance()
+  await openForm()
+  await fillAndPress(api)
+  await fillAndPress(api)
+  await fillAndPress(api, '13000')
+  const [first, again, edited] = postedIds(api)
+  expect(again).toBe(first)
+  expect(edited).not.toBe(first)
+  expect(screen.getByRole('form', { name: '수입 적기' })).toBeTruthy()
+})
+
+test('닫았다 다시 열면 같은 값을 넣어도 새 번호다', async () => {
+  const api = serve()
+  api.on('POST', INCOMES, () => json({ error: 'FAILED' }, 500))
+  showFinance()
+  showLeaveConfirm()
+  await openForm()
+  await fillAndPress(api)
+  await leaveWindow(INCOME_WINDOW)
+  fireEvent.click(await screen.findByRole('button', { name: '수입 적기' }))
+  await screen.findByRole('form', { name: '수입 적기' })
+  await fillAndPress(api)
+  const [first, reopened] = postedIds(api)
+  expect(reopened).not.toBe(first)
+})
+
+test('422 COMMAND_REUSED는 문구를 보이고 다음에는 새 번호를 보낸다', async () => {
+  const api = serve()
+  api.on('POST', INCOMES, () => json({ error: 'COMMAND_REUSED' }, 422))
+  showFinance()
+  await openForm()
+  await fillAndPress(api)
+  expect(await screen.findByText(INCOME_ERRORS.COMMAND_REUSED!)).toBeTruthy()
+  await fillAndPress(api)
+  const [first, second] = postedIds(api)
+  expect(second).not.toBe(first)
+})
+
+test('409 COMMAND_CONFLICT는 같은 번호로 다시 보낼 수 있다', async () => {
+  const api = serve()
+  api.on('POST', INCOMES, () => json({ error: 'COMMAND_CONFLICT' }, 409))
+  showFinance()
+  await openForm()
+  await fillAndPress(api)
+  expect(await screen.findByText(INCOME_ERRORS.COMMAND_CONFLICT!)).toBeTruthy()
+  await fillAndPress(api)
+  const [first, second] = postedIds(api)
+  expect(second).toBe(first)
 })

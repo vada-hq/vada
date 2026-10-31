@@ -16,6 +16,7 @@ import {
   memberIdOf,
   outcomeOf,
   pause,
+  SMOKE_RECEIPT_KEY,
   type Who,
   type SmokeContext,
 } from './pg-smoke-kit.js'
@@ -111,7 +112,7 @@ export async function purchaseOf(db: Db, context: SmokeContext, scene: MoneyScen
         neededBy: null,
         items: [{ name: '마커', quantity: 1, link: null, options: null }],
       },
-      context.now,
+      { now: context.now, receiptKey: SMOKE_RECEIPT_KEY },
     ),
   )
   return { requestId: request.id, itemId: request.items[0]!.id }

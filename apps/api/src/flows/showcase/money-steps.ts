@@ -82,6 +82,7 @@ export async function incomeStep(
     who(ctx, by),
     `${org(ctx)}/incomes`,
     {
+      commandId: randomUUID(),
       source: income.source,
       amount: income.amount,
       receivedOn: ctx.cal.dayOf(income.receivedOn),

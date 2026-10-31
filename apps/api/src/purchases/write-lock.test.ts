@@ -21,7 +21,10 @@ test('구매 요청 쓰기 둘은 학생회 행을 FOR NO KEY UPDATE로 잠근 �
       createApp({
         auth: { handler: async () => new Response() },
         trustedOrigin: ORIGIN,
-        purchases: createPurchaseRoutes(db, testSession, { clock: () => noon }),
+        purchases: createPurchaseRoutes(db, testSession, {
+          clock: () => noon,
+          receiptKey: 'test-receipt-key',
+        }),
       }),
     )
     const base = `/api/organizations/${council.councilId}/purchase-requests`
@@ -83,7 +86,10 @@ test('결재는 학생회 행, 운영진 확인, 요청 행, 품목 행 순으�
       createApp({
         auth: { handler: async () => new Response() },
         trustedOrigin: ORIGIN,
-        purchases: createPurchaseRoutes(db, testSession, { clock: () => noon }),
+        purchases: createPurchaseRoutes(db, testSession, {
+          clock: () => noon,
+          receiptKey: 'test-receipt-key',
+        }),
         budget: createBudgetRoutes(db, testSession, { clock: () => noon }),
       }),
     )

@@ -26,6 +26,7 @@ const confirmButton = async () => {
 
 const BASE = `/api/organizations/${COUNCIL_ID}/purchase-requests`
 const LIST = `${BASE}?view=all`
+const anyCommandId = expect.stringMatching(/^[0-9a-f-]{36}$/) as string
 
 function setup(detail = purchaseDetail('0199d1a0-0000-7000-8000-00000000a001')) {
   const api = mockApi()
@@ -72,6 +73,7 @@ test('제목이나 품목 이름이 비면 [내기]를 눌러도 보내지 않�
   fireEvent.click(submit())
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
   expect(api.calls.find(call => call.method === 'POST')?.body).toEqual({
+    commandId: anyCommandId,
     title: '  테이프  ',
     eventId: null,
     body: null,
@@ -136,6 +138,7 @@ test('링크, 수량, 날짜, 내용을 요청에 담고, 쓸 수 없는 값이�
   fireEvent.click(submit())
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
   expect(api.calls.find(call => call.method === 'POST')?.body).toEqual({
+    commandId: anyCommandId,
     title: '포스터',
     eventId: null,
     body: '행사용',

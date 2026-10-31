@@ -216,6 +216,8 @@ export const PURCHASE_LOAD_FAILED = '이 요청을 불러오지 못했어요. �
 export const PURCHASE_LOST = '이 요청을 볼 수 없어요. 다른 학생회의 요청이거나 없어졌을 수 있어요.'
 export const PURCHASE_ERRORS = changeErrors({
   REQUEST_CLOSED: '이미 결재가 시작됐거나 취소된 요청이라 취소할 수 없어요. 새로 불러왔어요.',
+  COMMAND_REUSED: '앞서 보내던 요청과 달라서 새로 준비했어요. 다시 내 주세요.',
+  COMMAND_CONFLICT: '다른 요청과 겹쳤어요. 다시 내 주세요.',
   EVENT_INVALID: '이 학생회의 행사가 아니에요. 다른 행사를 골라 주세요.',
   LINE_ITEM_DECIDED: '이미 결재된 품목이 있어요. 요청을 새로 불러왔으니 확인해 주세요.',
   LINE_ITEM_NOT_CANCELLABLE: '취소할 수 없는 품목이에요. 요청을 새로 불러왔으니 확인해 주세요.',
@@ -342,6 +344,8 @@ export const INCOME_ERRORS = changeErrors({
     '참가비와 이월금 수입은 직접 취소할 수 없어요. 행사 완료를 취소하거나 결산을 다시 열면 바뀌어요. 새로 불러왔어요.',
   TOO_MANY_REQUESTS: '너무 빨리 보내고 있어요. 잠시 뒤에 다시 시도해 주세요.',
   INVALID_INPUT: '보낼 수 없는 내용이에요. 입력을 확인해 주세요.',
+  COMMAND_REUSED: '앞서 보내던 수입과 달라서 새로 준비했어요. 다시 적어 주세요.',
+  COMMAND_CONFLICT: '다른 요청과 겹쳤어요. 다시 적어 주세요.',
 })
 export const INCOME_PERIOD_NOT_STARTED =
   '이 기간은 아직 시작하지 않아 받은 날을 고를 수 없어요. 시작한 뒤에 적어 주세요.'

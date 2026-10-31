@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto'
 import type { ExpenseResponse, PurchaseRequestResponse, ShipmentResponse } from '@vada/contracts'
 import { create, sees, write } from '../rehearsal-kit.js'
 import type { PurchaseEntry } from './content/types.js'
@@ -20,6 +21,7 @@ export async function requestStep(ctx: ShowcaseCtx, entry: PurchaseEntry) {
     person,
     `${org(ctx)}/purchase-requests`,
     {
+      commandId: randomUUID(),
       title: entry.title,
       eventId: eventId(ctx, entry.event),
       body: entry.body,
