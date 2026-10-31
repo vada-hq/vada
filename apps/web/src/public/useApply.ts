@@ -93,7 +93,11 @@ export function useApply({ code, reload, onLost, onApplied }: Handlers) {
     // 같은 번호에 다른 본문이다. 번호를 버려 다음에 누르면 새 신청으로 간다.
     if (result.code === 'COMMAND_REUSED') clearApplyCommand(code)
     // 409 중 양식 상태가 달라진 것(마감, 정원, 칸 바뀜)만 새로 읽는다. COMMAND_CONFLICT는 같은 번호로 다시 보내도 된다.
-    else if (result.status === statusOf('FORM_CHANGED') && result.code !== 'COMMAND_CONFLICT')
+    // 칸 확인을 지난 값의 INVALID_INPUT은 열린 화면이 낡았다는 뜻이다(질문이 필수로 바뀌어도 번호는 그대로다).
+    else if (
+      result.code === 'INVALID_INPUT' ||
+      (result.status === statusOf('FORM_CHANGED') && result.code !== 'COMMAND_CONFLICT')
+    )
       reload()
     setProblem(APPLY_ERRORS[result.code] ?? APPLY_FAILED)
   }

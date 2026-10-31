@@ -117,3 +117,112 @@ test('선택지마다 고르는 표시가 있고 고른 줄만 고른 모양이�
   const basketball = screen.getByRole('checkbox', { name: '농구' }).closest('label')!
   expect(basketball.hasAttribute('data-checked')).toBe(true)
 })
+
+// 운영진이 고쳐도 안 바뀐 질문은 번호가 남는다(결정 11). 고른 선택지만 빠지면 번호가 남은 값이 없는 선택지를 가리킨다.
+const withoutS = questions.map(question =>
+  question.id === Q(2)
+    ? {
+        ...question,
+        choices: [
+          { id: Q(4), label: 'M' },
+          { id: Q(8), label: 'L' },
+        ],
+      }
+    : question,
+)
+const pickSizeS = async () => {
+  fireEvent.change(await screen.findByLabelText('이니셜'), { target: { value: 'KHS' } })
+  fireEvent.change(screen.getByLabelText('이름'), { target: { value: '김새내' } })
+  fireEvent.click(screen.getByRole('radio', { name: 'S' }))
+}
+const applyBodies = (api: ReturnType<typeof setup>) =>
+  api.calls.filter(call => call.path === APPLY_PATH).map(call => call.body)
+
+test('양식이 바뀌어 다시 읽어도 안 바뀐 질문의 답은 칸에 남는다', async () => {
+  const api = setup()
+  await pickSizeS()
+  fireEvent.click(screen.getByRole('checkbox', { name: '축구' }))
+  const added = { id: Q(9), kind: 'short_text', title: '새 질문', required: false, choices: [] }
+  api.on('GET', FORM_PATH, () =>
+    json(
+      publicForm({
+        payerFee: 0,
+        nonPayerFee: 0,
+        collectsStudentId: false,
+        questions: [added as FormQuestion, ...questions],
+      }),
+    ),
+  )
+  api.on('POST', APPLY_PATH, () => json({ error: 'FORM_CHANGED' }, 409))
+  fireEvent.click(screen.getByRole('button', { name: '신청하기' }))
+  await screen.findByLabelText(/새 질문/)
+  expect(screen.getByLabelText<HTMLInputElement>('이니셜').value).toBe('KHS')
+  expect(screen.getByRole<HTMLInputElement>('radio', { name: 'S' }).checked).toBe(true)
+  expect(screen.getByRole<HTMLInputElement>('checkbox', { name: '축구' }).checked).toBe(true)
+})
+
+test('고른 선택지가 양식에서 빠지면 고르지 않은 것으로 보고, 다시 고르게 한다', async () => {
+  const api = setup()
+  await pickSizeS()
+  api.on('GET', FORM_PATH, () =>
+    json(
+      publicForm({ payerFee: 0, nonPayerFee: 0, collectsStudentId: false, questions: withoutS }),
+    ),
+  )
+  api.on('POST', APPLY_PATH, () => json({ error: 'FORM_CHANGED' }, 409))
+  fireEvent.click(screen.getByRole('button', { name: '신청하기' }))
+  await screen.findByRole('radio', { name: 'L' })
+  const before = applyBodies(api).length
+  fireEvent.click(screen.getByRole('button', { name: '신청하기' }))
+  expect(await screen.findByText('하나를 골라 주세요')).toBeTruthy()
+  expect(applyBodies(api).length).toBe(before)
+  expect(screen.getByLabelText<HTMLInputElement>('이니셜').value).toBe('KHS')
+  api.on('POST', APPLY_PATH, () => json({ token: 'tok' }, 201))
+  fireEvent.click(screen.getByRole('radio', { name: 'M' }))
+  fireEvent.click(screen.getByRole('button', { name: '신청하기' }))
+  await waitFor(() => expect(applyBodies(api).length).toBe(before + 1))
+  expect(JSON.stringify(applyBodies(api).at(-1))).toContain(`"choiceId":"${Q(4)}"`)
+})
+
+test('여럿 고르기도 빠진 선택지는 보내지 않고, 다 빠진 필수 질문은 다시 고르게 한다', async () => {
+  const required = questions.map(question =>
+    question.id === Q(5) ? { ...question, required: true } : question,
+  )
+  const dropped = required.map(question =>
+    question.id === Q(5) ? { ...question, choices: [{ id: Q(7), label: '농구' }] } : question,
+  )
+  const api = mockApi()
+  let current = required
+  api.on('GET', FORM_PATH, () =>
+    json(publicForm({ payerFee: 0, nonPayerFee: 0, collectsStudentId: false, questions: current })),
+  )
+  render(<ApplyPage code={FORM_CODE} onApplied={vi.fn()} />)
+  await pickSizeS()
+  fireEvent.click(screen.getByRole('checkbox', { name: '축구' }))
+  current = dropped
+  api.on('POST', APPLY_PATH, () => json({ error: 'FORM_CHANGED' }, 409))
+  fireEvent.click(screen.getByRole('button', { name: '신청하기' }))
+  await waitFor(() => expect(screen.queryByRole('checkbox', { name: '축구' })).toBeNull())
+  fireEvent.click(screen.getByRole('button', { name: '신청하기' }))
+  expect(await screen.findByText('하나 이상 골라 주세요')).toBeTruthy()
+})
+
+test('열린 화면에서 질문이 필수로 바뀌어 서버가 거절하면 양식을 다시 읽어 칸에서 알린다', async () => {
+  const api = setup()
+  fireEvent.change(await screen.findByLabelText('이니셜'), { target: { value: 'KHS' } })
+  fireEvent.change(screen.getByLabelText('이름'), { target: { value: '김새내' } })
+  fireEvent.click(screen.getByRole('radio', { name: 'S' }))
+  const nowRequired = questions.map(question =>
+    question.id === Q(5) ? { ...question, required: true } : question,
+  )
+  api.on('GET', FORM_PATH, () =>
+    json(
+      publicForm({ payerFee: 0, nonPayerFee: 0, collectsStudentId: false, questions: nowRequired }),
+    ),
+  )
+  api.on('POST', APPLY_PATH, () => json({ error: 'INVALID_INPUT' }, 400))
+  fireEvent.click(screen.getByRole('button', { name: '신청하기' }))
+  await waitFor(() => expect(screen.queryByText('(선택)')).toBeNull())
+  fireEvent.click(screen.getByRole('button', { name: '신청하기' }))
+  expect(await screen.findByText('하나 이상 골라 주세요')).toBeTruthy()
+})
