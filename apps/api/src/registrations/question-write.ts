@@ -67,6 +67,7 @@ async function isTaken(tx: Tx, formId: string) {
 }
 
 // 질문 목록을 통째로 바꾼다(DEC-93). 신청이 한 명이라도 있으면 같은 목록만 받고 다르면 409 FORM_HAS_APPLICANTS다.
+// 목록이 실제로 바뀌었는지 돌려준다(질문은 판이 없어 부르는 쪽이 양식의 판을 올린다).
 // 양식 행을 FOR UPDATE로 잠근 뒤 센다: 공개 신청(apply.ts)도 같은 행을 잠그고 잠근 뒤에 질문을 읽으므로,
 // 신청과 질문 바꾸기가 겹쳐도 '신청 0명이라 바꿈'과 '옛 질문으로 신청'이 함께 일어나지 않는다(READ COMMITTED라 잠근 뒤의 셈은 앞 신청을 본다).
 // 신청 0명이면 질문과 선택지를 지우고 다시 넣는다. 가리키는 답이 없어 잃는 것이 없다.
@@ -76,9 +77,10 @@ export async function replaceQuestions(tx: Tx, formId: string, input: QuestionIn
     .from(registrationForm)
     .where(eq(registrationForm.id, formId))
     .for('update')
-  if (sameQuestions(await questionsOfForm(tx, formId), input)) return
+  if (sameQuestions(await questionsOfForm(tx, formId), input)) return false
   if (await isTaken(tx, formId)) throw new ApiError('FORM_HAS_APPLICANTS')
   await tx.delete(registrationQuestionChoice).where(eq(registrationQuestionChoice.formId, formId))
   await tx.delete(registrationQuestion).where(eq(registrationQuestion.formId, formId))
   await insertQuestions(tx, formId, input)
+  return true
 }

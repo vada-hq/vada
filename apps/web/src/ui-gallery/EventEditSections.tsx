@@ -1,16 +1,19 @@
 import { useEffect, useState } from 'react'
-import type { RegistrationForm, RegistrationFormsResponse } from '@vada/contracts'
+import type { EventDetail, RegistrationForm, RegistrationFormsResponse } from '@vada/contracts'
 import { Button } from '@/components/ui/button'
+import { VERSION_CONFLICT_MESSAGE } from '@/lib/change-errors'
 import { EVENT_FAILED } from '@/lib/messages'
 import type { PolledState } from '@/lib/use-polled-read'
 import { emptyEventFields, eventFieldsOf, type EventFieldValues } from '@/events/event-fields'
 import { EventEditPanel } from '@/events/EventEditPanel'
+import { detail } from './EventSections'
 import { Section } from './GallerySection'
 import { longName, unbroken } from './sample-text'
 
 const form = (id: string, extra: Partial<RegistrationForm>): RegistrationForm => ({
   id,
   eventId: 'e1',
+  versionNo: 1,
   name: '환영회 참가 신청',
   opensAt: null,
   closesAt: '2026-10-23T18:00',
@@ -47,6 +50,7 @@ type Sample = {
   forms: PolledState<RegistrationFormsResponse>
   saving?: boolean
   problem?: string
+  conflict?: EventDetail
 }
 
 const filled = eventFieldsOf({
@@ -56,7 +60,7 @@ const filled = eventFieldsOf({
   place: '대강당',
 })
 
-const SAMPLES: Record<'filled' | 'tbd' | 'saving' | 'failed', Sample> = {
+const SAMPLES: Record<'filled' | 'tbd' | 'saving' | 'failed' | 'conflict', Sample> = {
   // 일시·장소가 있고 양식 하나(참가비 하나, 정원 없음)
   filled: { values: filled, forms: ready([form('f1', {})]) },
   // 끝·장소 미정, 긴 이름, 양식 둘(참가비 없음과 납부자 별도 금액)
@@ -71,6 +75,13 @@ const SAMPLES: Record<'filled' | 'tbd' | 'saving' | 'failed', Sample> = {
   saving: { values: filled, forms: { kind: 'loading' }, saving: true },
   // 저장 실패: 이유가 버튼 줄 바로 위에 있다. 양식 목록도 읽지 못했다.
   failed: { values: filled, forms: { kind: 'failed' }, problem: EVENT_FAILED },
+  // 다른 사람이 먼저 고침: 쓰던 입력은 그대로이고 새로 불러온 값이 맨 위에 있다.
+  conflict: {
+    values: filled,
+    forms: ready([form('f1', {})]),
+    problem: VERSION_CONFLICT_MESSAGE,
+    conflict: detail({ versionNo: 2, name: '신입생 환영회 2부', place: '체육관' }),
+  },
 }
 
 function Opened({ sample, onClose }: { sample: Sample; onClose: () => void }) {
@@ -84,6 +95,7 @@ function Opened({ sample, onClose }: { sample: Sample; onClose: () => void }) {
       parsed={{ success: true }}
       saving={sample.saving ?? false}
       problem={sample.problem ?? null}
+      conflict={sample.conflict ?? null}
       onSubmit={onClose}
       onClose={onClose}
       onOpenForms={onClose}
@@ -112,6 +124,9 @@ export function EventEditSection() {
       </Button>
       <Button variant="outline" onClick={() => setOpen('failed')}>
         저장 실패 패널 열기
+      </Button>
+      <Button variant="outline" onClick={() => setOpen('conflict')}>
+        먼저 고침 패널 열기
       </Button>
       {open && <Opened key={open} sample={SAMPLES[open]} onClose={() => setOpen(null)} />}
     </Section>

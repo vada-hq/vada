@@ -95,6 +95,7 @@ export const detail = (
   actions: EventAction[] = ['event.update'],
 ): EventDetail => ({
   ...event('h', {}),
+  versionNo: 1,
   owner: { id: 'p1', name: '김기획', current: true },
   tasks: { open: 2, total: 5 },
   departments: [],

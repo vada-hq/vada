@@ -62,6 +62,11 @@ export async function startEvents(
     ((await (await api.get(`${base}/${id}`, user)).json()) as { event: EventDetail }).event
   const post = (path: string, body: unknown, user = 's-president') =>
     api.post(`${base}${path}`, body, user)
+  const versionNoOf = (id: string) =>
+    count('SELECT coalesce(max(version_no), 1) AS n FROM record_version WHERE record_id = $1', [id])
+  // 고치기는 지금 판을 함께 보낸다. 판을 따지지 않는 시험의 줄임이다. 없는 기록은 판 1로 보낸다.
+  const edit = async (id: string, body: object, user = 's-president') =>
+    post(`/${id}`, { ...body, baseVersionNo: await versionNoOf(id) }, user)
   return {
     pg,
     db,
@@ -74,6 +79,7 @@ export async function startEvents(
     list,
     detail,
     post,
+    edit,
     count,
     eventCount: () => count('SELECT count(*) AS n FROM event'),
     versions: (id: string) =>

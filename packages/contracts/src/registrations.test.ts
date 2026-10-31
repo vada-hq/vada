@@ -103,6 +103,7 @@ const FULL_FORM = {
   payerFee: null,
   nonPayerFee: null,
   feeAccountId: null,
+  baseVersionNo: 1,
 }
 
 test('양식 만들기: 학번 받기를 빼면 받는다(DEC-75)', () => {

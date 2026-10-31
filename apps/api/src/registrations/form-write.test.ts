@@ -380,9 +380,9 @@ test(
     assert.equal(splitForm.form.collectsStudentId, true)
     // 고치기도 같다: 두 참가비가 다르면 끌 수 없고, 같게 고치면서 끄면 된다.
     const edit = { ...EDIT, ...split, collectsStudentId: false }
-    assert.equal((await t.post(`/registration-forms/${splitForm.form.id}`, edit)).status, 400)
+    assert.equal((await t.editForm(splitForm.form.id, edit)).status, 400)
     assert.equal(await t.versions(splitForm.form.id), 1)
-    const turnedOff = await t.post(`/registration-forms/${splitForm.form.id}`, {
+    const turnedOff = await t.editForm(splitForm.form.id, {
       ...edit,
       nonPayerFee: 0,
     })
@@ -402,7 +402,7 @@ test(
   withRegistrations(async t => {
     const event = await t.makeEvent()
     const { form } = await t.created(event, { notice: '안내', capacity: 5 })
-    const response = await t.post(`/registration-forms/${form.id}`, EDIT)
+    const response = await t.editForm(form.id, EDIT)
     assert.equal(response.status, 200)
     const edited = ((await response.json()) as { form: typeof form }).form
     assert.equal(edited.name, '고친 이름')
@@ -411,7 +411,7 @@ test(
     assert.equal(edited.notice, null)
     assert.equal(edited.publicCode, form.publicCode)
     assert.equal(await t.versions(form.id), 2)
-    await t.post(`/registration-forms/${form.id}`, EDIT)
+    await t.editForm(form.id, EDIT)
     assert.equal(await t.versions(form.id), 2)
   }),
 )
@@ -432,11 +432,7 @@ test(
       { ...EDIT, opensAt: '2026-11-02T18:00' },
       { ...EDIT, payerFee: 100 },
     ])
-      assert.equal(
-        (await t.post(`/registration-forms/${form.id}`, body)).status,
-        400,
-        JSON.stringify(body),
-      )
+      assert.equal((await t.editForm(form.id, body)).status, 400, JSON.stringify(body))
     assert.equal((await t.detail(form.id)).publicCode, form.publicCode)
     assert.equal(await t.versions(form.id), 1)
   }),
@@ -450,7 +446,7 @@ test(
     const theirEvent = await t.makeEvent({}, t.other)
     const theirForm = await t.makeForm(theirEvent, {}, t.other)
     for (const path of ['', '/pause', '/resume']) {
-      const body = path ? {} : EDIT
+      const body = path ? {} : { ...EDIT, baseVersionNo: 1 }
       for (const user of ['s-financeMember', 's-plain', 's-planningHead', 's-ended', 'o-president'])
         assert.equal(
           (await t.post(`/registration-forms/${form.id}${path}`, body, user)).status,
@@ -465,10 +461,7 @@ test(
       assert.equal((await t.post(`/registration-forms/${MISSING}${path}`, body)).status, 404)
       assert.equal((await t.post(`/registration-forms/not-a-uuid${path}`, body)).status, 404)
     }
-    assert.equal(
-      (await t.post(`/registration-forms/${form.id}`, EDIT, 's-planningMember')).status,
-      200,
-    )
+    assert.equal((await t.editForm(form.id, EDIT, 's-planningMember')).status, 200)
     assert.equal(
       (await t.post(`/registration-forms/${form.id}/pause`, {}, 's-planningMember')).status,
       200,
@@ -524,7 +517,7 @@ test(
       (await phones(mine)).rows.map(row => row.phone),
       ['01012345678', '01012345678'],
     )
-    const response = await t.post(`/registration-forms/${form.id}`, {
+    const response = await t.editForm(form.id, {
       ...EDIT,
       collectsPhone: false,
     })
@@ -578,8 +571,7 @@ test(
       type: 'business',
       closedOn: '2026-01-01',
     })
-    const edit = (body: Record<string, unknown>) =>
-      t.post(`/registration-forms/${form.id}`, { ...EDIT, ...body })
+    const edit = (body: Record<string, unknown>) => t.editForm(form.id, { ...EDIT, ...body })
     const required = await edit({ payerFee: 0, nonPayerFee: 5000, feeAccountId: null })
     assert.equal(required.status, 409)
     assert.deepEqual(await required.json(), { error: 'FEE_ACCOUNT_REQUIRED' })
@@ -593,5 +585,89 @@ test(
       (await edit({ payerFee: 0, nonPayerFee: 5000, feeAccountId: account })).status,
       200,
     )
+  }),
+)
+
+test(
+  '같은 판에서 두 사람이 양식을 고치면 뒤 저장은 409이고 앞 변경과 판이 그대로다. 새 판으로 다시 보내면 저장된다',
+  withRegistrations(async t => {
+    const { form } = await t.created(await t.makeEvent(), { notice: '안내' })
+    assert.equal(form.versionNo, 1)
+    const save = (body: Record<string, unknown>) =>
+      t.post(`/registration-forms/${form.id}`, { ...EDIT, ...body })
+    assert.equal((await save({ capacity: 10, baseVersionNo: 1 })).status, 200)
+    assert.equal((await t.detail(form.id)).versionNo, 2)
+    // 칸을 고치지 않은 저장도 낡은 값으로 앞 변경을 되돌리므로 막는다.
+    for (const capacity of [20, 10]) {
+      const stale = await save({ capacity, baseVersionNo: 1 })
+      assert.equal(stale.status, 409)
+      assert.deepEqual(await stale.json(), { error: 'VERSION_CONFLICT' })
+    }
+    assert.equal((await t.detail(form.id)).capacity, 10)
+    assert.equal(await t.versions(form.id), 2)
+    assert.equal((await save({ capacity: 20, baseVersionNo: 2 })).status, 200)
+    assert.equal((await t.detail(form.id)).capacity, 20)
+  }),
+)
+
+test(
+  '양식 목록과 하나 읽기가 같은 판을 주고, 다시 받기처럼 값을 바꾼 일도 판을 올려 낡은 저장을 막는다',
+  withRegistrations(async t => {
+    const event = await t.makeEvent({ startsAt: new Date('2026-11-02T03:00:00Z') })
+    const { form } = await t.created(event)
+    assert.equal((await t.post(`/registration-forms/${form.id}/activate`, {})).status, 200)
+    const [listed] = (await t.list(event)).forms
+    assert.equal(listed?.versionNo, form.versionNo + 1)
+    assert.equal(listed?.versionNo, (await t.detail(form.id)).versionNo)
+    const stale = await t.post(`/registration-forms/${form.id}`, {
+      ...EDIT,
+      baseVersionNo: form.versionNo,
+    })
+    assert.equal(stale.status, 409)
+  }),
+)
+
+test(
+  '질문만 바꿔도 판이 올라 같은 판에서 고치던 뒤 저장을 막는다. 같은 질문이면 판이 늘지 않는다',
+  withRegistrations(async t => {
+    const short = { kind: 'short_text', title: '티셔츠 크기', required: false, choices: [] }
+    const { form } = await t.created(await t.makeEvent())
+    const save = (body: Record<string, unknown>) =>
+      t.post(`/registration-forms/${form.id}`, {
+        ...EDIT,
+        name: form.name,
+        closesAt: form.closesAt,
+        capacity: null,
+        ...body,
+      })
+    assert.equal((await save({ baseVersionNo: 1, questions: [] })).status, 200)
+    assert.equal(await t.versions(form.id), 1)
+    assert.equal((await save({ baseVersionNo: 1, questions: [short] })).status, 200)
+    assert.equal(await t.versions(form.id), 2)
+    const stale = await save({ baseVersionNo: 1, questions: [] })
+    assert.equal(stale.status, 409)
+    assert.deepEqual(await stale.json(), { error: 'VERSION_CONFLICT' })
+    assert.deepEqual(
+      (await t.detail(form.id)).questions.map(question => question.title),
+      ['티셔츠 크기'],
+    )
+  }),
+)
+
+test(
+  '양식의 판 번호는 꼭 받고 범위 밖이나 다른 꼴은 400이다. 권한 없는 사람은 판이 낡아도 403이다',
+  withRegistrations(async t => {
+    const { form } = await t.created(await t.makeEvent())
+    for (const baseVersionNo of [undefined, null, 0, -1, 1.5, '1', 2_147_483_648]) {
+      const response = await t.post(`/registration-forms/${form.id}`, { ...EDIT, baseVersionNo })
+      assert.equal(response.status, 400, String(baseVersionNo))
+    }
+    const stale = { ...EDIT, baseVersionNo: 99 }
+    assert.equal((await t.post(`/registration-forms/${form.id}`, stale, 's-plain')).status, 403)
+    assert.equal(
+      (await t.api.post(`${t.orgBase}/registration-forms/${form.id}`, stale)).status,
+      401,
+    )
+    assert.equal(await t.versions(form.id), 1)
   }),
 )

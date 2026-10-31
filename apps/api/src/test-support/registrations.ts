@@ -172,6 +172,14 @@ export async function startRegistrations(options: { writeLimiter?: RateLimiter }
     )
   const post = (path: string, body: unknown, user = 's-president') =>
     api.post(`${orgBase}${path}`, body, user)
+  // 고치기는 지금 판을 함께 보낸다. 판을 따지지 않는 시험의 줄임이다. 없는 기록은 판 1로 보낸다.
+  const editForm = async (formId: string, body: object, user = 's-president') => {
+    const baseVersionNo = await count(
+      'SELECT coalesce(max(version_no), 1) AS n FROM record_version WHERE record_id = $1',
+      [formId],
+    )
+    return post(`/registration-forms/${formId}`, { ...body, baseVersionNo }, user)
+  }
   const create = (eventId: string, body: unknown, user = 's-president') =>
     post(`/events/${eventId}/registration-forms`, body, user)
   const created = async (eventId: string, body: Values = {}, user = 's-president') => {
@@ -247,6 +255,7 @@ export async function startRegistrations(options: { writeLimiter?: RateLimiter }
     change,
     complete,
     post,
+    editForm,
     create,
     created,
     activeForm,

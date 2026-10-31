@@ -6,13 +6,17 @@ import {
   type RegistrationForm,
   type RegistrationFormResponse,
 } from '@vada/contracts'
+import { ConflictFacts } from '@/components/ConflictFacts'
 import StateMessage from '@/components/StateMessage'
 import type { EventFieldFocus } from '@/events/EventFields'
 import type { EventDialogHandlers } from '@/events/useEventSubmit'
+import { getJson } from '@/lib/api'
 import { askLeave, useUnsavedInput } from '@/lib/leave-guard'
 import { sameJson } from '@/lib/same-json'
+import { useEditVersion } from '@/lib/use-edit-version'
 import { TIME_CHECK, useFormCheck, withContract } from '@/lib/use-form-check'
 import { EditorHeader, EditorTitle } from './EditorHeader'
+import { conflictFields } from './form-card-text'
 import { CollectSection } from './FormItems'
 import { PhonePreview, PreviewDialog } from './FormPreview'
 import { SettingRows, type FieldIds } from './FormSettings'
@@ -108,6 +112,12 @@ function useStartValues(props: Props) {
   return { mode, base, values, setValues }
 }
 
+async function readForm(councilId: string, form: RegistrationForm | undefined) {
+  if (!form) return null
+  const result = await getJson<RegistrationFormResponse>(formPath(councilId, form.id))
+  return result.ok ? result.data.form : null
+}
+
 function useFormEditor(props: Props) {
   const { form, taskId, onDone, onForbidden, onLost } = props
   const { mode, base, values, setValues } = useStartValues(props)
@@ -115,9 +125,11 @@ function useFormEditor(props: Props) {
   const [saving, setSaving] = useState(false)
   const account = useFeeAccount(props.councilId, onForbidden, chosen)
   const post = useStaffPost({ onForbidden, onLost }, setSaving)
+  const edit = useEditVersion(form?.versionNo, () => readForm(props.councilId, form))
   useUnsavedInput(!sameJson(values, base) || chosen !== mode.chosen, props.inputHolder)
   const request = {
     ...formRequest(values, account.pick.id),
+    ...(form ? { baseVersionNo: edit.version } : {}),
     ...(!form && taskId ? { taskId } : {}),
   }
   // 초안(새 양식, 신청이 없는 멈춘 양식)은 마감 없이 저장된다. 서버가 같은 조건으로 마감 비우기를 막는다(CLOSES_AT_REQUIRED).
@@ -138,6 +150,7 @@ function useFormEditor(props: Props) {
     if (saving || !attempt() || !parsed.success) return
     const result = await post.send<RegistrationFormResponse>(mode.path, request)
     if (result.ok) onDone(result.data.form)
+    else if (result.code === 'VERSION_CONFLICT') await edit.refresh()
   }
   return {
     mode,
@@ -148,6 +161,7 @@ function useFormEditor(props: Props) {
     saving,
     account,
     post,
+    conflict: edit.fresh,
     formRef,
     errors,
     submit,
@@ -236,6 +250,13 @@ export function FormEditor(props: Props) {
               onEditEvent={props.onEditEvent}
             />
             {post.problem && <StateMessage kind="error">{post.problem}</StateMessage>}
+            {editor.conflict && (
+              <ConflictFacts
+                key={editor.conflict.versionNo}
+                title="새로 불러온 신청 양식"
+                fields={conflictFields(editor.conflict)}
+              />
+            )}
             <div className="pt-4">
               <CollectSection
                 values={values}

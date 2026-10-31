@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest'
-import { changeErrors } from './change-errors'
+import { changeErrors, VERSION_CONFLICT_MESSAGE } from './change-errors'
 import { EVENT_ERRORS, SEND_ERRORS, WITHDRAW_ERRORS } from './messages'
 import { REGISTRATION_STAFF_ERRORS } from './registration-messages'
 
@@ -10,6 +10,7 @@ test('학생회를 바꾸는 화면의 표는 그만두는 학생회에 같은 �
     expect(table.COUNCIL_CLOSING).toBe(closing)
   expect(changeErrors({ FORBIDDEN: '권한' })).toEqual({
     COUNCIL_CLOSING: closing,
+    VERSION_CONFLICT: VERSION_CONFLICT_MESSAGE,
     FORBIDDEN: '권한',
   })
   // 학생회를 바꾸지 않는 화면(탈퇴)에는 없다.

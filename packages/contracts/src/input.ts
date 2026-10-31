@@ -38,3 +38,7 @@ export const EmptyRequestSchema = z.strictObject({})
 
 // 명령 번호: 화면이 보내기 전에 만드는 UUID v4다(DEC-84). 같은 번호를 다시 보내면 신청이나 지출은 하나만 남는다. 신청에서는 토큰을 다시 받을 수 있는 값이라 토큰처럼 다룬다.
 export const commandIdInput = z.uuid({ version: 'v4' })
+
+const VERSION_NO_MAX = 2_147_483_647
+// 고치기 전에 본 판 번호. 지금 판과 다르면 다른 사람이 먼저 고친 것이라 409 VERSION_CONFLICT다(records/versions.ts).
+export const baseVersionNo = z.int().min(1).max(VERSION_NO_MAX)

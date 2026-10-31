@@ -35,6 +35,7 @@ test('양식 만들기는 질문을 빼면 빈 목록이고 고치기는 빼면 
     payerFee: null,
     nonPayerFee: null,
     feeAccountId: null,
+    baseVersionNo: 1,
   }
   assert.equal(UpdateFormSchema.parse(update).questions, undefined)
   assert.equal(UpdateFormSchema.parse({ ...update, questions: [short] }).questions?.length, 1)

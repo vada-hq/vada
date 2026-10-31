@@ -1,4 +1,4 @@
-import { and, asc, eq, sql, type SQL } from 'drizzle-orm'
+import { and, asc, eq, type SQL } from 'drizzle-orm'
 import {
   MEETING_LIST_LIMIT,
   koreanOf,
@@ -9,17 +9,10 @@ import {
 } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
 import { currentMembersAmong } from '../chat/current-members.js'
-import {
-  department,
-  event,
-  meeting,
-  meetingAttendee,
-  member,
-  record,
-  recordVersion,
-} from '../db/schema.js'
+import { department, event, meeting, meetingAttendee, member, record } from '../db/schema.js'
 import type { Db, Tx } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
+import { versionOf } from '../records/versions.js'
 import { memberNamesOf, joinedDisplayNameOf } from '../team/display-name.js'
 import { aggregatesOf } from './aggregates.js'
 import { minutesAgendaOf } from './minutes-query.js'
@@ -97,15 +90,6 @@ export async function meetingRowOf(tx: Tx, actor: Actor, id: string) {
   const [row] = await meetingRowsOf(tx, actor, eq(meeting.id, id))
   if (!row) throw new ApiError('NOT_FOUND')
   return row
-}
-
-export async function versionOf(tx: Tx, id: string) {
-  const [row] = await tx
-    .select({ versionNo: recordVersion.versionNo })
-    .from(recordVersion)
-    .where(and(eq(recordVersion.recordId, id), sql`upper_inf(${recordVersion.valid})`))
-  if (!row) throw new ApiError('NOT_FOUND')
-  return row.versionNo
 }
 
 async function attendeesOf(tx: Tx, actor: Actor, id: string, now: Date) {

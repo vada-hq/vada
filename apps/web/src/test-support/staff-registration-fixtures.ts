@@ -24,6 +24,7 @@ const MANAGE_PAUSED: FormAction[] = MANAGE.map(a => (a === 'form.pause' ? 'form.
 export const staffForm = (extra: Partial<RegistrationForm> = {}): RegistrationForm => ({
   id: FORM_ID,
   eventId: STAFF_EVENT_ID,
+  versionNo: 1,
   name: '환영회 참가 신청',
   opensAt: null,
   closesAt: '2026-10-23T18:00',

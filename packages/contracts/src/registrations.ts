@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { commandIdInput, EmptyRequestSchema, text, token } from './input.js'
+import { baseVersionNo, commandIdInput, EmptyRequestSchema, text, token } from './input.js'
 import type { ApplicantDeposit } from './deposits.js'
 import { koreanDateTime } from './korean-time.js'
 import { recordIdInput } from './team.js'
@@ -121,8 +121,9 @@ export const CreateFormSchema = z
   .refine(isValidForm)
 export type CreateFormRequest = z.infer<typeof CreateFormSchema>
 // 질문은 목록 전체를 받아 그대로 바꾼다. 빼면 질문을 그대로 둔다. 신청이 있는 양식은 같은 목록만 받는다(409 FORM_HAS_APPLICANTS).
+// 칸을 모두 받으므로 낡은 화면의 저장은 남이 고친 칸까지 되돌린다. 그래서 본 판이 지금 판이 아니면 409다.
 export const UpdateFormSchema = z
-  .strictObject({ ...fields, questions: QuestionsInputSchema.optional() })
+  .strictObject({ ...fields, questions: QuestionsInputSchema.optional(), baseVersionNo })
   .refine(isValidForm)
 export type UpdateFormRequest = z.infer<typeof UpdateFormSchema>
 // 멈추기와 다시 받기는 본문이 없다.
@@ -148,6 +149,8 @@ export type FormListAction = (typeof FORM_LIST_ACTIONS)[number]
 export interface RegistrationForm {
   id: string
   eventId: string
+  // 지금 판. 고칠 때 baseVersionNo로 돌려보낸다. 질문을 바꿔도 오른다.
+  versionNo: number
   name: string
   // 한국 시각 YYYY-MM-DDTHH:mm
   opensAt: string | null

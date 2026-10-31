@@ -1,8 +1,10 @@
 import { useState } from 'react'
-import { UpdateEventSchema, type EventDetail } from '@vada/contracts'
+import { UpdateEventSchema, type EventDetail, type EventResponse } from '@vada/contracts'
+import { getJson } from '@/lib/api'
 import { openEventTab } from '@/lib/go-to'
 import { askLeave, useUnsavedInput, useWindowLeave } from '@/lib/leave-guard'
 import { sameJson } from '@/lib/same-json'
+import { useEditVersion } from '@/lib/use-edit-version'
 import { useRegistrationForms } from '../registrations/useRegistrationForms'
 import { eventFieldsOf, eventFieldsRequest } from './event-fields'
 import { eventPath } from './event-api'
@@ -28,12 +30,18 @@ export function EventEditDialog({ councilId, event, onClose, onDone, focus, ...h
   const leave = useWindowLeave(onClose)
   const settle = useUnsavedInput(!sameJson(values, initial) && !saving, leave.holder)
   const forms = useRegistrationForms(councilId, event.id, handlers)
+  const path = eventPath(councilId, event.id)
+  const edit = useEditVersion(event.versionNo, async () => {
+    const result = await getJson<EventResponse>(path)
+    return result.ok ? result.data.event : null
+  })
   const submit = useEventSubmit(
-    eventPath(councilId, event.id),
+    path,
     UpdateEventSchema,
-    eventFieldsRequest(values),
+    { ...eventFieldsRequest(values), baseVersionNo: edit.version },
     {
       ...handlers,
+      onConflict: edit.refresh,
       onDone: next => {
         settle()
         onDone(next)
@@ -51,6 +59,7 @@ export function EventEditDialog({ councilId, event, onClose, onDone, focus, ...h
       parsed={submit.parsed}
       saving={saving}
       problem={submit.problem}
+      conflict={edit.fresh}
       onSubmit={() => void submit.submit()}
       onClose={leave.close}
       onOpenForms={() =>

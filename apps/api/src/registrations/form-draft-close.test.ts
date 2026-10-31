@@ -45,12 +45,12 @@ test(
       })
     }
     // 마감을 채웠다가 다시 비워도 초안이면 된다. 판이 남는다.
-    const filled = await t.post(`/registration-forms/${form.id}`, {
+    const filled = await t.editForm(form.id, {
       ...EDIT,
       closesAt: '2026-11-01T18:00',
     })
     assert.equal((await formOf(filled)).closesAt, '2026-11-01T18:00')
-    const cleared = await t.post(`/registration-forms/${form.id}`, EDIT)
+    const cleared = await t.editForm(form.id, EDIT)
     assert.equal(cleared.status, 200)
     assert.equal((await formOf(cleared)).closesAt, null)
     assert.equal(await t.versions(form.id), 3)
@@ -74,12 +74,12 @@ test(
     const event = await t.makeEvent({ startsAt: korean('2026-11-05T14:00') })
     const { form } = await t.activeForm(event)
     const before = await t.versions(form.id)
-    const open = await t.post(`/registration-forms/${form.id}`, EDIT)
+    const open = await t.editForm(form.id, EDIT)
     assert.equal(open.status, 409)
     assert.equal(await errorOf(open), 'CLOSES_AT_REQUIRED')
     await t.makeRegistration(form.id)
     assert.equal((await t.post(`/registration-forms/${form.id}/pause`, {})).status, 200)
-    const paused = await t.post(`/registration-forms/${form.id}`, EDIT)
+    const paused = await t.editForm(form.id, EDIT)
     assert.equal(paused.status, 409)
     assert.equal(await errorOf(paused), 'CLOSES_AT_REQUIRED')
     assert.equal((await t.detail(form.id)).closesAt, FORM.closesAt)
@@ -95,7 +95,7 @@ test(
     const id = await t.makeRegistration(form.id, { appliedFee: '5000' })
     await t.change('registration', id, { cancelledAt: new Date('2026-10-20T00:00:00Z') })
     assert.equal((await t.post(`/registration-forms/${form.id}/pause`, {})).status, 200)
-    const response = await t.post(`/registration-forms/${form.id}`, EDIT)
+    const response = await t.editForm(form.id, EDIT)
     assert.equal(response.status, 409)
     assert.equal(await errorOf(response), 'CLOSES_AT_REQUIRED')
   }),

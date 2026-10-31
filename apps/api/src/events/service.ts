@@ -12,6 +12,7 @@ import { ApiError } from '../http/errors.js'
 import { postKkirukNotice } from '../chat/kkiruk-post.js'
 import { syncEventRooms } from '../chat/rooms.js'
 import { createRecord, updateRecord } from '../records/records.js'
+import { assertVersion } from '../records/versions.js'
 import { assertLinkableTask } from '../tasks/link.js'
 import { lockEventsShared } from '../policy/locks.js'
 import { changeNoticeOf, createdNoticeOf } from './change-notice.js'
@@ -78,6 +79,7 @@ export async function createEvent(
 }
 
 // 이름, 일시, 장소 고치기. 회장단과 책임자가 한다(DEC-79). 같은 값이면 판을 만들지 않는다.
+// 본 판이 낡았으면 값이 같아도 막는다. 자동 글은 판을 본 뒤에 쓰므로 막힌 저장은 글을 남기지 않는다.
 export async function updateEvent(
   tx: Tx,
   actor: Actor,
@@ -93,6 +95,7 @@ export async function updateEvent(
   })
   const refused = decide(actor, facts, 'event.update')
   if (refused) throw new ApiError(refused)
+  await assertVersion(tx, row.id, input.baseVersionNo)
   const same = (value: Date | null, wanted: string | null) =>
     (value ? koreanOf(value) : null) === wanted
   const changes = {

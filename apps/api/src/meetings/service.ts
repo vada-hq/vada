@@ -13,7 +13,8 @@ import { meeting, meetingAttendee, record } from '../db/schema.js'
 import type { Tx } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
 import { createRecord, updateRecord } from '../records/records.js'
-import { factsOf, meetingDetailOf, meetingRowOf, versionOf } from './queries.js'
+import { assertVersion } from '../records/versions.js'
+import { factsOf, meetingDetailOf, meetingRowOf } from './queries.js'
 import { decide } from './policy.js'
 import { assertNewEventOpen, assertReferences, attendeeIdsOf } from './references.js'
 
@@ -89,8 +90,7 @@ export async function updateMeeting(
   input: UpdateMeetingRequest,
 ) {
   const row = await lockedMeeting(tx, actor, target.id, 'meeting.edit')
-  if ((await versionOf(tx, target.id)) !== input.baseVersionNo)
-    throw new ApiError('VERSION_CONFLICT')
+  await assertVersion(tx, target.id, input.baseVersionNo)
   const { baseVersionNo: _version, heldAt, endsAt, ...patch } = input
   const changes = {
     ...patch,

@@ -44,6 +44,7 @@ export function eventDetail(
 ): EventDetail {
   return {
     ...eventSummary(),
+    versionNo: 1,
     tasks: { open: 2, total: 3 },
     departments: [],
     health: { overdue: 0, unassigned: 0 },

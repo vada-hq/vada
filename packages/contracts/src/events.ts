@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { text } from './input.js'
+import { baseVersionNo, text } from './input.js'
 import { koreanDateTime } from './korean-time.js'
 import type { ErrorCode } from './errors.js'
 import type { SettlementApproval } from './settlement.js'
@@ -35,12 +35,14 @@ export const CreateEventSchema = z
   .refine(hasValidSpan)
 export type CreateEventRequest = z.infer<typeof CreateEventSchema>
 // 이름, 일시, 장소 고치기(회장단과 책임자, DEC-79). 칸을 모두 받아 그대로 바꾼다(비운 칸은 null).
+// 칸을 모두 받으므로 낡은 화면의 저장은 남이 고친 칸까지 되돌린다. 그래서 본 판이 지금 판이 아니면 409다.
 export const UpdateEventSchema = z
   .strictObject({
     name: text(EVENT_NAME_MAX),
     startsAt: koreanDateTime.nullable(),
     endsAt: koreanDateTime.nullable(),
     place: text(EVENT_PLACE_MAX).nullable(),
+    baseVersionNo,
   })
   .refine(hasValidSpan)
 export type UpdateEventRequest = z.infer<typeof UpdateEventSchema>
@@ -94,6 +96,8 @@ export type EventNext =
   { kind: 'task'; dueDate: string; title: string } | { kind: 'start'; startsAt: string }
 
 export interface EventDetail extends EventSummary {
+  // 지금 판. 고칠 때 baseVersionNo로 돌려보낸다.
+  versionNo: number
   // 지우지 않은 이 행사의 업무 수
   tasks: { open: number; total: number }
   // 담당 부서 이름: 이 행사에 이은 취소·끝나지 않은 업무를 맡은 부서, 중복 없이 이름순(DEC-25, DEC-93). 없으면 빈 목록이다.
