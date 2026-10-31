@@ -159,12 +159,13 @@ export interface PurchaseRequestSummary {
   requestedBy: PurchasePerson
   // 필요한 때(한국 날짜 YYYY-MM-DD)
   neededBy: string | null
+  // 살 품목의 수. 반려·취소한 품목과 취소한 요청의 품목은 세지 않는다.
   itemCount: number
   createdAt: string
   event: EventRef | null
   // 결제할 수 있는 품목이 하나라도 있는가(지출의 '결제할 요청'에 보인다). 서버가 정책에서 정한다.
   payable: boolean
-  // 예상 가격은 승인 금액·약정과 별개다. 옛 클라이언트/저장된 응답에는 없을 수 있다.
+  // 살 품목의 예상 가격(itemCount와 같은 품목). 승인 금액·약정과 별개다. 옛 클라이언트/저장된 응답에는 없을 수 있다.
   estimate?: PurchaseEstimate
   bodyPreview?: string | null
   // 목록과 상세 진행 막대가 같은 실제 품목·결제·송장 기록으로 센다.
