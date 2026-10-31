@@ -3,6 +3,7 @@ import { test } from 'node:test'
 import { WON_MAX } from './budget.js'
 import {
   CreatePurchaseRequestSchema,
+  PURCHASE_QUANTITY_MAX,
   purchaseEstimateOf,
   purchaseEstimatesOf,
 } from './purchases.js'
@@ -75,4 +76,14 @@ test('전체 예상금액은 모든 품목의 가격과 배송비를 알 때만 
     total: null,
   })
   assert.deepEqual(purchaseEstimatesOf([item, { quantity: 1 }]), { subtotal: null, total: null })
+})
+
+test('수량 상한은 99,999이고 단가 × 수량이 금액 상한을 넘으면 받지 않는다', () => {
+  const body = (item: object) => ({ title: 'a', items: [{ name: 'a', ...item }] })
+  const parsed = (item: object) => CreatePurchaseRequestSchema.safeParse(body(item)).success
+  assert.equal(PURCHASE_QUANTITY_MAX, 99_999)
+  assert.equal(parsed({ quantity: 99_999 }), true)
+  assert.equal(parsed({ quantity: 100_000 }), false)
+  assert.equal(parsed({ quantity: 99_999, estimatedUnitPrice: 10_000 }), true)
+  assert.equal(parsed({ quantity: 99_999, estimatedUnitPrice: 10_001 }), false)
 })

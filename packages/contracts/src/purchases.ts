@@ -26,7 +26,8 @@ export const PURCHASE_ITEM_NAME_MAX = 100
 export const PURCHASE_ITEM_LINK_MAX = 2000
 export const PURCHASE_ITEM_OPTIONS_MAX = 200
 export const PURCHASE_ITEMS_MAX = 20
-export const PURCHASE_QUANTITY_MAX = 999
+// 단위 칸이 없어 수량은 정수다. 기념품 1,000개가 걸리지 않게 둔다(DEC-92). DB에는 수량 상한 없이 단가 × 수량 + 배송비의 CHECK만 있다.
+export const PURCHASE_QUANTITY_MAX = 99_999
 // 목록 상한: 결재 대기는 오래된 순 300개, 내 요청과 전체는 최근 순 100개. 넘치면 truncated다.
 export const PURCHASE_PENDING_LIMIT = 300
 export const PURCHASE_RECENT_LIMIT = 100
