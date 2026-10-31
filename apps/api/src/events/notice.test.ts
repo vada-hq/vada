@@ -57,6 +57,7 @@ async function setup(): Promise<Kit> {
   return {
     ...t,
     post: after(t.post),
+    edit: after(t.edit),
     api: { ...t.api, post: after(t.api.post) },
     calls,
     settled,
@@ -131,10 +132,10 @@ test(
   '장소를 바꾸면 글 하나, 일시와 장소를 함께 바꾸면 글 하나에 두 줄이다',
   run(async t => {
     const event = await create(t, FULL)
-    assert.equal((await t.post(`/${event.id}`, { ...FULL, place: '체육관' })).status, 200)
+    assert.equal((await t.edit(event.id, { ...FULL, place: '체육관' })).status, 200)
     assert.equal(
       (
-        await t.post(`/${event.id}`, {
+        await t.edit(event.id, {
           ...FULL,
           startsAt: '2026-11-06T14:00',
           endsAt: '2026-11-06T18:00',
@@ -159,8 +160,8 @@ test(
   run(async t => {
     const event = await create(t, FULL)
     const before = await messageCount(t)
-    assert.equal((await t.post(`/${event.id}`, FULL)).status, 200)
-    assert.equal((await t.post(`/${event.id}`, { ...FULL, name: '  가을 축제 ' })).status, 200)
+    assert.equal((await t.edit(event.id, FULL)).status, 200)
+    assert.equal((await t.edit(event.id, { ...FULL, name: '  가을 축제 ' })).status, 200)
     assert.equal(await messageCount(t), before)
   }),
 )
@@ -170,8 +171,8 @@ test(
   run(async t => {
     const event = await create(t, { name: '가을 축제' })
     const before = await messageCount(t)
-    assert.equal((await t.post(`/${event.id}`, FULL)).status, 200)
-    assert.equal((await t.post(`/${event.id}`, { ...FULL, name: '가을 체육대회' })).status, 200)
+    assert.equal((await t.edit(event.id, FULL)).status, 200)
+    assert.equal((await t.edit(event.id, { ...FULL, name: '가을 체육대회' })).status, 200)
     assert.equal(await messageCount(t), before)
   }),
 )
@@ -181,13 +182,10 @@ test(
   run(async t => {
     const event = await create(t, FULL)
     const before = await messageCount(t)
-    assert.equal(
-      (await t.post(`/${event.id}`, { ...FULL, place: '체육관' }, 's-plain')).status,
-      403,
-    )
+    assert.equal((await t.edit(event.id, { ...FULL, place: '체육관' }, 's-plain')).status, 403)
     const theirs = await t.api.post(
       `/api/organizations/${t.other.councilId}/events/${event.id}`,
-      { ...FULL, place: '체육관' },
+      { ...FULL, place: '체육관', baseVersionNo: 1 },
       'o-president',
     )
     assert.equal(theirs.status, 404)
@@ -204,7 +202,7 @@ test(
       CREATE FUNCTION refuse_message() RETURNS trigger AS $$ BEGIN RAISE EXCEPTION 'refused'; END $$ LANGUAGE plpgsql;
       CREATE TRIGGER refuse_message BEFORE INSERT ON message FOR EACH ROW EXECUTE FUNCTION refuse_message();
     `)
-    assert.equal((await t.post(`/${event.id}`, { ...FULL, place: '체육관' })).status, 500)
+    assert.equal((await t.edit(event.id, { ...FULL, place: '체육관' })).status, 500)
     assert.equal((await t.detail(event.id)).place, '대운동장')
     assert.equal(await t.versions(event.id), versions)
     assert.equal((await t.post('', { name: '뒤풀이' })).status, 500)
@@ -218,7 +216,7 @@ test(
     // 다른 학생회가 먼저 만들어 그쪽 공지방이 먼저 생긴다. 학생회 거르기가 빠지면 우리 글이 그 방으로 간다.
     await t.api.post(`/api/organizations/${t.other.councilId}/events`, FULL, 'o-president')
     const event = await create(t, FULL)
-    await t.post(`/${event.id}`, { ...FULL, place: '체육관' })
+    await t.edit(event.id, { ...FULL, place: '체육관' })
     assert.deepEqual(
       (await noticesOf(t, t.other.councilId)).map(row => row.body),
       ['가을 축제가 생겼어요'],
@@ -241,7 +239,7 @@ test(
         [event.id],
       )
     ).rows as [{ id: string }]
-    await t.post(`/${event.id}`, { ...FULL, place: '체육관' })
+    await t.edit(event.id, { ...FULL, place: '체육관' })
     const rows = await t.pg.query<{ room_id: string; body: string }>(
       'SELECT room_id, body FROM message ORDER BY sent_at DESC LIMIT 1',
     )
@@ -258,7 +256,7 @@ test(
     const event = await create(t, FULL)
     assert.ok(!t.calls.some(call => call[0].endpoint === endpointOf('s-president')))
     t.calls.length = 0
-    await t.post(`/${event.id}`, { ...FULL, place: '체육관' })
+    await t.edit(event.id, { ...FULL, place: '체육관' })
     const current = Object.entries(t.council.people)
       .filter(([name]) => name !== 'ended' && name !== 'president')
       .map(([, person]) => endpointOf(person.userId))
@@ -291,6 +289,31 @@ test(
   }),
 )
 
+test(
+  '낡은 판의 저장은 409이고 자동 글이 오르지 않는다. 새 판으로 다시 저장하면 글 하나가 오른다',
+  run(async t => {
+    const event = await create(t, FULL)
+    assert.equal(
+      (await t.post(`/${event.id}`, { ...FULL, place: '체육관', baseVersionNo: 1 })).status,
+      200,
+    )
+    const before = await noticesOf(t, t.council.councilId)
+    assert.equal(
+      (await t.post(`/${event.id}`, { ...FULL, place: '강당', baseVersionNo: 1 })).status,
+      409,
+    )
+    assert.deepEqual(await noticesOf(t, t.council.councilId), before)
+    assert.equal(
+      (await t.post(`/${event.id}`, { ...FULL, place: '강당', baseVersionNo: 2 })).status,
+      200,
+    )
+    assert.deepEqual(
+      (await noticesOf(t, t.council.councilId)).slice(before.length).map(row => row.body),
+      ['가을 축제 장소가 바뀌었어요 · 체육관 → 강당'],
+    )
+  }),
+)
+
 // 그 사람의 공지방 안 읽은 글 수(대화의 안 읽은 수와 같은 셈: 읽은 시각 뒤의 남이 보낸 글).
 const unreadOf = (t: Kit, memberId: string) =>
   t.count(
@@ -309,7 +332,7 @@ test(
     const event = await create(t, FULL, 's-planningHead')
     assert.equal(await unreadOf(t, planningHead.memberId), 0)
     assert.equal(await unreadOf(t, president.memberId), 1)
-    await t.post(`/${event.id}`, { ...FULL, place: '체육관' })
+    await t.edit(event.id, { ...FULL, place: '체육관' })
     // 바꾸기 글은 행사 공지방에 올라 회장에게 들지 않는다. 학생회 공지방의 만들기 글은 그대로 안 읽음이다.
     assert.equal(await unreadOf(t, president.memberId), 1)
     assert.equal(await unreadOf(t, planningHead.memberId), 1)

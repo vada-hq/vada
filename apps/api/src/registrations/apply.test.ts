@@ -386,7 +386,7 @@ test(
       nonPayerFee: null,
       feeAccountId: null,
     }
-    assert.equal((await t.post(`/registration-forms/${form.id}`, edit)).status, 200)
+    assert.equal((await t.editForm(form.id, edit)).status, 200)
     const late = await t.apply(form.publicCode, { name: '나', studentId: '202654321' })
     assert.equal(late.status, 409)
     assert.deepEqual(await body(late), { error: 'FORM_CHANGED' })
@@ -397,10 +397,7 @@ test(
       { name: '나', student_id: null },
     ])
     // 다시 켜면 그 뒤의 신청은 학번이 있어야 한다.
-    assert.equal(
-      (await t.post(`/registration-forms/${form.id}`, { ...edit, collectsStudentId: true })).status,
-      200,
-    )
+    assert.equal((await t.editForm(form.id, { ...edit, collectsStudentId: true })).status, 200)
     assert.equal((await t.apply(form.publicCode, { name: '다' })).status, 409)
     await t.applied(form.publicCode, { name: '다', studentId: '202600001' })
   }),

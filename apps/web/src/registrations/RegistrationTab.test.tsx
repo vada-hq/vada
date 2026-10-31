@@ -981,3 +981,47 @@ test('한 칸 참가비가 계약 상한을 넘으면 보내지 않고 그 칸 �
   await waitFor(() => expect(document.activeElement).toBe(fee))
   expect(api.calls.some(call => call.method === 'POST')).toBe(false)
 })
+
+test('다른 사람이 양식을 먼저 고치면 쓰던 입력을 남기고 안내와 새 값을 보이며, 다시 저장은 새 판으로 간다', async () => {
+  const { api } = setup({ forms: [staffForm({ versionNo: 3, applicantCount: 0 })] })
+  const fresh = staffForm({
+    versionNo: 4,
+    applicantCount: 0,
+    capacity: 80,
+    notice: '앞사람 안내',
+  })
+  api.on('POST', FORM_PATH, () => {
+    api.on('GET', FORM_PATH, () => json({ form: fresh }))
+    return json({ error: 'VERSION_CONFLICT' }, 409)
+  })
+  fireEvent.click(await screen.findByRole('button', { name: '고치기' }))
+  const form = await screen.findByRole('form', { name: '신청 양식 고치기' })
+  fireEvent.change(within(form).getByLabelText('양식 이름'), { target: { value: '내 이름' } })
+  fireEvent.click(save())
+  expect(await within(form).findByText(REGISTRATION_STAFF_ERRORS.VERSION_CONFLICT!)).toBeTruthy()
+  expect(await within(form).findByText('새로 불러온 신청 양식')).toBeTruthy()
+  expect(within(form).getByText('앞사람 안내')).toBeTruthy()
+  expect(within(form).getByText('80명')).toBeTruthy()
+  expect(within(form).getByLabelText('양식 이름')).toHaveProperty('value', '내 이름')
+  api.on('POST', FORM_PATH, () => json({ form: fresh }))
+  fireEvent.click(save())
+  await waitFor(() => expect(screen.queryByRole('form', { name: '신청 양식 고치기' })).toBeNull())
+  expect(posts(api)[0]?.body).toMatchObject({ name: '내 이름', baseVersionNo: 3 })
+  expect(posts(api)[1]?.body).toMatchObject({ name: '내 이름', baseVersionNo: 4 })
+})
+
+test('새 값을 읽지 못해도 입력이 남고, 판이 그대로라 다시 저장하면 다시 막힌다', async () => {
+  const { api } = setup({ forms: [staffForm({ versionNo: 3, applicantCount: 0 })] })
+  api.on('POST', FORM_PATH, () => json({ error: 'VERSION_CONFLICT' }, 409))
+  api.on('GET', FORM_PATH, () => json({ error: 'TOO_MANY_REQUESTS' }, 429))
+  fireEvent.click(await screen.findByRole('button', { name: '고치기' }))
+  const form = await screen.findByRole('form', { name: '신청 양식 고치기' })
+  fireEvent.change(within(form).getByLabelText('양식 이름'), { target: { value: '내 이름' } })
+  fireEvent.click(save())
+  expect(await within(form).findByText(REGISTRATION_STAFF_ERRORS.VERSION_CONFLICT!)).toBeTruthy()
+  expect(within(form).getByLabelText('양식 이름')).toHaveProperty('value', '내 이름')
+  expect(within(form).queryByText('새로 불러온 신청 양식')).toBeNull()
+  fireEvent.click(save())
+  await waitFor(() => expect(posts(api)).toHaveLength(2))
+  expect(posts(api)[1]?.body).toMatchObject({ baseVersionNo: 3 })
+})

@@ -2,7 +2,6 @@ import { and, eq, isNull } from 'drizzle-orm'
 import { agendaItem, decision } from '../db/schema.js'
 import type { Tx } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
-import { versionOf } from './queries.js'
 
 // 회의 잠금 다음에 대상 잠금을 잡아 판 비교부터 쓰기까지 같은 거래에서 지킨다.
 export async function lockedAgenda(tx: Tx, meetingId: string, id: string) {
@@ -37,9 +36,6 @@ export async function lockedDecision(tx: Tx, meetingId: string, id: string) {
     .for('no key update', { of: decision })
   if (!row) throw new ApiError('NOT_FOUND')
   return row.decision
-}
-export async function assertVersion(tx: Tx, id: string, version: number) {
-  if ((await versionOf(tx, id)) !== version) throw new ApiError('VERSION_CONFLICT')
 }
 
 export function changedFields<T extends object>(

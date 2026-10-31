@@ -131,7 +131,13 @@ const rows: Row[] = [
     (t, s) =>
       post(t)(
         `/events/${s.event}`,
-        { name: '바꾼 이름', startsAt: '2026-10-20T09:00', endsAt: null, place: null },
+        {
+          name: '바꾼 이름',
+          startsAt: '2026-10-20T09:00',
+          endsAt: null,
+          place: null,
+          baseVersionNo: 1,
+        },
         OWNER,
       ),
   ],
@@ -294,6 +300,7 @@ const rows: Row[] = [
         payerFee: 5000,
         nonPayerFee: 5000,
         feeAccountId: s.account,
+        baseVersionNo: 1,
       }),
   ],
   ['양식 멈추기', (t, s) => post(t)(`/registration-forms/${s.form}/pause`, {})],
@@ -399,7 +406,13 @@ test(
     assert.equal(response.status, 201)
     const update = await post(t)(
       `/events/${open.event}`,
-      { name: '열린 행사', startsAt: '2026-10-20T09:00', endsAt: null, place: null },
+      {
+        name: '열린 행사',
+        startsAt: '2026-10-20T09:00',
+        endsAt: null,
+        place: null,
+        baseVersionNo: 1,
+      },
       OWNER,
     )
     assert.equal(update.status, 200)

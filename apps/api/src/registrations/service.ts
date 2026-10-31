@@ -15,6 +15,7 @@ import type { Tx } from '../db/types.js'
 import { eventRowOf } from '../events/queries.js'
 import { ApiError } from '../http/errors.js'
 import { clockNow, createRecord, updateRecord } from '../records/records.js'
+import { assertVersion } from '../records/versions.js'
 import { assertLinkableTask } from '../tasks/link.js'
 import { clearPhones } from './personal-values.js'
 import { assertEventAction, assertFormAction } from './policy.js'
@@ -120,7 +121,8 @@ function changesOf(row: FormRow, input: UpdateFormRequest) {
   }
 }
 
-// 고치기. 칸을 모두 받아 그대로 바꾸고, 같은 값이면 판을 만들지 않는다. 질문은 판이 없다(question-write.ts).
+// 고치기. 칸을 모두 받아 그대로 바꾸고, 같은 값이면 판을 만들지 않는다. 본 판이 낡았으면 값이 같아도 막는다.
+// 질문은 판이 없다(question-write.ts). 질문만 바뀌어도 양식의 판을 올려야 같이 고치던 사람의 저장이 막힌다.
 // 휴대폰 받기를 끄면 이미 받은 번호를 지금 값과 판에서 비운다(받지 않는 칸의 값이 남지 않게).
 // 학번 받기는 꺼도 이미 받은 학번을 비우지 않는다. 입금 대조와 같은 이름 가리기에 쓰고 보관 기간(DEC-55)대로 지운다(DEC-75).
 export async function updateForm(
@@ -131,18 +133,22 @@ export async function updateForm(
 ): Promise<RegistrationForm> {
   const row = await formRowOf(tx, actor, target.formId)
   await assertEventAction(tx, actor, 'form.update', row)
+  await assertVersion(tx, row.id, input.baseVersionNo)
   await assertFeeAccount(tx, actor, input, row.pausedAt !== null)
   await assertClosesAtAllowed(tx, row, input)
   // 질문은 다른 칸보다 먼저 본다. 신청이 있어 바꿀 수 없으면 409로 거래 전체가 되돌아간다.
-  if (input.questions) await replaceQuestions(tx, row.id, input.questions)
+  const questionsChanged = input.questions
+    ? await replaceQuestions(tx, row.id, input.questions)
+    : false
   const changes = changesOf(row, input)
-  if (Object.keys(changes).length)
+  if (questionsChanged || Object.keys(changes).length)
     await updateRecord(tx, {
       kind: 'registration_form',
       id: row.id,
       actor: actor.memberId,
       reason: null,
-      changes,
+      // 빈 값으로는 쓰지 못하므로 질문만 바뀐 때는 이름을 같은 값으로 써서 판을 연다.
+      changes: { name: row.name, ...changes },
     })
   if (row.collectsPhone && !input.collectsPhone) await clearPhones(tx, row.id)
   return formDetailOf(tx, actor, row.id, target.now)

@@ -13,7 +13,8 @@ import { ApiError } from '../http/errors.js'
 import { createRecord, updateRecord } from '../records/records.js'
 import { meetingDetailOf } from './queries.js'
 import { lockedMeeting } from './service.js'
-import { assertVersion, changedFields, lockedAgenda, lockedDecision } from './minutes-locks.js'
+import { assertVersion } from '../records/versions.js'
+import { changedFields, lockedAgenda, lockedDecision } from './minutes-locks.js'
 
 type MinutesTarget = { id: string; itemId: string; now: Date }
 

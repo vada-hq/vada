@@ -91,7 +91,7 @@ test(
     const event = await t.makeEvent()
     const { form } = await t.activeForm(event, { capacity: 5 })
     for (let index = 0; index < 3; index++) await t.makeRegistration(form.id)
-    const shrunk = await t.post(`/registration-forms/${form.id}`, {
+    const shrunk = await t.editForm(form.id, {
       name: form.name,
       opensAt: null,
       closesAt: form.closesAt,

@@ -2,7 +2,12 @@
 // 그만둔다고 알린 학생회는 파기할 때까지 읽기만 된다(서버 COUNCIL_CLOSING, DEC-55). 어느 화면에서 바꾸든 같은 말을 한다.
 const COUNCIL_CLOSING = '학생회를 그만두는 중이라 읽기만 할 수 있어요.'
 
+// 판 번호로 막힌 저장(회의, 행사, 신청 양식). 어느 화면이든 같은 말을 한다.
+export const VERSION_CONFLICT_MESSAGE =
+  '다른 사람이 먼저 고쳤어요. 새로 불러온 내용을 확인하고 다시 저장해 주세요.'
+
 export const changeErrors = (table: Record<string, string>): Record<string, string> => ({
   COUNCIL_CLOSING,
+  VERSION_CONFLICT: VERSION_CONFLICT_MESSAGE,
   ...table,
 })

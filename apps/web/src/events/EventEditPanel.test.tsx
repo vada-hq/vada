@@ -133,6 +133,7 @@ test('종료 시간 미정·장소 미정을 체크하면 그 칸이 꺼지고 �
     startsAt: '2026-10-24T14:00',
     endsAt: null,
     place: null,
+    baseVersionNo: 1,
   })
 })
 
@@ -304,4 +305,28 @@ test('행사명과 장소가 계약 상한을 넘으면 보내지 않고 그 칸
   expect(place.getAttribute('aria-invalid')).toBe('true')
   await waitFor(() => expect(document.activeElement).toBe(name))
   expect(api.calls.some(call => call.method === 'POST')).toBe(false)
+})
+
+test('다른 사람이 먼저 고치면 쓰던 입력을 남기고 안내와 새 값을 보이며, 다시 저장은 새 판으로 간다', async () => {
+  const { api } = setup(editable({ versionNo: 3 }))
+  const fresh = editable({ versionNo: 4, name: '앞사람 이름', place: '체육관' })
+  api.on('POST', `${BASE}/${EVENT_ID}`, () => {
+    api.on('GET', `${BASE}/${EVENT_ID}`, () => json({ event: fresh }))
+    return json({ error: 'VERSION_CONFLICT' }, 409)
+  })
+  const panel = await openPanel()
+  fireEvent.change(within(panel).getByLabelText('장소명'), { target: { value: '강당' } })
+  fireEvent.click(within(panel).getByRole('button', { name: '저장' }))
+  expect(await within(panel).findByText(EVENT_ERRORS.VERSION_CONFLICT!)).toBeTruthy()
+  expect(await within(panel).findByText('새로 불러온 행사')).toBeTruthy()
+  expect(within(panel).getByText('앞사람 이름')).toBeTruthy()
+  expect(within(panel).getByText('체육관')).toBeTruthy()
+  expect(within(panel).getByLabelText('장소명')).toHaveProperty('value', '강당')
+  api.on('POST', `${BASE}/${EVENT_ID}`, () => json({ event: fresh }))
+  fireEvent.click(within(panel).getByRole('button', { name: '저장' }))
+  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  const sent = api.calls.filter(call => call.method === 'POST').map(call => call.body)
+  expect(sent).toHaveLength(2)
+  expect(sent[0]).toMatchObject({ place: '강당', baseVersionNo: 3 })
+  expect(sent[1]).toMatchObject({ place: '강당', baseVersionNo: 4 })
 })

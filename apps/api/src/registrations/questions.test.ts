@@ -29,8 +29,8 @@ const update = (
   body: Record<string, unknown>,
   user?: string,
 ) =>
-  t.post(
-    `/registration-forms/${form.id}`,
+  t.editForm(
+    form.id,
     {
       ...FORM,
       opensAt: form.opensAt,
@@ -310,6 +310,7 @@ test(
           nonPayerFee: null,
           feeAccountId: null,
           questions: [],
+          baseVersionNo: 1,
         })
       ).status,
       401,

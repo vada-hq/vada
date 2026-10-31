@@ -16,6 +16,7 @@ import { longName, unbroken } from './sample-text'
 const form = (id: string, extra: Partial<RegistrationForm>): RegistrationForm => ({
   id,
   eventId: 'e1',
+  versionNo: 1,
   name: '환영회 참가 신청',
   opensAt: null,
   closesAt: '2026-10-23T18:00',

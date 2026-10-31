@@ -33,7 +33,6 @@ const MEETING_ERRORS = changeErrors({
   RECORD_CONFIRMED: '확정된 회의록이에요. 새로 불러와 주세요.',
   REASON_REQUIRED: '사유를 입력해 주세요.',
   EVENT_COMPLETED: '완료한 행사에는 새로 연결할 수 없어요. 다른 행사를 골라 주세요.',
-  VERSION_CONFLICT: '다른 사람이 먼저 고쳤어요. 새로 불러온 내용을 확인하고 다시 저장해 주세요.',
   FORBIDDEN: '지금은 이 회의를 바꿀 수 없어요.',
   NOT_FOUND: MEETING_LOST,
   INVALID_INPUT: '입력한 내용을 확인해 주세요.',

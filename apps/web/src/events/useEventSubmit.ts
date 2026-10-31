@@ -15,6 +15,8 @@ type Handlers = EventDialogHandlers & {
   onDone: (event: EventDetail) => void
   // 보내는 동안 대화상자를 닫지 못하게 바깥에 알린다.
   setSaving: (saving: boolean) => void
+  // 다른 사람이 먼저 고쳐 막혔다. 고치기만 준다.
+  onConflict?: () => Promise<void>
 }
 
 // 행사 쓰기 요청 하나(만들기, 고치기). 계약의 safeParse를 넘을 때만 보내고, 보내는 동안 다시 보내지 않는다.
@@ -43,6 +45,7 @@ export function useEventSubmit(
     }
     if (result.status === statusOf('NOT_FOUND')) return handlers.onLost(EVENT_LOST)
     setProblem(EVENT_ERRORS[result.code] ?? EVENT_FAILED)
+    if (result.code === 'VERSION_CONFLICT') await handlers.onConflict?.()
   }
 
   return { parsed, problem, submit }

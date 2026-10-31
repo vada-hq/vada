@@ -1,6 +1,7 @@
 import type { EventDetail } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
 import type { Db } from '../db/types.js'
+import { versionOf } from '../records/versions.js'
 import { completionApprovalsOf } from './completion.js'
 import { eventHeaderOf } from './header.js'
 import { eventHistoryOf } from './history.js'
@@ -20,6 +21,7 @@ export async function eventDetailOf(
   const facts = await factsOf(db, actor, row, { now })
   return {
     ...summary!,
+    versionNo: await versionOf(db, eventId),
     tasks: (await taskCountsByEvent(db, [eventId])).get(eventId) ?? { open: 0, total: 0 },
     ...(await eventHeaderOf(db, actor, row, { status: summary!.status, now })),
     history: await eventHistoryOf(db, eventId),

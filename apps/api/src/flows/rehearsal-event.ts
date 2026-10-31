@@ -62,7 +62,7 @@ export async function createEventStep(ctx: Ctx) {
   await write<EventResponse>(
     chief,
     path,
-    { name: plan.name, ...dates, place: '대강당' },
+    { name: plan.name, ...dates, place: '대강당', baseVersionNo: created.event.versionNo },
     '행사 장소 고치기',
   )
   await seesPermission(ctx, financeHead, 'finance.manage')

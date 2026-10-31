@@ -14,6 +14,7 @@ import type { Db } from '../db/types.js'
 import { completedEventIdsAmong } from '../events/completion.js'
 import { eventRowOf } from '../events/queries.js'
 import { ApiError } from '../http/errors.js'
+import { versionsAmong } from '../records/versions.js'
 import { registrationContextOf } from './permission-context.js'
 import { actionsOf, eventFactsOf, factsFrom, listActionsOf } from './policy.js'
 import { purgeOnOf } from './purge-date.js'
@@ -105,18 +106,34 @@ type FormFacts = {
   context: Context
   now: Date
   questions: FormQuestion[]
+  versionNo: number
+}
+
+function statusOfRow(row: FormRow, applicants: number, completed: boolean, now: Date) {
+  return registrationStatusOf(
+    {
+      opensAt: row.opensAt,
+      closesAt: row.closesAt,
+      paused: row.pausedAt !== null,
+      capacity: row.capacity,
+      applicantCount: applicants,
+      eventCompleted: completed,
+    },
+    now,
+  )
 }
 
 // 양식 줄 하나. 신청 수와 참석 수, 그 행사의 맥락(책임자, 담당 부서), 질문은 부르는 쪽이 읽어 준다.
 function formOf(
   row: FormRow,
-  { actor, counts, context, now, questions }: FormFacts,
+  { actor, counts, context, now, questions, versionNo }: FormFacts,
   completed: boolean,
 ): RegistrationForm {
   const { applicants, attended } = counts
   return {
     id: row.id,
     eventId: row.eventId,
+    versionNo,
     name: row.name,
     opensAt: row.opensAt ? koreanOf(row.opensAt) : null,
     closesAt: row.closesAt ? koreanOf(row.closesAt) : null,
@@ -132,17 +149,7 @@ function formOf(
       row.feeAccountId && row.feeAccountName
         ? { id: row.feeAccountId, name: row.feeAccountName }
         : null,
-    status: registrationStatusOf(
-      {
-        opensAt: row.opensAt,
-        closesAt: row.closesAt,
-        paused: row.pausedAt !== null,
-        capacity: row.capacity,
-        applicantCount: applicants,
-        eventCompleted: completed,
-      },
-      now,
-    ),
+    status: statusOfRow(row, applicants, completed, now),
     applicantCount: applicants,
     attendedCount: attended,
     remaining: remainingOf(row.capacity, applicants),
@@ -175,6 +182,10 @@ async function formsOf(
     db,
     rows.map(row => row.id),
   )
+  const versions = await versionsAmong(
+    db,
+    rows.map(row => row.id),
+  )
   const completed = await completedEventIdsAmong(
     db,
     rows.map(row => row.eventId),
@@ -195,6 +206,7 @@ async function formsOf(
         context: contexts.get(row.eventId)!,
         now,
         questions: questions.get(row.id)!,
+        versionNo: versions.get(row.id)!,
       },
       completed.has(row.eventId),
     ),

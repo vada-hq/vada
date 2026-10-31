@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { codePoints, nulOrLoneSurrogate, text } from './input.js'
+import { baseVersionNo, codePoints, nulOrLoneSurrogate, text } from './input.js'
 import { koreanDate, koreanDateTime } from './korean-time.js'
 import { recordIdInput } from './team.js'
 import type { TaskStatus } from './tasks.js'
@@ -62,8 +62,6 @@ export const CreateMeetingSchema = z
   })
   .refine(input => input.endsAt > input.heldAt, { path: ['endsAt'] })
 
-const VERSION_NO_MAX = 2_147_483_647
-const baseVersionNo = z.int().min(1).max(VERSION_NO_MAX)
 // 자동 저장하는 글은 자르지 않는다. 빈 글만 서버에서 null로 맞춘다.
 export const MeetingNotesSchema = z
   .string()

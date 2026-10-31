@@ -257,7 +257,7 @@ const WRITE_FORM: Record<FormWrite, (form: RegistrationForm) => [string, unknown
   ],
   'form.update': form => [
     `/registration-forms/${form.id}`,
-    { ...EDIT, name: form.name, closesAt: form.closesAt },
+    { ...EDIT, name: form.name, closesAt: form.closesAt, baseVersionNo: form.versionNo },
   ],
   'form.pause': form => [`/registration-forms/${form.id}/pause`, {}],
   'form.activate': form => [`/registration-forms/${form.id}/activate`, {}],

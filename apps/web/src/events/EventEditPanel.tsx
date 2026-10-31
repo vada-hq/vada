@@ -1,9 +1,11 @@
 import { useRef } from 'react'
-import type { EventSummary, RegistrationFormsResponse } from '@vada/contracts'
+import type { EventDetail, EventSummary, RegistrationFormsResponse } from '@vada/contracts'
+import { ConflictFacts } from '@/components/ConflictFacts'
 import { KkirukLine } from '@/components/KkirukLine'
 import { SidePanel, SidePanelContent } from '@/components/ui/side-panel'
 import type { Parsed } from '@/lib/use-form-check'
 import type { PolledState } from '@/lib/use-polled-read'
+import { whenLabel } from './event-view'
 import type { EventFieldValues } from './event-fields'
 import { EventEditFacts } from './EventEditFacts'
 import { EventEditFields, type EventFieldFocus } from './EventFields'
@@ -19,6 +21,8 @@ type Props = {
   parsed: Parsed
   saving: boolean
   problem: string | null
+  // 다른 사람이 먼저 고쳐 저장이 막힌 뒤 새로 불러온 행사.
+  conflict?: EventDetail | null
   onSubmit: () => void
   onClose: () => void
   onOpenForms: () => void
@@ -58,6 +62,17 @@ export function EventEditPanel({ focus, saving, onClose, ...props }: Props) {
         >
           {errors => (
             <>
+              {props.conflict && (
+                <ConflictFacts
+                  key={props.conflict.versionNo}
+                  title="새로 불러온 행사"
+                  fields={[
+                    ['행사명', props.conflict.name],
+                    ['일시', whenLabel(props.conflict)],
+                    ['장소', props.conflict.place ?? '미정'],
+                  ]}
+                />
+              )}
               <EventEditFields
                 values={props.values}
                 disabled={saving}
