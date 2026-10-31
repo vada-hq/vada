@@ -32,12 +32,8 @@ import {
 } from '@/test-support/leave-window'
 import { deferredResponse, json } from '@/test-support/mock-api'
 import { hasUnsavedInput } from '@/lib/leave-guard'
-import {
-  INCOME_ERRORS,
-  INCOME_LOST,
-  INCOME_PERIOD_NOT_STARTED,
-  PERMISSION_CHANGED,
-} from '@/lib/messages'
+import { INCOME_ERRORS, INCOME_LOST, INCOME_PERIOD_NOT_STARTED } from '@/lib/income-messages'
+import { PERMISSION_CHANGED } from '@/lib/messages'
 
 afterEach(async () => {
   cleanup()

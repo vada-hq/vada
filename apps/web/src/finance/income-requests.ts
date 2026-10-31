@@ -1,4 +1,4 @@
-import { INCOME_ERRORS, INCOME_FAILED, INCOME_LOST } from '@/lib/messages'
+import { INCOME_ERRORS, INCOME_FAILED, INCOME_LOST } from '@/lib/income-messages'
 import { reportLost, type PurchaseDialogHandlers } from './purchase-requests'
 
 // 수입 대화상자가 부모에게 알리는 일은 구매 요청·지출 대화상자와 같다(바꾼 뒤 다시 읽기, 사라짐·권한 잃음).

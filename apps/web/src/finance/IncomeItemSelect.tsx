@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { statusOf, type BudgetResponse } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
-import { INCOME_ITEMS_FAILED } from '@/lib/messages'
+import { INCOME_ITEMS_FAILED } from '@/lib/income-messages'
 import { usePolledRead } from '@/lib/use-polled-read'
 import { ChoiceSelect } from '@/tasks/ChoiceSelect'
 import { incomeItems } from './budget-form'

@@ -50,7 +50,7 @@
 - 로그인 없이 쓰는 공개 변경 라우트(참가 신청)는 `/api/public/` 아래에 둔다. 공통 가드가 같이 걸리고 `boundary.test.ts`가 같이 검사한다. 개인 링크 토큰은 경로에 넣지 않고 본문으로 받으며, 화면 주소에서는 `#` 뒤에 둔다.
 - 본문이 32KB보다 큰 경로(학생회비 명단)는 `guard.ts`의 `bodyLimitOf`에 더한다. 라우트에서 크기를 따로 다루지 않는다.
 - 새 라우트 모듈은 `createApp`의 `AppOptions`로만 연결한다. 그래야 경계 테스트가 빠짐없이 검사한다.
-- 실패는 `new ApiError(code)`(`apps/api/src/http/errors.ts`)로 던진다. 코드와 HTTP 상태는 `packages/contracts/src/errors.ts`의 오류 목록(`ERROR_STATUS`) 한 곳에 더하고, 코드나 라우트에 상태 숫자를 쓰지 않는다. 던지지 않고 바로 응답할 때는 `errorResponse(c, code)`다. 화면은 같은 목록의 `statusOf`로 가르고 코드 → 문구는 `apps/web/src/lib/messages.ts`에 둔다(참가 신청 화면의 문구는 `lib/registration-messages.ts`, 예산 탭의 문구는 `lib/budget-messages.ts`, 학생회를 바꾸는 화면의 표가 같이 쓰는 그만두는 학생회 문구는 `lib/change-errors.ts`). 라우트별 `onError`를 만들지 않는다(외부 재시도 계약이 있는 webhook의 503 응답만 예외).
+- 실패는 `new ApiError(code)`(`apps/api/src/http/errors.ts`)로 던진다. 코드와 HTTP 상태는 `packages/contracts/src/errors.ts`의 오류 목록(`ERROR_STATUS`) 한 곳에 더하고, 코드나 라우트에 상태 숫자를 쓰지 않는다. 던지지 않고 바로 응답할 때는 `errorResponse(c, code)`다. 화면은 같은 목록의 `statusOf`로 가르고 코드 → 문구는 `apps/web/src/lib/messages.ts`에 둔다(참가 신청 화면의 문구는 `lib/registration-messages.ts`, 예산 탭의 문구는 `lib/budget-messages.ts`, 수입 탭의 문구는 `lib/income-messages.ts`, 학생회를 바꾸는 화면의 표가 같이 쓰는 그만두는 학생회 문구는 `lib/change-errors.ts`). 라우트별 `onError`를 만들지 않는다(외부 재시도 계약이 있는 webhook의 503 응답만 예외).
 - 길이 제한이 있는 컬럼은 DB에도 같은 값의 CHECK를 둔다.
 - 테스트에는 성공 케이스와 함께 다음을 넣는다: 필수값 누락, 빈 문자열·공백만, 상한+1(이모지 포함), NUL·홀로 쓰인 서러게이트, 모르는 키, 다른 학생회 사용자, 미인증.
 - 화면은 같은 스키마의 `safeParse`로 누를 때 칸을 확인한다(버튼은 끄지 않는다, '화면 문구와 폼'). 길이 숫자를 화면에 다시 적지 않는다.
