@@ -206,7 +206,7 @@ test(
       [entered],
     )
     assert.deepEqual(
-      [...overview!.missingEvents].sort((a, b) => a.id.localeCompare(b.id)),
+      [...(overview?.missingEvents ?? [])].sort((a, b) => a.id.localeCompare(b.id)),
       [
         { id: incomeOnly, name: '수입만 있는 행사' },
         { id: missing, name: '미입력 행사' },

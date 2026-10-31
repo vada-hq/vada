@@ -283,7 +283,11 @@ test('받은 것의 요청 줄을 누르면 그 요청이 열린다', async () =
 })
 
 test('받은 것이 잘렸으면 수에 +를 붙이고 모두 보기가 구매의 처리 단계를 연다', async () => {
-  open(homeResponse({ received: { requests: [homeRequest('r1')], total: 50, pendingItems: 50, truncated: true } }))
+  open(
+    homeResponse({
+      received: { requests: [homeRequest('r1')], total: 50, pendingItems: 50, truncated: true },
+    }),
+  )
   const section = await screen.findByRole('region', { name: '받은 것' })
   expect(within(section).getByText('50+')).toBeTruthy()
   fireEvent.click(within(section).getByRole('button', { name: '모두 보기' }))
