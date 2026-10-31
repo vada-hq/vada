@@ -264,6 +264,35 @@ test('총 N명은 취소하지 않은 신청만 세고 환불 대기는 따로 �
   expect(screen.queryByRole('button', { name: /환불 대기/ })).toBeNull()
 })
 
+test('고른 줄이 취소돼 명단에서 빠지면 고른 것에서도 빠져 일괄 처리에 실리지 않는다', async () => {
+  let rows = [row(), row({ id: secondId, name: '나환불' })]
+  const api = mockApi()
+  api.on('GET', PATH, () => json(data({ applicants: rows })))
+  render(
+    <EventApplicants
+      councilId="c1"
+      eventId={STAFF_EVENT_ID}
+      onForbidden={vi.fn()}
+      onLost={vi.fn()}
+    />,
+  )
+  await screen.findByText('나환불')
+  fireEvent.click(screen.getByRole('checkbox', { name: '나환불 선택' }))
+  expect(await screen.findByText('1명 선택')).toBeTruthy()
+  rows = [
+    row(),
+    row({
+      id: secondId,
+      name: '나환불',
+      cancelled: true,
+      deposit: { status: 'refund_pending', amount: 5000 },
+    }),
+  ]
+  fireEvent.click(screen.getByRole('button', { name: '새로 읽기' }))
+  await waitFor(() => expect(screen.queryByText('나환불')).toBeNull())
+  await waitFor(() => expect(screen.queryByText('1명 선택')).toBeNull())
+})
+
 test('신청자가 모두 환불 대기면 전체는 비고 환불 대기로 간다', async () => {
   setup(
     data({
