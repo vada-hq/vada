@@ -71,26 +71,6 @@ const board: HomeCouncilBoard = {
     ],
     total: 1,
   },
-  attention: {
-    items: [
-      {
-        task: task('t1', '체험 부스 구성안', { overdue: true, dueDate: '2026-10-24' }),
-        reason: 'overdue',
-      },
-      {
-        task: task('t2', '현장 운영 순서표', {
-          event: { id: 'e2', name: '진로 특강' },
-          dueDate: '2026-10-29',
-        }),
-        reason: 'unassigned',
-      },
-      {
-        task: task('t3', '행사 사진 정리', { department: null, event: null, dueDate: null }),
-        reason: 'unassigned',
-      },
-    ],
-    total: 4,
-  },
   unassignedMembers: 1,
   ops: mainOps,
   todo: mainTodo,
@@ -135,7 +115,6 @@ const emptyBoard: HomeCouncilBoard = {
   financeStaffed: false,
   events: { cards: [], counts: { planning: 0, ongoing: 0, followUp: 0 } },
   followUp: { events: [], total: 0 },
-  attention: { items: [], total: 0 },
   unassignedMembers: 0,
   ops: {
     rows: [],

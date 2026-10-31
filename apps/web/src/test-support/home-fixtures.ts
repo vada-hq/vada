@@ -157,7 +157,6 @@ const councilBoard = (extra: Partial<HomeCouncilBoard> = {}): HomeCouncilBoard =
   financeStaffed: true,
   events: { cards: [], counts: { planning: 0, ongoing: 0, followUp: 0 } },
   followUp: { events: [], total: 0 },
-  attention: { items: [], total: 0 },
   unassignedMembers: 0,
   ops: emptyOps(),
   todo: emptyTodo(),
