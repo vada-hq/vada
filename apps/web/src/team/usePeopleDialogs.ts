@@ -13,6 +13,8 @@ export function usePeopleDialogs(
   onClosed: (reason: string) => void,
 ) {
   const [editing, setEditing] = useState<string | null>(null)
+  // 부서 배정 창을 [부장 지정]으로 연 부서. 창의 기본값만 정한다.
+  const [headOf, setHeadOf] = useState<string | null>(null)
   const [confirm, setConfirm] = useState<Confirm | null>(null)
   const editingMember = findEditing(data?.members, editing, can)
   const confirming = findConfirming(data?.members, confirm, can)
@@ -23,7 +25,11 @@ export function usePeopleDialogs(
   const confirmReason = closedReason(data?.members, confirm?.memberId ?? null)
   useWhenClosed(editingGone, { reason: editingReason, reading }, onClosed, () => setEditing(null))
   useWhenClosed(confirmGone, { reason: confirmReason, reading }, onClosed, () => setConfirm(null))
-  return { editingMember, confirming, setEditing, setConfirm }
+  const openEditing = (memberId: string, head: string | null) => {
+    setHeadOf(head)
+    setEditing(memberId)
+  }
+  return { editingMember, headOf, confirming, openEditing, setEditing, setConfirm }
 }
 
 // 목록을 읽은 뒤 열려 있던(대상을 기억하던) 대화상자의 대상을 못 찾으면 닫힌 것이다.

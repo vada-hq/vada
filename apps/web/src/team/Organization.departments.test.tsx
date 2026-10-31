@@ -733,7 +733,7 @@ async function pickHead(department: string, name: string) {
   fireEvent.click(within(await screen.findByRole('menu')).getByRole('menuitem', { name }))
   return within(await screen.findByRole('dialog', { name: `${name}의 부서` }))
 }
-const rankBox = (dialog: ReturnType<typeof within>) =>
+const rankBox = (dialog: { getByLabelText: (label: string) => HTMLElement }) =>
   asElement(dialog.getByLabelText('부서 직급'), HTMLSelectElement)
 
 test('[부장 지정]으로 연 창은 누른 부서와 부장을 골라 두고, 부서를 넣으면 다음 부서의 직급은 다시 비운다', async () => {
@@ -772,9 +772,7 @@ test('사람 카드의 부서 배정은 [부장 지정] 뒤에 열어도 직급 
 test('직급을 줄 수 없으면 [부장 지정]으로 열어도 부서만 골라 두고 직급 없이 넣는다', async () => {
   const api = serve()
   api.on('POST', '/api/organizations/c1/members/m3/departments', () => json(teamResponse()))
-  render(
-    <Harness permissions={LEADER_PERMISSIONS.filter(action => action !== 'rank.manage')} />,
-  )
+  render(<Harness permissions={LEADER_PERMISSIONS.filter(action => action !== 'rank.manage')} />)
   await loaded()
   const dialog = await pickHead('기획부', '박새내')
   expect(asElement(dialog.getByLabelText('부서'), HTMLSelectElement).value).toBe('d2')

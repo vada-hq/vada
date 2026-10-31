@@ -15,8 +15,6 @@ type CouncilRead = { view: CouncilView; reading: Reading }
 export function usePeople(council: CouncilRead, team: Team, onOwnChange: () => void) {
   const { view, reading } = council
   const [message, setMessage] = useState('')
-  // 부서 배정 창을 [부장 지정]으로 연 부서. 창의 기본값만 정한다.
-  const [headOf, setHeadOf] = useState<string | null>(null)
   const menuFocus = useMenuFocus()
   const me = view.me.memberId
   const can = (action: Action) => view.permissions.includes(action)
@@ -24,7 +22,7 @@ export function usePeople(council: CouncilRead, team: Team, onOwnChange: () => v
   // 초대 링크 카드는 초대 권한과 함께 사라진다.
   useLost(can('invite.manage'), () => setMessage(PERMISSION_CHANGED), reading)
   const requests = usePeopleRequests(team, me, onOwnChange, setMessage)
-  const { editingMember, confirming, setEditing, setConfirm } = dialogs
+  const { editingMember, headOf, confirming, openEditing, setEditing, setConfirm } = dialogs
   // 대화상자 안에 보이지 않는 오류만 쪽 위에 보인다.
   const pageMessage = !editingMember && !confirming ? message : ''
 
@@ -43,6 +41,10 @@ export function usePeople(council: CouncilRead, team: Team, onOwnChange: () => v
     menuFocus.remember(...[from].flat())
     show()
   }
+  const closing = (clear: (value: null) => void) => () => {
+    clear(null)
+    setMessage('')
+  }
   return {
     me,
     can,
@@ -57,20 +59,11 @@ export function usePeople(council: CouncilRead, team: Team, onOwnChange: () => v
     toggleViceRank: requests.toggleViceRank,
     confirmed,
     openAssign: (member: TeamMember, from: string | string[], head: string | null = null) =>
-      open(from, () => {
-        setHeadOf(head)
-        setEditing(member.id)
-      }),
+      open(from, () => openEditing(member.id, head)),
     askConfirm: (kind: Confirm['kind'], member: TeamMember, from: string) =>
       open(from, () => setConfirm({ kind, memberId: member.id })),
-    closeAssign: () => {
-      setEditing(null)
-      setMessage('')
-    },
-    cancelConfirm: () => {
-      setConfirm(null)
-      setMessage('')
-    },
+    closeAssign: closing(setEditing),
+    cancelConfirm: closing(setConfirm),
   }
 }
 export type PeopleState = ReturnType<typeof usePeople>
