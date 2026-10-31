@@ -59,6 +59,7 @@ const overview: FinanceOverview = {
       available: -60_000,
     },
   ],
+  missingEvents: [event('e5', '기말고사 간식 행사')],
   items: [
     {
       id: 'b1',
@@ -120,6 +121,7 @@ const empty: FinanceOverview = {
   paidCount: 0,
   committedCount: 0,
   events: [],
+  missingEvents: [],
   items: [],
   noItem: 0,
   recent: [],

@@ -2,6 +2,7 @@ import { and, asc, desc, eq, exists, inArray, isNull, notExists, or, sql } from 
 import {
   FINANCE_RECENT_EXPENSES,
   koreanDateOf,
+  type EventRef,
   type FinanceOverview,
   type FinanceOverviewEvent,
   type FinanceOverviewItem,
@@ -12,6 +13,7 @@ import { paidWithin } from '../closing/period.js'
 import { budgetItem, event, expense, lineItem, paymentLine, record, request } from '../db/schema.js'
 import { countAll, sumOf } from '../db/sums.js'
 import type { Db } from '../db/types.js'
+import { allOpenEventsOf } from '../events/queries.js'
 import { currentPeriodOf, pickedPeriodOf } from './queries.js'
 import { budgetItemsWithUsage, committedLine, type BudgetItemRow } from './usage.js'
 
@@ -159,6 +161,12 @@ function eventsOf(items: FinanceOverviewItem[]): FinanceOverviewEvent[] {
   return [...byEvent.values()].sort((a, b) => a.event.name.localeCompare(b.event.name, 'ko'))
 }
 
+// 예산 미입력 행사: 받은 완료 전 행사 가운데 이 기간의 지출 예산 항목이 없는 것
+const missingEventsOf = (open: EventRef[], events: FinanceOverviewEvent[]) =>
+  open
+    .filter(row => !events.some(item => item.event.id === row.id))
+    .map(({ id, name }) => ({ id, name }))
+
 const sum = (values: number[]) => values.reduce((all, value) => all + value, 0)
 
 // 기간 하나의 개요. 기간은 이 학생회 것이어야 한다(부르는 쪽이 고른다).
@@ -166,6 +174,7 @@ async function overviewOfPeriod(
   db: Reader,
   councilId: string,
   period: Period,
+  open: EventRef[],
 ): Promise<FinanceOverview> {
   const rows = await budgetItemsWithUsage(db, councilId, thisBudget(period.budgetId), [
     asc(budgetItem.purpose),
@@ -174,6 +183,7 @@ async function overviewOfPeriod(
   const incomes = rows.filter(row => row.usage.type === 'income')
   const items = expenseItemsOf(rows)
   const noItem = await noItemTotalOf(db, councilId, period)
+  const events = eventsOf(items)
   const total = sum(incomes.map(row => row.amount))
   const actual = sum(items.map(item => item.actual)) + noItem
   const committed = sum(items.map(item => item.committed))
@@ -187,11 +197,23 @@ async function overviewOfPeriod(
     available: total - actual - committed,
     paidCount: await paidCountOf(db, councilId, period),
     committedCount: await committedCountOf(db, councilId, period),
-    events: eventsOf(items),
+    events,
+    missingEvents: missingEventsOf(open, events),
     items,
     noItem,
     recent: await recentOf(db, councilId, period),
   }
+}
+
+function includesToday(period: Period, now: Date) {
+  const today = koreanDateOf(now)
+  return period.startsOn <= today && today <= period.endsOn
+}
+
+// 오늘이 든 기간의 개요. 완료 전 행사를 이미 읽은 홈이 다시 읽지 않게 받는다. 기간이 없으면 null이다.
+export async function currentOverviewOf(db: Reader, actor: Actor, now: Date, open: EventRef[]) {
+  const period = await currentPeriodOf(db, actor, now)
+  return period ? overviewOfPeriod(db, actor.councilId, period, open) : null
 }
 
 // 고른 기간(다른 학생회 것이면 404)이나 오늘이 든 기간의 개요. 기간이 없으면 null이다.
@@ -202,5 +224,7 @@ export async function financeOverviewOf(
   periodId?: string,
 ): Promise<FinanceOverviewResponse> {
   const period = await pickedPeriodOf(db, actor, now, periodId)
-  return { overview: period ? await overviewOfPeriod(db, actor.councilId, period) : null }
+  if (!period) return { overview: null }
+  const open = includesToday(period, now) ? await allOpenEventsOf(db, actor, now) : []
+  return { overview: await overviewOfPeriod(db, actor.councilId, period, open) }
 }

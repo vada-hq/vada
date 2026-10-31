@@ -283,6 +283,11 @@ export async function openEventsAmong(
   return summariesOf(db, actor, rows, now)
 }
 
+// 완료하지 않은 행사 모두(끝났고 완료 전인 것 포함). 재정의 예산 미입력과 홈이 같이 읽는다.
+export async function allOpenEventsOf(db: Reader, actor: Actor, now: Date) {
+  return openEventsAmong(db, actor, now, await openEventIdsByCreation(db, actor))
+}
+
 // 행사 여럿의 지우지 않은 업무 수(끝나지 않은 것, 전체). 행사 상세와 홈이 같이 쓴다.
 // 부서를 주면 그 부서들의 업무만 센다(홈 참여 행사의 '부서 업무 n/m'). 학생회를 주면 그 학생회의 업무만 센다(기록 메뉴).
 export async function taskCountsByEvent(

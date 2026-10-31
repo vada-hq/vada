@@ -39,7 +39,7 @@ test('행사별·최근 지출·행사 정산 카드 줄은 이름 단추 하나
   const onOpen = vi.fn()
   render(
     <>
-      <OverviewEvents rows={overview.events} wide={false} onOpen={onOpen} />
+      <OverviewEvents missing={[]} rows={overview.events} wide={false} onOpen={onOpen} />
       <OverviewRecent rows={overview.recent} wide={false} onOpen={onOpen} onAll={() => {}} />
       <EventSettlementList
         rows={[
@@ -69,7 +69,7 @@ test('넓은 화면의 행사별·최근 지출 표는 그대로다(줄 상자 c
   const overview = overviewFixture()
   render(
     <>
-      <OverviewEvents rows={overview.events} wide onOpen={() => {}} />
+      <OverviewEvents missing={[]} rows={overview.events} wide onOpen={() => {}} />
       <OverviewRecent rows={overview.recent} wide onOpen={() => {}} onAll={() => {}} />
     </>,
   )

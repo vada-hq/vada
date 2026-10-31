@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import type { BudgetResponse, FinanceOverview, FinanceOverviewResponse } from '@vada/contracts'
 import { clockNow } from '../records/records.js'
+import { twoPeriods } from '../test-support/closing.js'
 import { withSettlement, type SettlementKit } from '../test-support/settlement.js'
 
 // 재정 첫 화면(DEC-92, 기능 024 조각 8). 숫자는 예산 셈(usage.ts)에서 오고, 같은 항목의 숫자는 예산 탭과 같다.
@@ -184,6 +185,34 @@ test(
     const now = cards(await overviewOf(t))
     assert.equal(now.actual, 0)
     assert.equal(now.paidCount, 0)
+  }),
+)
+
+test(
+  '지금 기간의 예산 미입력은 완료 전 행사 가운데 지출 예산 항목이 없는 것이고, 지난 기간에는 없다',
+  withSettlement(async t => {
+    const entered = await t.event({ name: '입력한 행사' })
+    const incomeOnly = await t.event({ name: '수입만 있는 행사', startsAt: null })
+    const missing = await t.event({ name: '미입력 행사', startsAt: null })
+    const done = await t.event({ name: '완료한 행사' })
+    await t.completion(done, 'completed', new Date('2026-10-24T03:00:00Z'))
+    await t.event({ name: '다른 학생회', startsAt: null }, t.other)
+    const { first, nextBudget } = await twoPeriods(t)
+    await t.budgetItem(nextBudget, { eventId: entered, amount: '1000' })
+    await t.budgetItem(nextBudget, { type: 'income', eventId: incomeOnly, amount: '1000' })
+    const overview = await overviewOf(t)
+    assert.deepEqual(
+      overview?.events.map(row => row.event.id),
+      [entered],
+    )
+    assert.deepEqual(
+      [...overview!.missingEvents].sort((a, b) => a.id.localeCompare(b.id)),
+      [
+        { id: incomeOnly, name: '수입만 있는 행사' },
+        { id: missing, name: '미입력 행사' },
+      ].sort((a, b) => a.id.localeCompare(b.id)),
+    )
+    assert.deepEqual((await overviewOf(t, `?period=${first}`))?.missingEvents, [])
   }),
 )
 

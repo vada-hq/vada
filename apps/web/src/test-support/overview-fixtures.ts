@@ -28,6 +28,7 @@ export const overviewFixture = (extra: Partial<FinanceOverview> = {}): FinanceOv
       available: 230_000,
     },
   ],
+  missingEvents: [],
   items: [
     {
       id: 'b1',

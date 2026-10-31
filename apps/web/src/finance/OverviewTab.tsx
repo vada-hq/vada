@@ -48,7 +48,12 @@ export function OverviewView({
     <div className="flex flex-col gap-3">
       <OverviewCards overview={overview} links={openers} />
       <OverviewRate overview={overview} />
-      <OverviewEvents rows={overview.events} wide={wide} onOpen={openers.onEvent} />
+      <OverviewEvents
+        rows={overview.events}
+        missing={overview.missingEvents}
+        wide={wide}
+        onOpen={openers.onEvent}
+      />
       <OverviewRecent
         rows={overview.recent}
         wide={wide}

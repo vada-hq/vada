@@ -67,6 +67,9 @@ test(
       null,
     )
     assert.equal(finance.financeBoard?.budgets.total, 2)
+    // 홈의 '전체 N개'는 재정 '행사별' 표의 줄 수다.
+    assert.deepEqual(overview.missingEvents, leadership.financeSummary?.missing)
+    assert.equal(overview.events.length + overview.missingEvents.length, 2)
     assert.equal((await read('s-planningMember')).financeBoard, undefined)
     assert.equal((await read('s-planningMember')).financeSummary, undefined)
   }),
