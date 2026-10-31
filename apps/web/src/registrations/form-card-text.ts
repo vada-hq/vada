@@ -2,6 +2,7 @@ import {
   FORM_ACTIVATION_CONDITIONS,
   QUESTION_KIND_LABELS,
   type FormActivationCondition,
+  type FormQuestion,
   type RegistrationForm,
 } from '@vada/contracts'
 import { FORM_ACTIVATION_LABELS } from '@/lib/registration-messages'
@@ -49,6 +50,13 @@ export function collectedSummary(form: RegistrationForm) {
   return [...basics, questions].filter(Boolean).join(' · ')
 }
 
+// 질문 한 줄. 필수 여부나 선택지만 바뀌어도 저장이 막히므로 다시 저장하기 전에 다 보여야 한다.
+function questionLine({ title, kind, required, choices }: FormQuestion) {
+  const facts = `${QUESTION_KIND_LABELS[kind]} · ${required ? '필수' : '선택'}`
+  const labels = choices.map(choice => choice.label).join(', ')
+  return `${title} (${facts})${labels ? `: ${labels}` : ''}`
+}
+
 // 저장이 막힌 뒤 새로 불러온 양식의 값. 고치는 칸과 같은 이름이다.
 export const conflictFields = (form: RegistrationForm): (readonly [string, string])[] => [
   ['양식 이름', form.name],
@@ -58,12 +66,8 @@ export const conflictFields = (form: RegistrationForm): (readonly [string, strin
   ['참가비', feeText(form)],
   ['참가비 받을 계좌', form.feeAccount?.name ?? '비어 있음'],
   ['안내', form.notice ?? '비어 있음'],
-  [
-    '받는 항목',
-    collectedItems(form)
-      .map(item => item.label)
-      .join(' · '),
-  ],
+  ['받는 항목', collectedSummary(form)],
+  ['질문', form.questions.map(questionLine).join('\n') || '없음'],
 ]
 
 export type Check = {
