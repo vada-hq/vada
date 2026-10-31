@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type Dispatch, type SetStateAction } from 'react'
 import {
   BulkApplicantsSchema,
   type ApplicantChange,
@@ -49,6 +49,24 @@ function updatedRows(rows: EventApplicant[], changes: Props['changes']) {
 
 type List = ReturnType<typeof useEventApplicants>
 
+// 고른 줄은 지금 보이는 줄 안에만 남긴다. 취소나 다시 읽기로 빠진 줄이 수에 남아 일괄 처리에 실리면 안 된다.
+function useKeepSelectionShown(
+  list: List,
+  view: { filter: ApplicantFilter; page: number; changes: Props['changes'] },
+  setSelected: Dispatch<SetStateAction<ReadonlySet<string>>>,
+) {
+  const { filter, page, changes } = view
+  useEffect(() => {
+    if (list.state.kind !== 'ready') return
+    const { applicants, canManage } = list.state.data
+    const { rows } = visibleOf(updatedRows(applicants, changes), filter, page)
+    setSelected(before => {
+      const kept = [...before].filter(id => canManage && rows.some(row => row.id === id))
+      return kept.length === before.size ? before : new Set(kept)
+    })
+  }, [list.state, changes, filter, page, setSelected])
+}
+
 function useEventControls(props: Props, list: List) {
   const post = useStaffPost(props)
   const [selected, setSelected] = useState<ReadonlySet<string>>(new Set())
@@ -67,17 +85,12 @@ function useEventControls(props: Props, list: List) {
     if (list.state.kind !== 'ready') return
     const data = list.state.data
     loaded.current?.(data.applicants.map(row => row.id))
-    setSelected(
-      before =>
-        new Set(
-          [...before].filter(id => data.canManage && data.applicants.some(row => row.id === id)),
-        ),
-    )
     if (!data.canManage) {
       setResult(null)
       setResultNames(new Map())
     }
   }, [list.state])
+  useKeepSelectionShown(list, { filter, page, changes: props.changes }, setSelected)
   const setQuery = (query: ApplicantFilter) => {
     if (post.busy) return
     setSelected(new Set())
