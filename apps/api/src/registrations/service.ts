@@ -19,7 +19,7 @@ import { assertVersion } from '../records/versions.js'
 import { assertLinkableTask } from '../tasks/link.js'
 import { clearPhones } from './personal-values.js'
 import { assertEventAction, assertFormAction } from './policy.js'
-import { insertQuestions, replaceQuestions } from './question-write.js'
+import { insertQuestions, isTaken, lockFormRow, replaceQuestions } from './question-write.js'
 import { freshPublicCode } from './public-code.js'
 import { formDetailOf, formRowOf, type FormRow } from './queries.js'
 
@@ -93,6 +93,15 @@ async function assertClosesAtAllowed(tx: Tx, row: FormRow, input: UpdateFormRequ
   if (row.pausedAt === null || taken) throw new ApiError('CLOSES_AT_REQUIRED')
 }
 
+// 신청자가 있는 양식의 참가비는 바꾸지 않는다(규칙 14). 바꾸려면 새 양식을 만든다. 세는 법은 질문 잠금과 같아 취소한 신청만 남으면 바꾼다.
+// 이미 낸 돈과 환불은 신청마다 적힌 금액(applied_fee)을 따르므로 취소한 신청의 금액은 그대로다.
+// 양식 행을 잠근 뒤 센다: 공개 신청도 같은 행을 잠그고 그 뒤에 참가비를 읽어 '0명이라 바꿈'과 '옛 참가비로 신청'이 함께 일어나지 않는다.
+async function assertFeeAllowed(tx: Tx, row: FormRow, input: UpdateFormRequest) {
+  if (input.payerFee === feeOf(row.payerFee) && input.nonPayerFee === feeOf(row.nonPayerFee)) return
+  await lockFormRow(tx, row.id)
+  if (await isTaken(tx, row.id)) throw new ApiError('FORM_FEE_LOCKED')
+}
+
 // 받는 칸. 학번 받기를 바꾸면 그 뒤의 신청부터 따른다(DEC-75).
 function collectChangesOf(row: FormRow, input: UpdateFormRequest) {
   return {
@@ -136,6 +145,7 @@ export async function updateForm(
   await assertVersion(tx, row.id, input.baseVersionNo)
   await assertFeeAccount(tx, actor, input, row.pausedAt !== null)
   await assertClosesAtAllowed(tx, row, input)
+  await assertFeeAllowed(tx, row, input)
   // 질문은 다른 칸보다 먼저 본다. 신청이 있어 바꿀 수 없으면 409로 거래 전체가 되돌아간다.
   const questionsChanged = input.questions
     ? await replaceQuestions(tx, row.id, input.questions)

@@ -206,6 +206,8 @@ type Props = {
   errors: FieldErrors
   // 초안은 마감을 비워 저장할 수 있다(활성화가 묻는다). 그때는 필수 별표를 달지 않는다.
   closesRequired: boolean
+  // 신청이 있어 잠긴 참가비의 글. 잠기지 않았으면 없다.
+  feeLock?: string | undefined
   account: FeeAccount
   event: EventDetail | null
   onChange: Change
@@ -218,6 +220,7 @@ export function SettingRows({
   values,
   errors,
   closesRequired,
+  feeLock,
   account,
   event,
   onChange,
@@ -264,8 +267,8 @@ export function SettingRows({
           onChange={capacity => onChange({ capacity })}
         />
       </PropRow>
-      <PropRow icon={Wallet} label="참가비" mark="required">
-        <FeeValue ids={ids} values={values} errors={errors} onChange={onChange} />
+      <PropRow icon={Wallet} label="참가비" mark={feeLock === undefined ? 'required' : undefined}>
+        <FeeValue ids={ids} values={values} errors={errors} locked={feeLock} onChange={onChange} />
       </PropRow>
       {values.feeKind !== 'none' && (
         <PropRow icon={Landmark} label="참가비 받을 계좌" mark="required" htmlFor={ids.account}>

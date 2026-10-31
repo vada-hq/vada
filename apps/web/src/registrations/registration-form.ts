@@ -84,6 +84,16 @@ export const valuesOfForm = (form: RegistrationForm): FormValues => ({
   questions: draftsOf(form.questions),
 })
 
+// 신청이 있으면 질문과 참가비가 잠긴다(서버 409). 취소한 신청은 세지 않는다.
+export const hasApplicants = (form: Pick<RegistrationForm, 'applicantCount'> | undefined) =>
+  (form?.applicantCount ?? 0) > 0
+
+type LockedFees = Pick<RegistrationForm, 'payerFee' | 'nonPayerFee' | 'applicantCount'>
+
+// 잠긴 참가비는 서버 값을 쓴다. 고치던 중에 신청이 들어오면 쓰던 금액은 저장되지 못하고 409만 돌아오기 때문이다.
+export const withLockedFee = (values: FormValues, form: LockedFees | undefined): FormValues =>
+  form && hasApplicants(form) ? { ...values, ...feeValuesOf(form) } : values
+
 const DIGITS = /^[0-9]+$/
 // 숫자 칸. 비웠으면 null이고, 숫자가 아닌 글은 그대로 보내 계약이 거절하게 한다(버튼이 꺼진다).
 function numberOf(value: string) {
