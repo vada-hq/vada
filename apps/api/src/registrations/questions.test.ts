@@ -190,7 +190,7 @@ test(
 )
 
 test(
-  '질문을 고쳐도 양식의 판이 늘지 않고 같은 학생회의 다른 양식 질문은 그대로다',
+  '질문을 고치면 양식의 판이 하나 늘고 같은 학생회의 다른 양식 질문은 그대로다',
   withRegistrations(async t => {
     const { form } = await t.created(await t.makeEvent(), { questions: QUESTIONS })
     const { form: neighbor } = await t.created(await t.makeEvent(), { questions: QUESTIONS })
@@ -199,7 +199,7 @@ test(
     const before = await versions()
     const swapped = await update(t, form, { questions: [QUESTIONS[1], QUESTIONS[0]] })
     assert.equal(swapped.status, 200)
-    assert.equal(await versions(), before)
+    assert.equal(await versions(), before + 1)
     assert.deepEqual((await t.detail(neighbor.id)).questions, neighbor.questions)
   }),
 )

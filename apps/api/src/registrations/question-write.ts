@@ -154,7 +154,7 @@ function matchQuestions(stored: FormQuestion[], input: QuestionInput[]) {
 }
 
 // 안 바뀐 질문과 선택지의 번호를 남기고 바뀐 것만 고친다. 열린 신청 화면은 답을 질문·선택지 번호로 들고 있어,
-// 번호가 바뀌면 안 바뀐 질문의 답까지 사라진다. 판은 그대로 없다: 질문은 기록이 아니다.
+// 번호가 바뀌면 안 바뀐 질문의 답까지 사라진다. 질문은 기록이 아니라 판이 없어 부르는 쪽이 양식의 판을 올린다.
 async function syncQuestions(
   tx: Tx,
   formId: string,
