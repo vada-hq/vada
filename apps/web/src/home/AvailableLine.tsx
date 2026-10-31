@@ -1,11 +1,12 @@
 import { ChevronRight, Wallet } from 'lucide-react'
 import IconBand from '@/components/IconBand'
 import { Button } from '@/components/ui/button'
+import { NO_INCOME_BUDGET } from '../finance/overview-view'
 import { wonLabel } from '../finance/purchase-view'
 import { cn } from '@/lib/utils'
 
 // 사용 가능 한 줄(c35 안 b 확정): ① 0건 띠와 같은 회색 띠. 흰 원 지갑 + '사용 가능' + 금액 | '재정 보기 ›'(띠 전체가 재정으로 간다).
-// 음수만 금액 글이 위험 색(①의 '3일 지남'처럼 글 색만)이다. 셈은 재정 첫 화면과 같다(DEC-92).
+// 음수만 금액 글이 위험 색(①의 '3일 지남'처럼 글 색만)이다. 셈은 재정 첫 화면과 같다(DEC-92). 수입 예산이 없으면 금액 대신 그 사실을 쓴다.
 // 부장 홈은 같은 띠에 우리 부서가 맡은 예산을 싣는다('기말고사 간식행사 간식비 300,000원 · 남음 300,000원' 꼴).
 // 띠의 글 자리(약 200px)에 한 줄로 들지 않아 이름·금액을 윗줄, 남음을 굵게 아랫줄에 둔다(사용 가능의 금액 자리).
 function AssignedBudget({
@@ -38,10 +39,12 @@ export default function AvailableLine({
   label = '사용 가능',
   amount,
   remaining,
+  noIncome = false,
   onFinance,
 }: {
   label?: string
   amount: number
+  noIncome?: boolean
   // 맡은 예산에서 남은 금액(부장 홈). 없으면 싣지 않는다.
   remaining?: number
   onFinance: () => void
@@ -72,10 +75,10 @@ export default function AvailableLine({
             <span
               className={cn(
                 'text-base leading-5.5 font-semibold tracking-tight tabular-nums',
-                negative ? 'text-danger' : 'text-fg',
+                noIncome ? 'text-fg-secondary' : negative ? 'text-danger' : 'text-fg',
               )}
             >
-              {wonLabel(amount)}
+              {noIncome ? NO_INCOME_BUDGET : wonLabel(amount)}
             </span>
           </p>
         ) : (

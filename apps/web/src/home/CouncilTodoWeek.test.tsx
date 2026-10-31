@@ -19,6 +19,7 @@ import {
   noRooms,
 } from '@/test-support/home-fixtures'
 import { mockApi, json } from '@/test-support/mock-api'
+import FinanceSummary from './FinanceSummary'
 import HomePage from './HomePage'
 
 // 회장단 홈 오른쪽 단(시연 조각 ㉯): ③ 내가 할 일, ⑤ 이번 주, 사용 가능 한 줄.
@@ -189,6 +190,26 @@ test('⑤ 안건 올리기는 회의의 actions에 meeting.minutes가 있을 때
 const summary = (available: number) => ({
   overview: { total: 1000000, actual: 0, committed: 0, available },
   missing: [],
+})
+
+test.each([-42000, 0])(
+  '수입 예산이 없으면 사용 가능 한 줄은 금액(%d) 대신 수입 예산 없음이고 위험 색이 아니다',
+  async available => {
+    const overview = { total: 0, actual: -available, committed: 0, available }
+    open(councilHome({}, { financeSummary: { overview, missing: [] } }))
+    const line = await screen.findByRole('region', { name: '사용 가능' })
+    expect(within(line).getByText('수입 예산 없음').className).not.toContain('text-danger')
+    expect(line.textContent).not.toContain('원')
+    expect(within(line).getByRole('button', { name: '재정 보기' })).toBeTruthy()
+  },
+)
+
+test('전체 재정 요약도 수입 예산이 없으면 사용 가능에 금액을 쓰지 않는다', () => {
+  const overview = { total: 0, actual: 42000, committed: 0, available: -42000 }
+  render(<FinanceSummary summary={{ overview, missing: [] }} onOpen={vi.fn()} />)
+  const text = screen.getByRole('region', { name: '전체 재정 요약' }).textContent
+  expect(text).toContain('사용 가능 수입 예산 없음')
+  expect(text).not.toContain('-42,000원')
 })
 
 test('사용 가능 한 줄: 음수만 위험 색이고 재정 보기로 재정에 간다. 기간이 없으면 숨기고 재정 담당이 없어도 보인다', async () => {

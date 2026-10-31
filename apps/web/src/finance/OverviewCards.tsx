@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { headLinkTouch } from '@/components/ui/row-link'
 import { cn } from '@/lib/utils'
 import { signedWon } from './closing-view'
-import { sourcesLabel } from './overview-view'
+import { hasIncomeBudget, NO_INCOME_BUDGET, sourcesLabel } from './overview-view'
 import { wonLabel } from './purchase-view'
 
 // 카드를 누르면 가는 곳. 예산 탭은 모든 운영진이 읽는다. 링크 이름만 예산을 고칠 수 있는 재정부에게 '편성'(와이어프레임 FIN-00)이고 다른 운영진에게 '내역'이다.
@@ -46,7 +46,7 @@ function CardLink({ label, onClick }: { label: string; onClick: () => void }) {
   )
 }
 
-// 카드 넷(DEC-92): 총예산(수입 예산의 합), 실제 지출, 지출 예정, 사용 가능(음수면 빨강).
+// 카드 넷(DEC-92): 총예산(수입 예산의 합), 실제 지출, 지출 예정, 사용 가능(음수면 빨강, 수입 예산이 없으면 금액 대신 그 사실).
 export function OverviewCards({
   overview,
   links,
@@ -55,6 +55,7 @@ export function OverviewCards({
   links: OverviewCardLinks
 }) {
   const sources = sourcesLabel(overview.sources)
+  const income = hasIncomeBudget(overview.total)
   return (
     <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
       <NumberCard
@@ -67,7 +68,7 @@ export function OverviewCards({
         link={<CardLink label={links.budgetLabel} onClick={links.onBudget} />}
         value={sources === null ? null : wonLabel(overview.total)}
         valueClassName={`${valueSize} text-primary-emphasis`}
-        sub={sources ?? '수입 예산 없음'}
+        sub={sources ?? NO_INCOME_BUDGET}
       />
       <NumberCard
         label="실제 지출"
@@ -100,12 +101,12 @@ export function OverviewCards({
             <Info />
           </IconTile>
         }
-        value={signedWon(overview.available)}
+        value={income ? signedWon(overview.available) : null}
         valueClassName={cn(
           valueSize,
           overview.available < 0 ? 'text-danger-emphasis' : 'text-metric-available',
         )}
-        sub="새로 쓸 수 있는 금액"
+        sub={income ? '새로 쓸 수 있는 금액' : NO_INCOME_BUDGET}
       />
     </div>
   )
