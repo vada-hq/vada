@@ -132,8 +132,9 @@ test('금액 칸은 쉼표와 공백을 받고 1e3은 숫자로 보지 않는다
   expect(expenseOf({ ...direct, amount: '12,000' }).amount).toBe(12000)
   expect(expenseOf({ ...direct, amount: ' 12 000 ' }).amount).toBe(12000)
   expect(expenseOf({ ...direct, amount: '1e3' }).amount).toBeNaN()
-  expect(expenseErrors({ ...direct, amount: '12,000' }, today).amount).toBeUndefined()
-  expect(expenseErrors({ ...direct, amount: '1e3' }, today).amount).toBe(
+  expect(expenseErrors({ ...direct, amount: '12,000' }, today)).toHaveProperty('amount', undefined)
+  expect(expenseErrors({ ...direct, amount: '1e3' }, today)).toHaveProperty(
+    'amount',
     '1 이상의 숫자를 입력해 주세요',
   )
   const paid = (amount: string) => ({
