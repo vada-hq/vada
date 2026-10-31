@@ -16,6 +16,12 @@ import { remainingTidyLabel } from './council-view'
 const [PENDING, NEARBY, EXCEPTIONS] = HOME_PLANS.finance.cards
 const chevron = <ChevronRight aria-hidden className="size-4 text-fg-subtle" />
 
+// 재정 화면의 대기 목록에 상한이 있어 잘렸으면 두 수 모두 그보다 많다(ReceivedSection과 같은 표시).
+function pendingCountText({ total, pendingItems, truncated }: HomeFinanceBoard['pending']) {
+  const more = truncated ? '+' : ''
+  return `요청 ${total}${more}건 · 품목 ${pendingItems}${more}개`
+}
+
 export function PendingCard({
   pending,
   asOf,
@@ -60,9 +66,7 @@ export function PendingCard({
       read={{ kind: 'ready', total: pending.total, rows }}
       empty="결재 대기 없음"
       // 도착하는 처리 단계는 품목으로 세므로 요청 수만 두면 답이 둘로 보인다. 수가 이미 머리에 있어 보기 단추에 되풀이하지 않는다.
-      aside={
-        pending.total > 0 ? `요청 ${pending.total}건 · 품목 ${pending.pendingItems}개` : undefined
-      }
+      aside={pending.total > 0 ? pendingCountText(pending) : undefined}
       seeAllLabel={pending.total > HOME_CARD_ROWS ? '전체 보기' : undefined}
       onSeeAll={onSeeAll}
     />

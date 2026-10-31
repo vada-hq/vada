@@ -118,6 +118,15 @@ test('결재 대기는 서버 차례의 앞 셋, 필요한 때 3일 임박은 �
   expect(path()).toBe('/purchases/01900000-0000-7000-8000-000000000001?board=process')
 })
 
+test('결재 대기 목록이 상한에서 잘렸으면 두 수 모두 더 있다고 보인다', async () => {
+  open(
+    finance({
+      pending: { requests: [homeRequest('r1')], total: 300, pendingItems: 410, truncated: true },
+    }),
+  )
+  expect(within(await card('결재 대기')).getByText('요청 300+건 · 품목 410+개')).toBeTruthy()
+})
+
 test('결재 대기가 없으면 요청·품목으로 나누지 않고 0건이다', async () => {
   open(finance())
   const pending = await card('결재 대기')
