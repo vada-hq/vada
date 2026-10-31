@@ -1,4 +1,4 @@
-import { useEffect, type Dispatch, type SetStateAction } from 'react'
+import { useEffect, useRef, type Dispatch, type SetStateAction } from 'react'
 import { PURCHASE_TITLE_MAX } from '@vada/contracts'
 import { isProductLink, readProductInfo } from '@/lib/product-info'
 import { clipText, withLoaded } from '../chat/request-seed'
@@ -10,13 +10,20 @@ export function useRequestProductSeeds(
   councilId: string,
   initial: RequestValues,
   setValues: Dispatch<SetStateAction<RequestValues>>,
+  // 이미 보냈거나 보내는 중이다. 그 뒤에 도착한 조회가 본문을 바꾸면 재시도가 새 명령이 되어 요청이 둘 생긴다.
+  sent: boolean,
 ) {
+  const stopped = useRef(sent)
   useEffect(() => {
+    if (sent) stopped.current = true
+  }, [sent])
+  useEffect(() => {
+    if (stopped.current) return
     let live = true
     for (const item of initial.items) {
       if (item.loadedProduct || !isProductLink(item.link)) continue
       void readProductInfo(councilId, item.link).then(state => {
-        if (!live || state.kind !== 'ready') return
+        if (!live || stopped.current || state.kind !== 'ready') return
         setValues(current => {
           if (!current.items.some(row => row.key === item.key && row.link === item.link))
             return current

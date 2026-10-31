@@ -166,7 +166,7 @@ function CreateForm({
     baseline: { request: initial, picked: null },
   }))
   // 메시지의 링크로 채운 상품 정보는 화면이 채운 것이라, 사람이 손대기 전이면 떠날 때 묻는 기준에 넣는다.
-  useRequestProductSeeds(props.councilId, restored, autoChange)
+  useRequestProductSeeds(props.councilId, restored, autoChange, saving || Boolean(draft.command))
   // 쓰던 입력이 남았으면 새로고침이나 다른 곳으로 떠날 때 묻는다(떠날 때 확인).
   useUnsavedInput(dirty)
   useEffect(() => {

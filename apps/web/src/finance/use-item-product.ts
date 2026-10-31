@@ -10,6 +10,7 @@ export function useItemProduct(
   councilId: string,
   values: ItemValues,
   onChange: (next: ItemValues) => void,
+  sending: boolean,
 ) {
   const latest = useLatest({ values, onChange })
   const sequence = useRef(0)
@@ -23,6 +24,12 @@ export function useItemProduct(
     },
     [],
   )
+  // 보낸 뒤에 도착한 조회가 본문을 바꾸면 재시도가 새 명령이 되어 요청이 둘 생긴다. 보내면 남은 조회를 버린다.
+  useEffect(() => {
+    if (!sending) return
+    sequence.current++
+    setState(before => ({ ...before, value: { kind: 'idle' } }))
+  }, [sending])
   async function load() {
     const link = values.link
     const current = ++sequence.current

@@ -307,3 +307,19 @@ test(
     assert.equal(await requests(s), 1)
   }),
 )
+
+test(
+  '요청한 사람을 비운 것과 나를 적은 것은 같은 본문이다',
+  runPurchases(async s => {
+    const commandId = randomUUID()
+    const created = await s.made({ ...BODY, commandId })
+    const again = await s.create({
+      ...BODY,
+      commandId,
+      requestedBy: s.council.people.planningMember.memberId,
+    })
+    assert.equal(again.status, 201)
+    assert.equal((await detailOf(again)).id, created.id)
+    assert.equal(await requests(s), 1)
+  }),
+)

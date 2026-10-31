@@ -460,3 +460,48 @@ test('수량은 99,999까지 받고 넘으면 칸 아래에 알린다. 단가 ×
     items: [{ quantity: 99999, estimatedUnitPrice: 10000 }],
   })
 })
+
+test('보낸 뒤에 도착한 불러오기는 본문을 바꾸지 않아 재시도가 같은 번호다', async () => {
+  const api = setup()
+  const pending = deferredResponse()
+  api.on('POST', `${BASE}/product-info`, () => pending.promise)
+  api.on('POST', REQUESTS, () => json({ error: 'FAILED' }, 500))
+  open()
+  write()
+  fill('품목 1 링크', LINK)
+  fireEvent.click(screen.getByRole('button', { name: '불러오기' }))
+  await press(api)
+  await whenFree()
+  await act(async () => {
+    pending.resolve(json({ product: PRODUCT, reason: null }))
+  })
+  expect(screen.getByLabelText<HTMLInputElement>('품목 1 예상 단가').value).toBe('')
+  await press(api)
+  const [sent, resent] = postedIds(api)
+  expect(resent).toBe(sent)
+})
+
+test('보낸 뒤에 도착한 메시지 링크 조회도 본문을 바꾸지 않고, 새로고침해도 다시 읽지 않는다', async () => {
+  const api = setup()
+  const pending = deferredResponse()
+  api.on('POST', `${BASE}/product-info`, () => pending.promise)
+  api.on('POST', REQUESTS, () => json({ error: 'FAILED' }, 500))
+  const first = open({
+    start: { title: '펜', items: [{ name: '펜', link: LINK, loadedPrice: null }] },
+  })
+  await press(api)
+  await whenFree()
+  await act(async () => {
+    pending.resolve(json({ product: PRODUCT, reason: null }))
+  })
+  expect(screen.getByLabelText<HTMLInputElement>('품목 1 예상 단가').value).toBe('')
+  await press(api)
+  await whenFree()
+  first.unmount()
+  render(<PurchasesAt view={view} onForbidden={() => {}} />)
+  await press(api)
+  const [sent, resent, reloaded] = postedIds(api)
+  expect(resent).toBe(sent)
+  expect(reloaded).toBe(sent)
+  expect(api.calls.filter(call => call.path === `${BASE}/product-info`)).toHaveLength(1)
+})

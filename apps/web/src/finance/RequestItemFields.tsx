@@ -58,7 +58,7 @@ export function RequestItemFields({
   errors,
 }: Props) {
   const item = `품목 ${index + 1}`
-  const product = useItemProduct(councilId, values, onChange)
+  const product = useItemProduct(councilId, values, onChange, disabled)
   const text = (field: 'name' | 'link' | 'options') => ({
     item,
     disabled,
