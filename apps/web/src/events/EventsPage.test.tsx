@@ -423,6 +423,7 @@ test('고치면 칸을 그대로 보내고 응답이 화면 값이 되며 목록
     startsAt: '2026-10-24T14:00',
     endsAt: '2026-10-24T18:00',
     place: '대강당',
+    baseVersionNo: 1,
   })
   await waitFor(() => expect(reads()).toBeGreaterThan(before))
 })

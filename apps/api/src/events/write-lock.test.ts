@@ -9,6 +9,7 @@ import { NOON } from '../test-support/events.js'
 import { createEventRoutes } from './routes.js'
 
 // 쓰기 거래는 학생회 행 잠금 → 운영진 확인 → 행사 행 읽기 순서다. 잠금을 빼면 이 시험이 실패한다.
+// 판 확인도 학생회 행 잠금 뒤다. 앞서면 줄 서 있던 앞 저장을 보지 못해 낡은 저장이 통과한다.
 test('행사 쓰기 두 길은 학생회 행을 FOR NO KEY UPDATE로 잠근 뒤에 운영진을 확인하고 행사를 읽는다', async () => {
   const { pg, close, drizzle: drizzleWith } = await createTestDb()
   try {
@@ -33,7 +34,11 @@ test('행사 쓰기 두 길은 학생회 행을 FOR NO KEY UPDATE로 잠근 뒤�
     const base = `/api/organizations/${council.councilId}/events`
     const calls: [string, unknown, number][] = [
       [base, { name: '새 행사' }, 201],
-      [`${base}/${eventId}`, { name: '고침', startsAt: null, endsAt: null, place: null }, 200],
+      [
+        `${base}/${eventId}`,
+        { name: '고침', startsAt: null, endsAt: null, place: null, baseVersionNo: 1 },
+        200,
+      ],
     ]
     for (const [path, body, status] of calls) {
       queries.length = 0
@@ -48,6 +53,10 @@ test('행사 쓰기 두 길은 학생회 행을 FOR NO KEY UPDATE로 잠근 뒤�
         query => query.includes('from "event"') || query.includes('insert into "record"'),
       )
       assert.ok(writes > member, `${path}: 행사를 읽거나 쓰는 문장이 운영진 확인보다 앞선다`)
+      const version = queries.findIndex(
+        query => query.includes('from "record_version"') && query.includes('upper_inf'),
+      )
+      assert.ok(version > member, `${path}: 판 확인이 운영진 확인보다 앞선다`)
     }
   } finally {
     await close()
