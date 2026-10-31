@@ -93,7 +93,7 @@ async function reasonOf(main: SmokeConnection, itemId: string) {
     `SELECT reason FROM approval WHERE target_kind = 'line_item' AND target_id = $1`,
     [itemId],
   )
-  return row?.reason ?? null
+  return row?.reason
 }
 
 async function approvalsRound(main: SmokeConnection, open: () => SmokeConnection, run: Race) {
@@ -109,7 +109,7 @@ async function approvalsRound(main: SmokeConnection, open: () => SmokeConnection
   const [before, after] = [await reasonOf(main, first.itemId), await reasonOf(main, second.itemId)]
   return before === null && after === OVER_REASON
     ? undefined
-    : `승인 둘: 앞 ${String(before)}, 뒤 ${String(after)}`
+    : `승인 둘: 앞 ${JSON.stringify(before)}, 뒤 ${JSON.stringify(after)}`
 }
 
 async function expenseRound(main: SmokeConnection, open: () => SmokeConnection, run: Race) {
@@ -122,7 +122,7 @@ async function expenseRound(main: SmokeConnection, open: () => SmokeConnection, 
   const problem = outcomeProblem(results, ['ok', 'ok'])
   if (problem) return `지출과 승인: ${problem}`
   const reason = await reasonOf(main, target.itemId)
-  return reason === OVER_REASON ? undefined : `지출과 승인: 뒤 ${String(reason)}`
+  return reason === OVER_REASON ? undefined : `지출과 승인: 뒤 ${JSON.stringify(reason)}`
 }
 
 export const overBudgetTogetherCase: SmokeCase = {
