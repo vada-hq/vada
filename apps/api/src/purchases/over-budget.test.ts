@@ -192,7 +192,8 @@ test(
 )
 
 test(
-  '동시 결재: 둘이 겹쳐도 뒤 거래가 앞 승인을 세어 뒤 승인에만 남는다',
+  // 시험 DB는 거래를 하나씩 돌려 잠금을 증명하지 못한다. 겹친 거래는 pg-smoke의 overBudgetTogetherCase가 본다.
+  '결재 둘을 함께 보내면 뒤에 처리한 승인이 앞 승인을 세어 그쪽에만 남는다',
   runPurchases(async s => {
     const { small } = await budgets(s)
     const a = await requestWith(s, [ITEM_NAME])
