@@ -130,7 +130,8 @@ function useFormEditor(props: Props) {
   const account = useFeeAccount(props.councilId, onForbidden, chosen)
   const post = useStaffPost({ onForbidden, onLost }, setSaving)
   const edit = useEditVersion(form?.versionNo, () => readForm(props.councilId, form))
-  useUnsavedInput(!sameJson(values, base) || chosen !== mode.chosen, props.inputHolder)
+  // 잠겨 서버 값으로 돌아간 참가비도 쓴 값이다. 잠기기 전에 쓴 금액을 묻지 않고 잃지 않게 쓴 값으로 견준다.
+  useUnsavedInput(!sameJson(typed, base) || chosen !== mode.chosen, props.inputHolder)
   const request = {
     ...formRequest(values, account.pick.id),
     ...(form ? { baseVersionNo: edit.version } : {}),

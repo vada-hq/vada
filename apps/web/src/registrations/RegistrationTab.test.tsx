@@ -1059,3 +1059,45 @@ test('연 뒤에 신청이 들어와 서버가 참가비를 막으면 까닭을 
   expect(await within(form).findByText(REGISTRATION_STAFF_ERRORS.FORM_FEE_LOCKED!)).toBeTruthy()
   expect(within(form).getByLabelText('납부자')).toHaveProperty('value', '7000')
 })
+
+test('고치던 중에 신청이 들어와 참가비가 잠기면 서버 값을 보내고, 쓴 금액이 있었으니 떠날 때 묻는다', async () => {
+  const forms = [staffForm({ applicantCount: 0, payerFee: 5000, nonPayerFee: 10000 })]
+  const { api } = setup({ forms })
+  api.on('POST', FORM_PATH, () => json({ form: staffForm() }))
+  fireEvent.click(await screen.findByRole('button', { name: '고치기' }))
+  const form = await screen.findByRole('form', { name: '신청 양식 고치기' })
+  fireEvent.change(within(form).getByLabelText('납부자'), { target: { value: '7000' } })
+  forms[0] = staffForm({ applicantCount: 1, payerFee: 5000, nonPayerFee: 10000 })
+  document.dispatchEvent(new Event('visibilitychange'))
+  expect(await within(form).findByText('신청이 있어 참가비를 바꿀 수 없어요')).toBeTruthy()
+  expect(hasUnsavedInput()).toBe(true)
+  fireEvent.click(save())
+  await waitFor(() => expect(posts(api)).toHaveLength(1))
+  expect(posts(api)[0]?.body).toMatchObject({ payerFee: 5000, nonPayerFee: 10000 })
+})
+
+test('새로 불러온 양식은 질문의 종류·필수·선택지까지 보인다', async () => {
+  const { api } = setup({ forms: [staffForm({ versionNo: 3, applicantCount: 0 })] })
+  const fresh = staffForm({
+    versionNo: 4,
+    applicantCount: 0,
+    questions: [
+      {
+        id: 'q1',
+        kind: 'single_choice',
+        title: '티셔츠 크기',
+        required: true,
+        choices: [
+          { id: 'c1', label: 'S' },
+          { id: 'c2', label: 'M' },
+        ],
+      },
+    ],
+  })
+  api.on('POST', FORM_PATH, () => json({ error: 'VERSION_CONFLICT' }, 409))
+  api.on('GET', FORM_PATH, () => json({ form: fresh }))
+  fireEvent.click(await screen.findByRole('button', { name: '고치기' }))
+  const form = await screen.findByRole('form', { name: '신청 양식 고치기' })
+  fireEvent.click(save())
+  expect(await within(form).findByText('티셔츠 크기 (하나 고르기 · 필수): S, M')).toBeTruthy()
+})
