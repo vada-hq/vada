@@ -6,6 +6,7 @@ import {
   type PurchaseRequestSummary,
 } from '@vada/contracts'
 import { requiredText, TOO_BIG } from '@/lib/use-form-check'
+import { wonOf } from '@/lib/won-input'
 
 // 지출 적기 폼의 값. 입력칸 값은 글자라 비운 칸은 빈 글이고, 요청으로 바꿀 때 null이나 NaN이 된다.
 // 요청한 품목 결제(request)는 승인된 품목을 골라 결제 금액을 적고, 요청 없이(direct)는 금액과 예산 항목을 직접 적는다.
@@ -68,13 +69,12 @@ export const emptyExpense = (
 })
 
 const orNull = (value: string) => (value.trim() === '' ? null : value)
-const numberOf = (value: string) => (value.trim() === '' ? Number.NaN : Number(value))
 
 export const linesTotal = (lines: PayLine[]) =>
-  lines.reduce(
-    (sum, line) => sum + (Number.isNaN(numberOf(line.amount)) ? 0 : numberOf(line.amount)),
-    0,
-  )
+  lines.reduce((sum, line) => {
+    const won = wonOf(line.amount)
+    return sum + (Number.isNaN(won) ? 0 : won)
+  }, 0)
 
 // 방식을 바꾸면 그 방식에만 있는 값은 비운다(보이지 않는 값이 몰래 나가지 않게).
 export const withMode = (values: ExpenseValues, mode: ExpenseMode): ExpenseValues => ({
@@ -119,7 +119,7 @@ export function expenseOf(values: ExpenseValues) {
   return {
     vendor: values.vendor,
     description: values.description,
-    amount: requested ? linesTotal(values.lines) : numberOf(values.amount),
+    amount: requested ? linesTotal(values.lines) : wonOf(values.amount),
     paidOn: values.paidOn,
     method: values.method,
     paidBy: values.paidBy,
@@ -130,12 +130,11 @@ export function expenseOf(values: ExpenseValues) {
     requestedBy: requested ? null : values.requestedBy,
     sourceMessageId: values.sourceMessageId,
     lines: requested
-      ? values.lines.map(line => ({ lineItemId: line.lineItemId, amount: numberOf(line.amount) }))
+      ? values.lines.map(line => ({ lineItemId: line.lineItemId, amount: wonOf(line.amount) }))
       : [],
   }
 }
 
-const DIGITS = /^[0-9]+$/
 const methodError = (method: ExpenseValues['method']) =>
   method === '' ? '결제 수단을 골라 주세요' : undefined
 
@@ -160,9 +159,7 @@ export function expenseErrors(values: ExpenseValues, today: string) {
       ? {
           amount:
             requiredText(amount, '금액을') ??
-            (DIGITS.test(amount) && Number(amount) > 0
-              ? undefined
-              : '1 이상의 숫자를 입력해 주세요'),
+            (wonOf(amount) > 0 ? undefined : '1 이상의 숫자를 입력해 주세요'),
         }
       : {
           requestId: values.requestId === null ? '결제할 요청을 골라 주세요' : undefined,
@@ -230,4 +227,4 @@ export function withRequestReason(
 const AMOUNT_CONFIRM_RATIO = 1.2
 export const needsAmountConfirm = (values: ExpenseValues) =>
   values.mode === 'request' &&
-  values.lines.some(line => Number(line.amount) > line.approvedAmount * AMOUNT_CONFIRM_RATIO)
+  values.lines.some(line => wonOf(line.amount) > line.approvedAmount * AMOUNT_CONFIRM_RATIO)
