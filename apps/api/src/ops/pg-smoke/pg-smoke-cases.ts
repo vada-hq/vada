@@ -64,7 +64,6 @@ export {
   joinTwiceCase,
   lastSeatTogetherCase,
   moveTogetherCase,
-  overBudgetTogetherCase,
   publishAndCompleteCase,
   publishAndSpendCase,
   publishTogetherCase,
