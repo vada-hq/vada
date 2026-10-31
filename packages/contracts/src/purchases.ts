@@ -216,6 +216,7 @@ export interface PurchaseDecision {
   outcome: 'approved' | 'rejected' | 'cancelled'
   by: PurchasePerson | null
   at: string
+  // 반려·취소는 사람이 적은 사유, 승인은 서버가 남긴 예산 초과 기록이다(넘지 않았으면 null).
   reason: string | null
 }
 

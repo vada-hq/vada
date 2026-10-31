@@ -15,6 +15,9 @@ test('결재 줄은 이름, 한국 시각, 결과이고 반려는 사유가 붙�
     '이재정 · 10월 21일 14:03 · 취소: 사지 않아요',
   )
   expect(decisionLine({ ...base, outcome: 'approved', by: null })).toContain('알 수 없는 사람')
+  expect(
+    decisionLine({ ...base, outcome: 'approved', reason: '예산 초과 (사용 가능 -20,000원)' }),
+  ).toBe('이재정 · 10월 21일 14:03 · 승인: 예산 초과 (사용 가능 -20,000원)')
 })
 
 test('이력 줄은 요청함과 취소함이다', () => {

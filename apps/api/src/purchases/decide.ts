@@ -11,6 +11,7 @@ import { ApiError } from '../http/errors.js'
 import { clockNow, createRecord, updateRecord } from '../records/records.js'
 import { lastOutcomeOf } from './last-outcome.js'
 import { lockedRequestRow } from './lock.js'
+import { overBudgetReasons } from './over-budget.js'
 import { decide, factsOf } from './policy.js'
 import { requestDetailOf, requestRowOf } from './queries.js'
 import type { PurchaseNotice } from './service.js'
@@ -49,7 +50,13 @@ async function decidedAmong(tx: Tx, ids: string[]) {
   return rows.length > 0
 }
 
-async function writeDecision(tx: Tx, actor: Actor, item: Decision) {
+// 승인의 사유는 서버가 정한 예산 초과 기록뿐이다. 계약은 승인에 사유를 받지 않는다.
+async function writeDecision(
+  tx: Tx,
+  actor: Actor,
+  item: Decision,
+  overBudget: Map<string, string>,
+) {
   if (item.outcome === 'approved')
     await updateRecord(tx, {
       kind: 'line_item',
@@ -69,7 +76,8 @@ async function writeDecision(tx: Tx, actor: Actor, item: Decision) {
       actorId: actor.memberId,
       actorKind: 'member',
       actedAt: clockNow,
-      reason: item.outcome === 'rejected' ? item.reason : null,
+      reason:
+        item.outcome === 'rejected' ? item.reason : (overBudget.get(item.budgetItemId) ?? null),
     },
   })
 }
@@ -128,7 +136,8 @@ export async function decideLineItems(
     input.decisions.flatMap(item => (item.outcome === 'approved' ? [item.budgetItemId] : [])),
     now,
   )
-  for (const item of input.decisions) await writeDecision(tx, actor, item)
+  const overBudget = await overBudgetReasons(tx, actor, input.decisions)
+  for (const item of input.decisions) await writeDecision(tx, actor, item, overBudget)
   const notice = await noticeResult(tx, actor, requestId, { pendingBefore: row.pending, now })
   return { request: await requestDetailOf(tx, actor, requestId), notice }
 }
