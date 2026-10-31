@@ -2,7 +2,7 @@ import type { FinanceOverview } from '@vada/contracts'
 import { TwoPartMeter } from '@/components/TwoPartMeter'
 import { cardClass } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
-import { rateOf } from './overview-view'
+import { NO_INCOME_BUDGET, rateOf } from './overview-view'
 
 function Legend({ tone, label }: { tone: string; label: string }) {
   return (
@@ -27,7 +27,7 @@ export function OverviewRate({ overview }: { overview: FinanceOverview }) {
         {planned !== null && <span className="text-fg-tertiary">지출 예정 포함 {planned}%</span>}
       </p>
       {spent === null ? (
-        <span className="text-sm text-fg-muted">수입 예산 없음</span>
+        <span className="text-sm text-fg-muted">{NO_INCOME_BUDGET}</span>
       ) : (
         <>
           <TwoPartMeter

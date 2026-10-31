@@ -2,6 +2,7 @@ import { ChevronRight } from 'lucide-react'
 import type { HomeFinanceSummary } from '@vada/contracts'
 import { Button } from '@/components/ui/button'
 import { cardClass } from '@/components/ui/card'
+import { hasIncomeBudget, NO_INCOME_BUDGET } from '../finance/overview-view'
 import { wonLabel } from '../finance/purchase-view'
 
 // 회장단 맨 아래 한 줄. 금액은 재정 개요가 준 그대로이고 클릭하면 재정 첫 화면이다(DEC-92·95).
@@ -13,6 +14,7 @@ export default function FinanceSummary({
   onOpen: () => void
 }) {
   const overview = summary?.overview
+  const income = overview ? hasIncomeBudget(overview.total) : false
   const missing = summary?.missing ?? []
   const first = missing[0]
   const missingLabel =
@@ -38,9 +40,9 @@ export default function FinanceSummary({
               <span key={label} className="text-right">
                 {label}{' '}
                 <strong
-                  className={`tabular-nums ${label === '사용 가능' && amount < 0 ? 'text-danger-emphasis' : 'text-fg'}`}
+                  className={`tabular-nums ${label === '사용 가능' && income && amount < 0 ? 'text-danger-emphasis' : 'text-fg'}`}
                 >
-                  {wonLabel(amount)}
+                  {label === '사용 가능' && !income ? NO_INCOME_BUDGET : wonLabel(amount)}
                 </strong>
               </span>
             ))}

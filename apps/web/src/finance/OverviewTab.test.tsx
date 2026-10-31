@@ -111,6 +111,17 @@ test('총예산이 없으면 수 대신 없음을 보이고 막대가 없다', a
   expect(screen.queryByRole('progressbar', { name: '실제 지출' })).toBeNull()
 })
 
+test('수입 예산이 없으면 사용 가능도 빨간 음수 대신 수입 예산 없음이다', async () => {
+  serve(overviewFixture({ total: 0, sources: [], available: -517_000 }))
+  atFinanceHome()
+  showFinance()
+  const card = await screen.findByRole('region', { name: '사용 가능' })
+  expect(card.textContent).toContain('수입 예산 없음')
+  expect(card.textContent).not.toContain('-517,000원')
+  expect(card.textContent).not.toContain('새로 쓸 수 있는 금액')
+  expect(card.innerHTML).not.toContain('text-danger')
+})
+
 test('예정 포함 금액이 예산을 넘으면 전체와 행사 막대가 빨갛다', async () => {
   const overview = overviewFixture()
   serve({
