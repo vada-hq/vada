@@ -1,6 +1,7 @@
 // 요청 내기 폼의 값. 입력칸 값은 글자라 비운 칸은 빈 글이고, 요청으로 바꿀 때 null이 된다.
 import { purchaseEstimateOf, type ProductInfo } from '@vada/contracts'
 import type { Parsed } from '@/lib/use-form-check'
+import { wonOf } from '@/lib/won-input'
 
 export type ItemValues = {
   // 줄을 지워도 입력칸 상태가 섞이지 않게 하는 키(서버로 보내지 않는다)
@@ -78,6 +79,8 @@ export const restoredRequest = (values: RequestValues): RequestValues => ({
 })
 
 const orNull = (value: string) => (value.trim() === '' ? null : value)
+// 예상 금액은 선택 칸이라 비면 null이다.
+const estimatedWon = (value: string) => (value.trim() === '' ? null : wonOf(value))
 
 // 수량이 비었거나 숫자가 아니면 NaN이라 계약 검사가 막는다.
 export const requestOf = (values: RequestValues) => ({
@@ -93,10 +96,8 @@ export const requestOf = (values: RequestValues) => ({
     quantity: item.quantity.trim() === '' ? Number.NaN : Number(item.quantity),
     link: orNull(item.link),
     options: orNull(item.options),
-    estimatedUnitPrice:
-      item.estimatedUnitPrice.trim() === '' ? null : Number(item.estimatedUnitPrice),
-    estimatedShippingFee:
-      item.estimatedShippingFee.trim() === '' ? null : Number(item.estimatedShippingFee),
+    estimatedUnitPrice: estimatedWon(item.estimatedUnitPrice),
+    estimatedShippingFee: estimatedWon(item.estimatedShippingFee),
   })),
 })
 

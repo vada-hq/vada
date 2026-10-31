@@ -418,3 +418,24 @@ test('409 COMMAND_CONFLICT는 같은 번호로 다시 보낼 수 있다', async 
   const [sent, resent] = postedIds(api)
   expect(resent).toBe(sent)
 })
+
+test('예상 단가·배송비는 쉼표와 공백을 받고 1e3은 칸 아래에 알리고 보내지 않는다', async () => {
+  const api = setup()
+  api.on('POST', REQUESTS, () => json({ request: purchaseDetail(REQUEST) }, 201))
+  open()
+  write()
+  fill('품목 1 예상 단가', '1e3')
+  fill('품목 1 예상 배송비', '1e1')
+  fireEvent.click(screen.getByRole('button', { name: '내기' }))
+  expect(screen.getAllByText('숫자를 입력해 주세요')).toHaveLength(2)
+  expect(postedIds(api)).toHaveLength(0)
+  fill('품목 1 예상 단가', '12,000')
+  fill('품목 1 예상 배송비', ' 3 000 ')
+  expect(
+    within(screen.getByRole('complementary', { name: '요청 요약' })).getByText('15,000원'),
+  ).toBeTruthy()
+  await press(api)
+  expect(api.calls.find(call => call.path === REQUESTS)?.body).toMatchObject({
+    items: [{ estimatedUnitPrice: 12000, estimatedShippingFee: 3000 }],
+  })
+})

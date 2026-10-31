@@ -4,6 +4,7 @@ import { purchaseDetail } from '@/test-support/purchase-fixtures'
 import {
   emptyExpense,
   expenseErrors,
+  linesTotal,
   expenseOf,
   linkedRequestOf,
   needsAmountConfirm,
@@ -123,4 +124,27 @@ test('요청 결제는 금액 칸이 없어, 고른 품목의 합이 상한을 �
     ],
   }
   expect(expenseErrors(values, TODAY)).toMatchObject({ lines: '더 작은 값을 입력해 주세요' })
+})
+
+test('금액 칸은 쉼표와 공백을 받고 1e3은 숫자로 보지 않는다', () => {
+  const direct = { ...emptyExpense('2026-10-30'), mode: 'direct' as const }
+  const today = '2026-10-30'
+  expect(expenseOf({ ...direct, amount: '12,000' }).amount).toBe(12000)
+  expect(expenseOf({ ...direct, amount: ' 12 000 ' }).amount).toBe(12000)
+  expect(expenseOf({ ...direct, amount: '1e3' }).amount).toBeNaN()
+  expect(expenseErrors({ ...direct, amount: '12,000' }, today).amount).toBeUndefined()
+  expect(expenseErrors({ ...direct, amount: '1e3' }, today).amount).toBe(
+    '1 이상의 숫자를 입력해 주세요',
+  )
+  const paid = (amount: string) => ({
+    ...emptyExpense('2026-10-30'),
+    lines: [{ lineItemId: 'a', amount, approvedAmount: 10000 }],
+  })
+  expect(expenseOf(paid('10,000')).lines[0]?.amount).toBe(10000)
+  expect(expenseOf(paid('10,000')).amount).toBe(10000)
+  expect(expenseOf(paid('1e3')).lines[0]?.amount).toBeNaN()
+  expect(linesTotal([...paid('1,000').lines, ...paid('2,000').lines])).toBe(3000)
+  // 쉼표를 썼다고 자릿수 확인을 건너뛰지 않는다.
+  expect(needsAmountConfirm(paid('120,000'))).toBe(true)
+  expect(needsAmountConfirm(paid('12,000'))).toBe(false)
 })
