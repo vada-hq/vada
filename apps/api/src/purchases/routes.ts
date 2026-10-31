@@ -39,9 +39,10 @@ type WriteKit = {
   clock: () => Date
   push: PurchasePush | undefined
   db: Db
+  receiptKey: string
 }
 
-function addWriteRoutes({ routes, auth, writeLimiter, clock, push, db }: WriteKit) {
+function addWriteRoutes({ routes, auth, writeLimiter, clock, push, db, receiptKey }: WriteKit) {
   routes.post(root, json(CreatePurchaseRequestSchema), auth, async c => {
     // 계정마다 센다. 로그인한 사람만 세므로 인증 뒤에 둔다.
     if (!writeLimiter.take(c.get('userId'), clock())) throw new ApiError('TOO_MANY_REQUESTS')
@@ -50,7 +51,7 @@ function addWriteRoutes({ routes, auth, writeLimiter, clock, push, db }: WriteKi
     const { request, notice } = await inCouncilChange(
       db,
       { userId: c.get('userId'), councilId: c.req.param('councilId'), action: 'council.view', now },
-      (tx, actor) => createPurchaseRequest(tx, actor, input, now),
+      (tx, actor) => createPurchaseRequest(tx, actor, input, { now, receiptKey }),
     )
     // 알림은 커밋 뒤에 떼어 보낸다. 응답은 기다리지 않는다.
     if (notice) void push?.notify(notice)
@@ -113,7 +114,12 @@ function addCancelItemRoute({ routes, auth, clock, push, db }: WriteKit) {
 export function createPurchaseRoutes(
   db: Db,
   getSession: SessionReader,
-  options: { clock?: () => Date; writeLimiter?: RateLimiter; push?: PurchasePush | undefined } = {},
+  options: {
+    clock?: () => Date
+    writeLimiter?: RateLimiter
+    push?: PurchasePush | undefined
+    receiptKey: string
+  },
 ) {
   const clock = options.clock ?? (() => new Date())
   const writeLimiter = options.writeLimiter ?? createPurchaseWriteLimiter()
@@ -143,7 +149,15 @@ export function createPurchaseRoutes(
     )
     return c.json({ request: detail } satisfies PurchaseRequestResponse)
   })
-  const kit = { routes, auth, writeLimiter, clock, push: options.push, db }
+  const kit = {
+    routes,
+    auth,
+    writeLimiter,
+    clock,
+    push: options.push,
+    db,
+    receiptKey: options.receiptKey,
+  }
   addWriteRoutes(kit)
   addCancelItemRoute(kit)
   return routes

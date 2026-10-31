@@ -91,7 +91,7 @@ async function requestOf(run: Run, scene: MoneyScene, taskId: string, round: num
           options: null,
         })),
       },
-      context.now,
+      { now: context.now, receiptKey: SMOKE_RECEIPT_KEY },
     ),
   )
   return request

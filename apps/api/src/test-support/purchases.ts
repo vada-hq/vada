@@ -74,6 +74,7 @@ export async function startPurchases(
       auth: { handler: async () => new Response() },
       trustedOrigin: ORIGIN,
       purchases: createPurchaseRoutes(db, testSession, {
+        receiptKey: 'test-receipt-key',
         clock,
         ...(options.withPush === false ? {} : { push }),
         writeLimiter,

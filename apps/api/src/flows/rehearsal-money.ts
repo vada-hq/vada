@@ -51,6 +51,7 @@ export async function requestStep(ctx: Ctx) {
     planner,
     `${org(ctx)}/purchase-requests`,
     {
+      commandId: randomUUID(),
       title: '행사 물품',
       eventId: w.eventId,
       neededBy,

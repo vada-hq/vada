@@ -260,7 +260,10 @@ test('지출 쓰기는 학생회 행을 잠근 뒤 운영진을 확인하고, �
       createApp({
         auth: { handler: async () => new Response() },
         trustedOrigin: ORIGIN,
-        purchases: createPurchaseRoutes(db, testSession, { clock: () => noon }),
+        purchases: createPurchaseRoutes(db, testSession, {
+          clock: () => noon,
+          receiptKey: 'test-receipt-key',
+        }),
         budget: createBudgetRoutes(db, testSession, { clock: () => noon }),
         expenses: createExpenseRoutes(db, testSession, {
           clock: () => noon,

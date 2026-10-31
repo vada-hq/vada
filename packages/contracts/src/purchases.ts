@@ -9,7 +9,7 @@ export {
   type PurchaseStage,
 } from './purchase-progress.js'
 import { WON_MAX, type EventRef } from './budget.js'
-import { EmptyRequestSchema, text, token } from './input.js'
+import { commandIdInput, EmptyRequestSchema, text, token } from './input.js'
 import { koreanDate } from './korean-time.js'
 import { recordIdInput } from './team.js'
 import { purchaseEstimateOf, type PurchaseEstimate } from './purchase-estimate.js'
@@ -100,6 +100,9 @@ const CreateLineItemSchema = z
 
 // 예상 가격은 선택값이다(DEC-92). 승인 금액, 예산 항목, 사유는 받지 않는다(DEC-40).
 export const CreatePurchaseRequestSchema = z.strictObject({
+  // 화면이 보내기 전에 만드는 명령 번호(DEC-84). 같은 번호를 다시 보내면 요청은 하나만 남는다.
+  // 배포 전에 연 화면은 번호를 보내지 않으므로, 그 탭이 사라질 때까지 비워도 받는다. 그 뒤 필수로 바꾼다.
+  commandId: commandIdInput.optional(),
   title: text(PURCHASE_TITLE_MAX),
   eventId: recordIdInput.nullable().default(null),
   body: text(PURCHASE_BODY_MAX).nullable().default(null),

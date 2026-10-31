@@ -21,7 +21,10 @@ function open(t: SettlementKit) {
     createApp({
       auth: { handler: async () => new Response() },
       trustedOrigin: ORIGIN,
-      purchases: createPurchaseRoutes(t.db, testSession, { clock: () => now }),
+      purchases: createPurchaseRoutes(t.db, testSession, {
+        clock: () => now,
+        receiptKey: 'test-receipt-key',
+      }),
       settlement: createSettlementRoutes(t.db, testSession, { clock: () => now }),
       home: createHomeRoutes(t.db, testSession, { clock: () => now }),
     }),

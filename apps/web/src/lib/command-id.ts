@@ -17,7 +17,10 @@ export function newCommandId(): string {
   return hex.replace(GROUPS, '$1-$2-$3-$4-$5')
 }
 
-// 지출처럼 대화상자가 열린 동안만 기억하는 번호. 보낼 본문(key)이 앞 시도와 같으면 같은 번호, 다르면 새 번호다.
+// 칸 확인용 자리 값이다. 계약의 번호 칸이 칸 확인을 막지 않게 넣고, 보낼 때 withCommandId로 바꾼다.
+export const CHECK_COMMAND_ID = '00000000-0000-4000-8000-000000000000'
+
+// 지출처럼 화면이 살아 있는 동안 기억하는 번호. 보낼 본문(key)이 앞 시도와 같으면 같은 번호, 다르면 새 번호다.
 export type CommandMemo = { key: string; id: string } | null
 export type CommandMemoRef = { current: CommandMemo }
 
@@ -25,4 +28,13 @@ export function reuseCommandId(memo: CommandMemoRef, key: string): string {
   if (memo.current?.key === key) return memo.current.id
   memo.current = { key, id: newCommandId() }
   return memo.current.id
+}
+
+// 칸 확인을 지난 본문의 자리 값을 번호로 바꾼다. 칸이 앞 시도와 같으면 같은 번호라, 응답을 잃은 뒤 다시 눌러도 기록은 하나다.
+export function withCommandId<T extends { commandId?: string | undefined }>(
+  memo: CommandMemoRef,
+  checked: T,
+) {
+  const { commandId: _placeholder, ...content } = checked
+  return { ...content, commandId: reuseCommandId(memo, JSON.stringify(content)) }
 }

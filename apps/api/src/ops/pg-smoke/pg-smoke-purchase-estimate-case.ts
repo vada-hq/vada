@@ -6,7 +6,14 @@ import {
 import { budgetOf } from '../../budget/queries.js'
 import { decideLineItems } from '../../purchases/decide.js'
 import { createPurchaseRequest } from '../../purchases/service.js'
-import { changer, fail, pass, withConnections, type SmokeCase } from './pg-smoke-kit.js'
+import {
+  changer,
+  fail,
+  pass,
+  SMOKE_RECEIPT_KEY,
+  withConnections,
+  type SmokeCase,
+} from './pg-smoke-kit.js'
 import { moneyScene } from './pg-smoke-money-kit.js'
 
 const ITEM = { name: '예상 음료', quantity: 2, estimatedUnitPrice: 100, estimatedShippingFee: 30 }
@@ -40,7 +47,7 @@ export const purchaseEstimateCase: SmokeCase = {
           tx,
           actor,
           CreatePurchaseRequestSchema.parse({ title: '예상값 확인', items: [ITEM] }),
-          context.now,
+          { now: context.now, receiptKey: SMOKE_RECEIPT_KEY },
         ),
       )
       const item = request.items[0]!

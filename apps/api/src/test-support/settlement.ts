@@ -53,7 +53,11 @@ async function startSettlement(options: { limit?: number; bundleLimit?: number }
       trustedOrigin: ORIGIN,
       events: createEventRoutes(db, testSession, { clock, writeLimiter }),
       settlement: createSettlementRoutes(db, testSession, { clock }),
-      purchases: createPurchaseRoutes(db, testSession, { clock, writeLimiter }),
+      purchases: createPurchaseRoutes(db, testSession, {
+        clock,
+        writeLimiter,
+        receiptKey: 'test-receipt-key',
+      }),
       budget: createBudgetRoutes(db, testSession, { clock }),
       expenses: createExpenseRoutes(db, testSession, {
         receiptKey: 'test-receipt-key',
@@ -61,7 +65,11 @@ async function startSettlement(options: { limit?: number; bundleLimit?: number }
         writeLimiter,
         storage: store.storage,
       }),
-      incomes: createIncomeRoutes(db, testSession, { clock, writeLimiter }),
+      incomes: createIncomeRoutes(db, testSession, {
+        clock,
+        writeLimiter,
+        receiptKey: 'test-receipt-key',
+      }),
       closing: createClosingRoutes(db, testSession, { clock, bundleAvailable: true }),
       closingExport: createClosingExportRoutes(db, testSession, {
         clock,

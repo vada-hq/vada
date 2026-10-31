@@ -3,6 +3,7 @@ import type { Actor } from '../access/actor.js'
 import { can } from '../access/permissions.js'
 import { assertCurrentMembers } from '../chat/current-members.js'
 import { linkSourceMessage } from '../chat/source-message.js'
+import { saveReceipt } from '../commands/receipt.js'
 import type { Tx } from '../db/types.js'
 import { assertEventOpen } from '../events/completion.js'
 import { assertCouncilEvent } from '../events/council-event.js'
@@ -13,6 +14,7 @@ import { currentFinanceMembers } from './finance-members.js'
 import { lockedRequestRow } from './lock.js'
 import { decide, factsOf, roleAllows } from './policy.js'
 import { requestDetailOf } from './queries.js'
+import { requestCommandOf, resendRequest } from './resend.js'
 
 // 휴대폰 알림에 쓰는 값. 알림 기록은 같은 거래에서 이미 남겼고, 휴대폰 알림은 커밋 뒤에 보낸다.
 // decidedBy가 없으면 새 요청(재정부에게), 있으면 결재 결과(요청한 사람에게)이고 결재한 사람의 운영진 번호다.
@@ -52,19 +54,17 @@ async function noticeNewRequest(
   return recipientIds.length ? { requestId, recipientIds, decidedBy: null } : null
 }
 
-export async function createPurchaseRequest(
-  tx: Tx,
-  actor: Actor,
-  input: CreatePurchaseRequest,
-  now: Date,
-): Promise<{ request: PurchaseRequestDetail; notice: PurchaseNotice | null }> {
-  // 403이 다른 실패보다 먼저다. 요청한 사람은 기본이 나이고, 남을 대신해 내는 것은 재정부만이다(DEC-40).
+// 403이 다른 실패보다 먼저다. 요청한 사람은 기본이 나이고, 남을 대신해 내는 것은 재정부만이다(DEC-40).
+function assertMayRequest(actor: Actor, requestedBy: string) {
   if (!can(actor, 'purchase.request')) throw new ApiError('FORBIDDEN')
+  if (requestedBy !== actor.memberId && !can(actor, 'finance.manage'))
+    throw new ApiError('FORBIDDEN')
+}
+
+async function insertRequest(tx: Tx, actor: Actor, input: CreatePurchaseRequest, now: Date) {
   const requestedBy = input.requestedBy ?? actor.memberId
-  if (requestedBy !== actor.memberId) {
-    if (!can(actor, 'finance.manage')) throw new ApiError('FORBIDDEN')
+  if (requestedBy !== actor.memberId)
     await assertCurrentMembers(tx, actor.councilId, [requestedBy], now)
-  }
   // 다른 학생회 행사(409 EVENT_INVALID)를 먼저 걸러야 잠금 확인이 그 행사의 완료 여부를 드러내지 않는다.
   await assertCouncilEvent(tx, actor, input.eventId)
   await assertEventOpen(tx, input.eventId)
@@ -92,7 +92,29 @@ export async function createPurchaseRequest(
       actor: actor.memberId,
       values: itemValues(requestId, item),
     })
-  const notice = await noticeNewRequest(tx, actor, { requestId, requestedBy }, now)
+  return { requestId, notice: await noticeNewRequest(tx, actor, { requestId, requestedBy }, now) }
+}
+
+// 같은 명령 번호의 재전송은 새로 만들지 않고 처음 요청의 지금 상세를 주고 알림을 다시 보내지 않는다(DEC-84).
+// 403이 먼저이고, 거절한 요청은 거래가 물러나 영수증도 없다.
+export async function createPurchaseRequest(
+  tx: Tx,
+  actor: Actor,
+  input: CreatePurchaseRequest,
+  command: { now: Date; receiptKey: string },
+): Promise<{ request: PurchaseRequestDetail; notice: PurchaseNotice | null }> {
+  assertMayRequest(actor, input.requestedBy ?? actor.memberId)
+  const sent = requestCommandOf(actor, input, command)
+  const resent = sent && (await resendRequest(tx, actor, sent))
+  if (resent) return { request: resent, notice: null }
+  const { requestId, notice } = await insertRequest(tx, actor, input, command.now)
+  if (sent)
+    await saveReceipt(
+      tx,
+      sent.key,
+      { bodyHash: sent.bodyHash, resultId: requestId, resultKind: 'request' },
+      command.now,
+    )
   return { request: await requestDetailOf(tx, actor, requestId), notice }
 }
 

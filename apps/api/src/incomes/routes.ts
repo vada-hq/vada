@@ -39,9 +39,10 @@ type WriteKit = {
   writeLimiter: RateLimiter
   clock: () => Date
   db: Db
+  receiptKey: string
 }
 
-function addWriteRoutes({ routes, auth, writeLimiter, clock, db }: WriteKit) {
+function addWriteRoutes({ routes, auth, writeLimiter, clock, db, receiptKey }: WriteKit) {
   const asked = askedBy(clock)
   routes.post(root, json(CreateIncomeSchema), auth, async c => {
     // 요청 내기·지출 적기와 같은 한도다. 로그인한 사람만 세므로 인증 뒤에 둔다.
@@ -49,7 +50,7 @@ function addWriteRoutes({ routes, auth, writeLimiter, clock, db }: WriteKit) {
     const input = c.req.valid('json')
     const request = asked(c)
     const detail = await inCouncilChange(db, request, (tx, actor) =>
-      createIncome(tx, actor, input, request.now),
+      createIncome(tx, actor, input, { now: request.now, receiptKey }),
     )
     return c.json({ income: detail } satisfies IncomeResponse, CREATED)
   })
@@ -66,7 +67,7 @@ function addWriteRoutes({ routes, auth, writeLimiter, clock, db }: WriteKit) {
 export function createIncomeRoutes(
   db: Db,
   getSession: SessionReader,
-  options: { clock?: () => Date; writeLimiter?: RateLimiter } = {},
+  options: { clock?: () => Date; writeLimiter?: RateLimiter; receiptKey: string },
 ) {
   const clock = options.clock ?? (() => new Date())
   const writeLimiter = options.writeLimiter ?? createPurchaseWriteLimiter()
@@ -91,6 +92,6 @@ export function createIncomeRoutes(
     )
     return c.json({ income: detail } satisfies IncomeResponse)
   })
-  addWriteRoutes({ routes, auth, writeLimiter, clock, db })
+  addWriteRoutes({ routes, auth, writeLimiter, clock, db, receiptKey: options.receiptKey })
   return routes
 }

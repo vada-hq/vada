@@ -232,6 +232,13 @@
       "when": 1793311918188,
       "tag": "0032_budget_item_department",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1793384116068,
+      "tag": "0033_command_receipt_money_kinds",
+      "breakpoints": true
     }
   ]
 }

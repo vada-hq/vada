@@ -10,6 +10,7 @@ import {
   fail,
   memberIdOf,
   pass,
+  SMOKE_RECEIPT_KEY,
   unexpectedFailures,
   versionsOf,
   withConnections,
@@ -103,7 +104,10 @@ async function race(run: Run, scene: MoneyScene, taskId: string) {
           context,
           scene.requester,
         )('council.view', (tx, actor) =>
-          createPurchaseRequest(tx, actor, requestInput(taskId), context.now),
+          createPurchaseRequest(tx, actor, requestInput(taskId), {
+            now: context.now,
+            receiptKey: SMOKE_RECEIPT_KEY,
+          }),
         ),
     ],
   )

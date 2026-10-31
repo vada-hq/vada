@@ -3,6 +3,7 @@ import { menuPath, PURCHASE_TITLE_MAX, type PurchaseRequestDetail } from '@vada/
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
 import { DialogFooter } from '@/components/ui/dialog'
+import type { CommandMemo } from '@/lib/command-id'
 import { useUnsavedInput } from '@/lib/leave-guard'
 import {
   requiredText,
@@ -169,12 +170,19 @@ function CreateForm({
   useRequestProductSeeds(props.councilId, restored, autoChange)
   // 쓰던 입력이 남았으면 새로고침이나 다른 곳으로 떠날 때 묻는다(떠날 때 확인).
   useUnsavedInput(dirty)
+  const memo = useRef<CommandMemo>(draft.command ?? null)
+  const saveDraft = () => savePurchaseDraft(draft, values, picked, memo.current)
   useEffect(() => {
-    savePurchaseDraft(draft, values, picked)
+    savePurchaseDraft(draft, values, picked, memo.current)
   }, [draft, values, picked])
   const linked = taskId ?? picked?.id
   const request = { ...requestOf(values), ...(linked ? { taskId: linked } : {}) }
-  const create = useRequestCreate(props.councilId, request, { ...props, setSaving })
+  const create = useRequestCreate(props.councilId, request, {
+    ...props,
+    setSaving,
+    memo,
+    saveMemo: saveDraft,
+  })
   const set = (patch: Partial<typeof values>) => setValues({ ...values, ...patch })
   const { formRef, errors: fieldErrors, attempt } = useRequestCheck(values, create.parsed)
   return (
