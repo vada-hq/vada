@@ -27,8 +27,11 @@ const rows = (president: Cells): Rows => ({
 })
 
 // 쓰기 요청. 동작 하나마다 한 칸이라, 목록에 동작을 더하면 여기도 더해야 한다.
-const WRITE: Record<EventAction, (id: string) => [string, unknown]> = {
-  'event.update': id => [id, { name: '바뀐 이름', startsAt: null, endsAt: null, place: null }],
+const WRITE: Record<EventAction, (id: string, versionNo: number) => [string, unknown]> = {
+  'event.update': (id, baseVersionNo) => [
+    id,
+    { name: '바뀐 이름', startsAt: null, endsAt: null, place: null, baseVersionNo },
+  ],
   'event.complete': id => [`${id}/complete`, {}],
   'event.cancel_completion': id => [`${id}/cancel-completion`, { reason: '되돌림' }],
 }
@@ -148,7 +151,9 @@ test(
             NOT_BLOCKERS.includes(expected) ? undefined : expected,
             `${cell} blockers`,
           )
-          const [path, body] = WRITE[action](id)
+          // 되는 칸은 읽은 판으로 보낸다. 안 되는 칸은 낡은 판으로 보내도 표의 코드가 먼저여야 한다(권한·상태 거절이 409보다 앞선다).
+          const version = read.event.versionNo + (expected === null ? 0 : 1)
+          const [path, body] = WRITE[action](id, version)
           const response = await t.api.post(`${t.base}/${path}`, body, user)
           const code = response.ok ? null : ((await response.json()) as { error: string }).error
           assert.equal(code, expected, `${cell} 쓰기`)
