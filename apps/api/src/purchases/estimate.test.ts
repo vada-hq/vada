@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { WON_MAX, type BudgetResponse, type PurchaseRequestsResponse } from '@vada/contracts'
-import { detailOf, ITEM, runPurchases } from '../test-support/purchases.js'
+import { detailOf, ITEM, runPurchases, type PurchaseKit } from '../test-support/purchases.js'
 
 test(
   '예상 단가·배송비가 판과 상세·목록에 남고 승인 금액은 비어 있다',
@@ -158,5 +158,103 @@ test(
         made.items[0]!.id,
       ]),
     )
+  }),
+)
+
+const listed = async (s: PurchaseKit, id: string) => {
+  const list = (await (
+    await s.api.get(`${s.base}?view=all`, 's-plain')
+  ).json()) as PurchaseRequestsResponse
+  return list.requests.find(request => request.id === id)!
+}
+const read = async (s: PurchaseKit, id: string) =>
+  detailOf(await s.api.get(`${s.base}/${id}`, 's-financeMember'))
+// 목록과 상세가 같은 값인지 함께 본다.
+async function expectSummary(
+  s: PurchaseKit,
+  id: string,
+  expected: { itemCount: number; estimate: { subtotal: number | null; total: number | null } },
+) {
+  for (const summary of [await listed(s, id), await read(s, id)]) {
+    assert.equal(summary.itemCount, expected.itemCount)
+    assert.deepEqual(summary.estimate, expected.estimate)
+  }
+}
+
+const BUY = { name: '살 것', quantity: 2, estimatedUnitPrice: 100, estimatedShippingFee: 30 }
+const DROP = { name: '뺄 것', quantity: 1, estimatedUnitPrice: 1000, estimatedShippingFee: 500 }
+
+test(
+  '요청의 예상 금액과 품목 수는 반려·취소 품목을 빼고 그 품목의 배송비도 뺀다',
+  runPurchases(async s => {
+    const request = await s.made({ title: '혼합', items: [BUY, DROP, DROP, BUY] })
+    await expectSummary(s, request.id, {
+      itemCount: 4,
+      estimate: { subtotal: 2400, total: 3460 },
+    })
+    await s.decide(request.items[1]!.id, 'rejected')
+    await expectSummary(s, request.id, {
+      itemCount: 3,
+      estimate: { subtotal: 1400, total: 1960 },
+    })
+    await s.decide(request.items[2]!.id, 'approved')
+    await s.decide(request.items[2]!.id, 'cancelled')
+    await s.decide(request.items[3]!.id, 'approved')
+    await expectSummary(s, request.id, {
+      itemCount: 2,
+      estimate: { subtotal: 400, total: 460 },
+    })
+    // 품목 목록과 요청 상태는 그대로 넷을 본다.
+    const detail = await read(s, request.id)
+    assert.equal(detail.items.length, 4)
+    assert.equal(detail.status, 'pending')
+  }),
+)
+
+test(
+  '반려한 품목의 모르는 값은 합계를 모르게 하지 않고, 살 품목의 모르는 값은 그대로 모른다',
+  runPurchases(async s => {
+    const unknownShipping = await s.made({
+      title: '배송비 미확인 반려',
+      items: [BUY, { ...DROP, estimatedShippingFee: null }],
+    })
+    await expectSummary(s, unknownShipping.id, {
+      itemCount: 2,
+      estimate: { subtotal: 1200, total: null },
+    })
+    await s.decide(unknownShipping.items[1]!.id, 'rejected')
+    await expectSummary(s, unknownShipping.id, {
+      itemCount: 1,
+      estimate: { subtotal: 200, total: 230 },
+    })
+    const unknownPrice = await s.made({ title: '단가 미확인 반려', items: [BUY, ITEM] })
+    await s.decide(unknownPrice.items[1]!.id, 'rejected')
+    await expectSummary(s, unknownPrice.id, {
+      itemCount: 1,
+      estimate: { subtotal: 200, total: 230 },
+    })
+    const stillUnknown = await s.made({ title: '살 품목 미확인', items: [BUY, ITEM, DROP] })
+    await s.decide(stillUnknown.items[2]!.id, 'rejected')
+    await expectSummary(s, stillUnknown.id, {
+      itemCount: 2,
+      estimate: { subtotal: null, total: null },
+    })
+  }),
+)
+
+test(
+  '살 품목이 없으면 0개·0원이고 미확인으로 보이지 않는다: 모두 반려, 모두 취소, 요청 취소',
+  runPurchases(async s => {
+    const rejected = await s.made({ title: '모두 반려', items: [BUY, ITEM] })
+    await s.decide(rejected.items[0]!.id, 'rejected')
+    await s.decide(rejected.items[1]!.id, 'rejected')
+    const cancelledItems = await s.made({ title: '모두 취소', items: [BUY] })
+    await s.decide(cancelledItems.items[0]!.id, 'approved')
+    await s.decide(cancelledItems.items[0]!.id, 'cancelled')
+    const cancelled = await s.made({ title: '요청 취소', items: [BUY, DROP] })
+    const cancel = await s.api.post(`${s.base}/${cancelled.id}/cancel`, {}, 's-planningMember')
+    assert.equal(cancel.status, 204)
+    for (const id of [rejected.id, cancelledItems.id, cancelled.id])
+      await expectSummary(s, id, { itemCount: 0, estimate: { subtotal: 0, total: 0 } })
   }),
 )

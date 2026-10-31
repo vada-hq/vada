@@ -76,7 +76,7 @@ export function summaryOf(row: PurchaseSummaryRow, payable: boolean): PurchaseRe
     status: statusOfRow(row),
     requestedBy: { id: row.requestedBy, name: row.requesterName },
     neededBy: row.neededBy,
-    itemCount: row.items,
+    itemCount: row.buyingItems,
     createdAt: row.createdAt.toISOString(),
     event: row.eventId && row.eventName ? { id: row.eventId, name: row.eventName } : null,
     payable,
