@@ -1,7 +1,7 @@
 import type { PurchaseDecision, PurchaseLineItem } from '@vada/contracts'
 import { decisionLine } from './purchase-text'
 
-// 결재: 어느 품목을 누가 언제 어떻게 결재했는지(반려는 사유까지). 결재가 없으면 보이지 않는다.
+// 결재: 어느 품목을 누가 언제 어떻게 결재했는지(반려 사유, 예산 초과 기록까지). 결재가 없으면 보이지 않는다.
 export function RequestDecisions({
   decisions,
   items,

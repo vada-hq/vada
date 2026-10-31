@@ -5,7 +5,7 @@ const UNKNOWN_PERSON = '알 수 없는 사람'
 
 const OUTCOME_TEXT = { approved: '승인', rejected: '반려', cancelled: '취소' } as const
 
-// 결재 한 줄: '이름 · 10월 21일 14:03 · 반려: 사유' (취소도 사유가 있다)
+// 결재 한 줄: '이름 · 10월 21일 14:03 · 반려: 사유' (취소도 사유가 있고, 예산을 넘은 승인은 서버가 남긴 초과 기록이 붙는다)
 export function decisionLine(decision: PurchaseDecision) {
   const outcome = `${OUTCOME_TEXT[decision.outcome]}${decision.reason ? `: ${decision.reason}` : ''}`
   return [decision.by?.name ?? UNKNOWN_PERSON, monthDayTime(decision.at), outcome].join(' · ')
