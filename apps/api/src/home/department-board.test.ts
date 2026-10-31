@@ -101,6 +101,29 @@ test(
 )
 
 test(
+  '부서의 담당자 없는 업무는 부장 홈이 마감과 상관없이 모두 세고, 회장단 홈 ①은 마감 임박한 것만 보인다',
+  withSettlement(async t => {
+    const h = open(t)
+    await h.planning('마감 없음', null, { assigneeId: null })
+    await h.planning('먼 마감', '2026-11-20', { assigneeId: null })
+    await h.planning('내일 마감', '2026-10-26', { assigneeId: null })
+    const { ops } = await h.board()
+    assert.deepEqual(ops.assign, {
+      by: 'head',
+      noAssignee: 3,
+      departments: [{ id: h.departments.planning, name: '기획부' }],
+    })
+    assert.equal(ops.total, 3)
+    const council = (await h.read('s-president')).councilBoard!.ops
+    assert.deepEqual(
+      council.rows.map(row => row.title),
+      ['내일 마감'],
+    )
+    assert.equal(council.assign.by === 'council' && council.assign.noDepartment, 0)
+  }),
+)
+
+test(
   '직급 부서가 둘이면 두 부서 업무를 합치고, 직급이 끝난 부서는 빠진다',
   withSettlement(async t => {
     const h = open(t)

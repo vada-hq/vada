@@ -204,8 +204,6 @@ test('담당자 없음은 부서 유무와 무관하게 홈·행사 카드·업�
     const expected = [missing, noDepartment, left, leftWithoutDepartment].sort()
     assert.deepEqual(rows.map(row => row.id).sort(), expected)
     const home = (await h.read('s-president')).councilBoard!
-    assert.equal(home.attention.total, expected.length)
-    assert.deepEqual(home.attention.items.map(item => item.task.id).sort(), expected)
     assert.equal(home.events.cards[0]!.tasks.unassigned, rows.length)
     const card = (await h.read('s-planningHead')).departments![0]!
     assert.equal(card.counts.unassigned, 2)

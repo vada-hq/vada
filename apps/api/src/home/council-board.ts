@@ -3,7 +3,6 @@ import {
   HOME_LIST_LIMIT,
   dateFromKorean,
   type EventSummary,
-  type HomeAttention,
   type HomeBoardEventRef,
   type HomeCouncilBoard,
 } from '@vada/contracts'
@@ -76,20 +75,6 @@ async function followUpOf(db: Reader, actor: Actor, now: Date) {
   }
 }
 
-// 확인이 필요한 운영 상황: 지남(마감 순) → 담당자 없음(마감 순). 열린 업무는 마감 순으로 읽어 왔다.
-// 지남이면서 담당자 없는 업무는 지남에 한 번만 둔다(업무 화면의 두 칩을 합친 수와 같다).
-function attentionOf(open: OpenTask[]) {
-  const items: HomeAttention[] = [
-    ...open
-      .filter(row => row.summary.overdue)
-      .map(row => ({ task: row.summary, reason: 'overdue' as const })),
-    ...open
-      .filter(row => row.unassigned && !row.summary.overdue)
-      .map(row => ({ task: row.summary, reason: 'unassigned' as const })),
-  ]
-  return { items: items.slice(0, HOME_LIST_LIMIT), total: items.length }
-}
-
 // 회장단 홈(HOME-01C, DEC-95). 새로 세지 않고 원래 화면의 도우미를 부른다(DEC-69). open은 학생회 전체의 열린 업무다.
 export async function councilBoardOf(
   db: Reader,
@@ -105,7 +90,6 @@ export async function councilBoardOf(
     financeStaffed,
     events: await eventCardsOf(db, actor, now, open),
     followUp,
-    attention: attentionOf(open),
     unassignedMembers,
     ops: await opsOf(db, actor, now, { open, people, unassignedMembers, financeStaffed }),
     todo: await todoOf(db, actor, now, { open, people, followUp }),

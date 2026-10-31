@@ -154,68 +154,6 @@ test('후속 정리 중인 행사는 재정 행사 정산 탭과 같은 행사·
   })()
 })
 
-test('확인이 필요한 운영 상황은 지남 → 담당자 없음이고 수가 업무 화면의 지남과 담당자 없음을 합친 수와 같다', async () => {
-  await withSettlement(async t => {
-    const h = open(t)
-    const planning = t.council.departments.planning
-    const { planningMember } = t.council.people
-    const festival = await t.event({ name: '축제', startsAt: at('2026-11-01T10:00:00') })
-    const lateUnassigned = await h.task({
-      title: '늦은 미배정',
-      departmentId: planning,
-      dueAt: due('2026-10-22'),
-    })
-    const late = await h.task({
-      title: '늦음',
-      eventId: festival,
-      departmentId: planning,
-      assigneeId: planningMember.memberId,
-      dueAt: due('2026-10-20'),
-    })
-    const unassigned = await h.task({
-      title: '담당 없음',
-      eventId: festival,
-      departmentId: planning,
-      dueAt: due('2026-10-30'),
-    })
-    await h.task({
-      title: '괜찮음',
-      departmentId: planning,
-      assigneeId: planningMember.memberId,
-      dueAt: due('2026-10-30'),
-    })
-    await h.task({
-      title: '끝남',
-      departmentId: planning,
-      dueAt: due('2026-10-19'),
-      status: 'done',
-    })
-    await h.task(
-      {
-        title: '다른 학생회',
-        departmentId: t.other.departments.planning,
-        dueAt: due('2026-10-19'),
-      },
-      t.other,
-    )
-    const { attention } = await h.board()
-    assert.deepEqual(
-      attention.items.map(item => [item.task.id, item.reason]),
-      [
-        [late, 'overdue'],
-        [lateUnassigned, 'overdue'],
-        [unassigned, 'unassigned'],
-      ],
-    )
-    const overdueIds = (await h.tasksOf('view=all')).filter(row => row.overdue).map(row => row.id)
-    const unassignedIds = (await h.tasksOf('view=unassigned')).map(row => row.id)
-    assert.equal(attention.total, new Set([...overdueIds, ...unassignedIds]).size)
-    // 줄 메타에 쓰는 부서와 행사가 줄에 있다.
-    assert.equal(attention.items[0]!.task.department?.name, '기획부')
-    assert.equal(attention.items[0]!.task.event?.name, '축제')
-  })()
-})
-
 test('회장단 홈 칸은 회장단에게만 오고 미배정 수가 부서에 넣으면 준다', async () => {
   await withSettlement(async t => {
     const h = open(t)

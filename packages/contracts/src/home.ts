@@ -200,14 +200,6 @@ export interface HomeFollowUp {
   remaining: { tasks: number; settlement: number }
 }
 
-// 확인이 필요한 운영 상황의 갈래. 지남이면서 담당자 없는 업무는 지남 한 번으로 센다.
-export type HomeAttentionReason = 'overdue' | 'unassigned'
-
-export interface HomeAttention {
-  task: TaskSummary
-  reason: HomeAttentionReason
-}
-
 // 회장단 홈(HOME-01C)의 칸. 회장단 홈 종류에만 온다.
 export interface HomeCouncilBoard {
   // 이 학생회 지금 기수의 재정 역할 부서에 유효한 구성원이 있는가(구매 요청 알림 수신자와 같은 기준).
@@ -220,11 +212,9 @@ export interface HomeCouncilBoard {
   }
   // 재정 '행사 정산' 탭과 같은 행사·차례(끝난 지 오래된 것부터) HOME_LIST_LIMIT줄까지와 전체 수
   followUp: { events: HomeFollowUp[]; total: number }
-  // 학생회 업무 가운데 지남(마감 순) → 담당자 없음(마감 순), HOME_LIST_LIMIT줄까지와 전체 수
-  attention: { items: HomeAttention[]; total: number }
   // 지금 기수에 학생회 직급도 열린 부서 소속도 없는 운영진 수(DEC-87)
   unassignedMembers: number
-  // ① 확인이 필요한 운영 상황(f8). attention을 대신하며, attention은 화면이 더 읽지 않으면 걷는다.
+  // ① 확인이 필요한 운영 상황(f8)
   ops: HomeOps
   // ③ 내가 할 일(c35). followUp을 대신하며, followUp은 화면이 더 읽지 않으면 걷는다.
   todo: HomeTodo

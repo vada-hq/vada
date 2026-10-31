@@ -23,7 +23,6 @@ const councilBoard = {
   financeStaffed: true,
   events: { cards: [], counts: { planning: 0, ongoing: 0, followUp: 0 } },
   followUp: { events: [], total: 0 },
-  attention: { items: [], total: 0 },
   unassignedMembers: 0,
   ops: {
     rows: [],
